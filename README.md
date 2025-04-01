@@ -1,59 +1,32 @@
-[![DOI](https://zenodo.org/badge/657341621.svg)](https://zenodo.org/doi/10.5281/zenodo.10383685)
+# Graphomotor Study Toolkit
 
-# CMI-DAIR Template Python Repository
-
-Welcome to the CMI-DAIR Template Python Repository! This template is designed to streamline your project setup and ensure a consistent structure. To get started, follow these steps:
-
-- [ ] Run `setup_template.py` to initialize the repository.
-- [ ] Replace the content of this `README.md` with details specific to your project.
-- [ ] Install the `pre-commit` hooks to ensure code quality on each commit.
-- [ ] Revise SECURITY.md to reflect supported versions or remove it if not applicable.
-- [ ] Remove the placeholder src and test files, these are there merely to show how the CI works.
-- [ ] If it hasn't already been done for your organization/acccount, grant third-party app permissions for CodeCov.
-- [ ] To set up an API documentation website, after the first successful build, go to the `Settings` tab of your repository, scroll down to the `GitHub Pages` section, and select `gh-pages` as the source. This will generate a link to your API docs.
-- [ ] Update stability badge in `README.md` to reflect the current state of the project. A list of stability badges to copy can be found [here](https://github.com/orangemug/stability-badges). The [node documentation](https://nodejs.org/docs/latest-v20.x/api/documentation.html#documentation_stability_index) can be used as a reference for the stability levels.
-
-# Project name
-
-[![Build](https://github.com/childmindresearch/template-python-repository/actions/workflows/test.yaml/badge.svg?branch=main)](https://github.com/childmindresearch/template-python-repository/actions/workflows/test.yaml?query=branch%3Amain)
-[![codecov](https://codecov.io/gh/childmindresearch/template-python-repository/branch/main/graph/badge.svg?token=22HWWFWPW5)](https://codecov.io/gh/childmindresearch/template-python-repository)
+[![Build](https://github.com/childmindresearch/graphomotor/actions/workflows/test.yaml/badge.svg?branch=main)](https://github.com/childmindresearch/graphomotor/actions/workflows/test.yaml?query=branch%3Amain)
+[![codecov](https://codecov.io/gh/childmindresearch/graphomotor/branch/main/graph/badge.svg?token=22HWWFWPW5)](https://codecov.io/gh/childmindresearch/graphomotor)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-![stability-stable](https://img.shields.io/badge/stability-stable-green.svg)
-[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/childmindresearch/template-python-repository/blob/main/LICENSE)
-[![pages](https://img.shields.io/badge/api-docs-blue)](https://childmindresearch.github.io/template-python-repository)
+![stability-experimental](https://img.shields.io/badge/stability-experimental-orange.svg)
+[![LGPL--2.1 License](https://img.shields.io/badge/license-LGPL--2.1-blue.svg)](https://github.com/childmindresearch/graphomotor/blob/main/LICENSE)
+[![pages](https://img.shields.io/badge/api-docs-blue)](https://childmindresearch.github.io/graphomotor)
 
-What problem does this tool solve?
+A Python toolkit for the analysis of Graphomotor study.
 
-## Features
+## Progress
 
-- A few
-- Cool
-- Things
+| Task name | Preprocessing | Feature extraction | Visualization |
+| :--- | :---: | :---: | :---: |
+| Spiral | ![data_cleaning](https://img.shields.io/badge/pending-red) | ![feature_extraction](https://img.shields.io/badge/in_progress-yellow) | ![visualization](https://img.shields.io/badge/pending-red) |
+| Rey-Osterrieth Complex Figure | ![data_cleaning](https://img.shields.io/badge/pending-red) | ![feature_extraction](https://img.shields.io/badge/pending-red) | ![visualization](https://img.shields.io/badge/pending-red) |
+| Alphabetic Writing | ![data_cleaning](https://img.shields.io/badge/pending-red)|  ![feature_extraction](https://img.shields.io/badge/pending-red) | ![visualization](https://img.shields.io/badge/pending-red) |
+| Digit Symbol Substitute | ![data_cleaning](https://img.shields.io/badge/pending-red)|  ![feature_extraction](https://img.shields.io/badge/pending-red) | ![visualization](https://img.shields.io/badge/pending-red) |
+| Trails Making |  ![data_cleaning](https://img.shields.io/badge/pending-red) | ![feature_extraction](https://img.shields.io/badge/pending-red) | ![visualization](https://img.shields.io/badge/pending-red) |
 
 ## Installation
 
-Install this package via :
+Install the newest development version via :
 
 ```sh
-pip install APP_NAME
-```
-
-Or get the newest development version via:
-
-```sh
-pip install git+https://github.com/childmindresearch/template-python-repository
-```
-
-## Quick start
-
-Short tutorial, maybe with a
-
-```Python
-import APP_NAME
-
-APP_NAME.short_example()
+pip install git+https://github.com/childmindresearch/graphomotor
 ```
 
 ## Links or References
 
-- [https://www.wikipedia.de](https://www.wikipedia.de)
+- [A very important resource](https://www.youtube.com/watch?v=dQw4w9WgXcQ)
