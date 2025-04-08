@@ -1,3 +1,6 @@
+# vscode
+.vscode/
+
 # MacOS system files
 .DS_Store
 
