@@ -86,16 +86,22 @@ def test_load_spiral_invalid_data_types(
             reader.load_spiral(sample_data)
 
 
-def test_load_spiral_invalid_timestamp(sample_data: Path) -> None:
-    """Test validation error when UTC_Timestamp is invalid."""
+@pytest.mark.parametrize(
+    "column,error_msg",
+    [
+        ("UTC_Timestamp", "Error converting 'UTC_Timestamp' to datetime"),
+        ("epoch_time_in_seconds_start", "Error converting 'start_time' to datetime"),
+    ],
+)
+def test_load_spiral_invalid_timestamps(
+    sample_data: Path, column: str, error_msg: str
+) -> None:
+    """Test validation error when timestamps are invalid."""
     data = pd.read_csv(sample_data)
-    data["UTC_Timestamp"] = data["UTC_Timestamp"] * 1000000
+    data[column] = data[column] * 1000000
     with pytest.MonkeyPatch.context() as mp:
         mp.setattr(pd, "read_csv", lambda *args, **kwargs: data)
-        with pytest.raises(
-            ValueError,
-            match="Error converting 'UTC_Timestamp' to datetime",
-        ):
+        with pytest.raises(ValueError, match=error_msg):
             reader.load_spiral(sample_data)
 
 

@@ -97,7 +97,7 @@ def load_spiral(filepath: Path) -> models.Spiral:
             data["epoch_time_in_seconds_start"].iloc[0], tz=datetime.timezone.utc
         )
     except Exception as e:
-        raise ValueError(f"Error setting 'start_time': {e}")
+        raise ValueError(f"Error converting 'start_time' to datetime: {e}")
 
     data = data.drop(columns=["epoch_time_in_seconds_start"])
 
