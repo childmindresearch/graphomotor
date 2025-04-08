@@ -34,7 +34,7 @@ class Spiral(BaseModel):
             v: The dataframe to validate.
 
         Returns:
-            v: The dataframe if it is not empty.
+            The dataframe if it is not empty.
 
         Raises:
             ValueError: If the dataframe is empty.
@@ -54,7 +54,7 @@ class Spiral(BaseModel):
             v: The metadata dictionary to validate.
 
         Returns:
-            v: The metadata dictionary if it is valid.
+            The metadata dictionary if it is valid.
 
         Raises:
             ValueError: If the metadata dictionary has invalid values.
