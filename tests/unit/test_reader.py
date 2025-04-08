@@ -1,6 +1,6 @@
 """Test cases for reader.py functions."""
 
-from pathlib import Path
+import pathlib
 
 import pandas as pd
 import pytest
@@ -8,14 +8,14 @@ import pytest
 from graphomotor.io import reader
 
 
-def test_parse_filename_valid(sample_data: Path) -> None:
+def test_parse_filename_valid(sample_data: pathlib.Path) -> None:
     """Test that valid filenames are parsed correctly."""
     expected_metadata = {
         "id": "5123456",
         "hand": "Dom",
         "task": "spiral_trace1",
     }
-    metadata = reader.parse_filename(sample_data.stem)
+    metadata = reader._parse_filename(sample_data.stem)
     assert metadata == expected_metadata, (
         f"Expected {expected_metadata}, but got {metadata}"
     )
@@ -37,10 +37,33 @@ def test_parse_filename_invalid(invalid_filename: str) -> None:
         ValueError,
         match=f"Filename does not match expected pattern: {filename}",
     ):
-        reader.parse_filename(invalid_filename)
+        reader._parse_filename(invalid_filename)
 
 
-def test_load_spiral_invalid_extension(sample_data: Path) -> None:
+@pytest.mark.parametrize("missing_column", list(reader.DTYPE_MAP.keys()))
+def test_check_missing_columns(sample_data: pathlib.Path, missing_column: str) -> None:
+    """Test that missing columns raise a KeyError."""
+    data = pd.read_csv(sample_data)
+    data = data.drop(columns=[missing_column])
+    with pytest.raises(KeyError, match=f"Missing required columns: {missing_column}"):
+        reader._check_missing_columns(data)
+
+
+def test_convert_start_time(sample_data: pathlib.Path) -> None:
+    """Test that start time is converted correctly."""
+    data = pd.read_csv(sample_data)
+    data["epoch_time_in_seconds_start"] = data["epoch_time_in_seconds_start"] * 1000000
+    with pytest.raises(ValueError, match="Error converting 'start_time' to datetime"):
+        reader._convert_start_time(data)
+
+
+def test_load_spiral_str_path(sample_data: pathlib.Path) -> None:
+    """Test that loading a spiral file with a string path works."""
+    spiral = reader.load_spiral(str(sample_data))
+    assert spiral is not None
+
+
+def test_load_spiral_invalid_extension(sample_data: pathlib.Path) -> None:
     """Test that loading a non-CSV file raises an error."""
     invalid_file = sample_data.with_suffix(".txt")
     filename = invalid_file.as_posix().replace("[", "\\[").replace("]", "\\]")
@@ -48,64 +71,7 @@ def test_load_spiral_invalid_extension(sample_data: Path) -> None:
         reader.load_spiral(invalid_file)
 
 
-@pytest.mark.parametrize("missing_column", reader.DATA_COLUMNS)
-def test_load_spiral_missing_columns(sample_data: Path, missing_column: str) -> None:
-    """Test validation error when required columns are missing."""
-    data = pd.read_csv(sample_data)
-    data = data.drop(columns=[missing_column])
-    with pytest.MonkeyPatch.context() as mp:
-        mp.setattr(pd, "read_csv", lambda *args, **kwargs: data)
-        with pytest.raises(
-            KeyError,
-            match=r"Missing required columns: \['" + missing_column + r"'\]",
-        ):
-            reader.load_spiral(sample_data)
-
-
-@pytest.mark.parametrize(
-    "column,expected_type",
-    [
-        ("line_number", "int"),
-        ("x", "float"),
-        ("y", "float"),
-        ("UTC_Timestamp", "float"),
-        ("seconds", "float"),
-    ],
-)
-def test_load_spiral_invalid_data_types(
-    sample_data: Path, column: str, expected_type: str
-) -> None:
-    """Test validation error when data types are incorrect."""
-    data = pd.read_csv(sample_data)
-    data[column] = data[column].astype(str)
-    with pytest.MonkeyPatch.context() as mp:
-        mp.setattr(pd, "read_csv", lambda *args, **kwargs: data)
-        with pytest.raises(
-            ValueError, match=f"'{column}' should be of type {expected_type}"
-        ):
-            reader.load_spiral(sample_data)
-
-
-@pytest.mark.parametrize(
-    "column,error_msg",
-    [
-        ("UTC_Timestamp", "Error converting 'UTC_Timestamp' to datetime"),
-        ("epoch_time_in_seconds_start", "Error converting 'start_time' to datetime"),
-    ],
-)
-def test_load_spiral_invalid_timestamps(
-    sample_data: Path, column: str, error_msg: str
-) -> None:
-    """Test validation error when timestamps are invalid."""
-    data = pd.read_csv(sample_data)
-    data[column] = data[column] * 1000000
-    with pytest.MonkeyPatch.context() as mp:
-        mp.setattr(pd, "read_csv", lambda *args, **kwargs: data)
-        with pytest.raises(ValueError, match=error_msg):
-            reader.load_spiral(sample_data)
-
-
-def test_load_spiral_drops_start_time(sample_data: Path) -> None:
+def test_load_spiral_drops_start_time(sample_data: pathlib.Path) -> None:
     """Test that the 'epoch_time_in_seconds_start' column is dropped."""
     spiral = reader.load_spiral(sample_data)
     assert "epoch_time_in_seconds_start" not in spiral.data.columns
