@@ -57,7 +57,7 @@ class Spiral(BaseModel):
             v: The metadata dictionary if it is valid.
 
         Raises:
-            ValueError: If the metadata dictionary is empty.
+            ValueError: If the metadata dictionary has invalid values.
         """
         if not v["id"].startswith("5"):
             raise ValueError("'id' must start with digit 5")

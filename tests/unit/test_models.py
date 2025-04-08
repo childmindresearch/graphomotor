@@ -5,7 +5,7 @@ import datetime
 import pandas as pd
 import pytest
 
-from graphomotor.core.models import Spiral
+from graphomotor.core import models
 
 
 def test_valid_spiral_creation(
@@ -13,7 +13,7 @@ def test_valid_spiral_creation(
     valid_spiral_metadata: dict[str, str | datetime.datetime],
 ) -> None:
     """Test creating a valid Spiral instance."""
-    spiral = Spiral(data=valid_spiral_data, metadata=valid_spiral_metadata)
+    spiral = models.Spiral(data=valid_spiral_data, metadata=valid_spiral_metadata)
     assert spiral.data.equals(valid_spiral_data)
     assert spiral.metadata == valid_spiral_metadata
 
@@ -27,7 +27,7 @@ def test_empty_dataframe(
     )
 
     with pytest.raises(ValueError, match="DataFrame is empty"):
-        Spiral(data=empty_data, metadata=valid_spiral_metadata)
+        models.Spiral(data=empty_data, metadata=valid_spiral_metadata)
 
 
 @pytest.mark.parametrize(
@@ -64,4 +64,4 @@ def test_invalid_metadata_values(
     invalid_metadata[key] = invalid_value
 
     with pytest.raises(ValueError, match=expected_error):
-        Spiral(data=valid_spiral_data, metadata=invalid_metadata)
+        models.Spiral(data=valid_spiral_data, metadata=invalid_metadata)
