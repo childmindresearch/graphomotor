@@ -113,7 +113,7 @@ def load_spiral(filepath: pathlib.Path | str) -> models.Spiral:
     if isinstance(filepath, str):
         filepath = pathlib.Path(filepath)
 
-    converter = {
+    to_datetime_converter = {
         "UTC_Timestamp": lambda x: pd.to_datetime(
             float(x) * 1000, unit="ms", utc=True, exact=True
         ),
