@@ -5,6 +5,7 @@ import pathlib
 import pandas as pd
 import pytest
 
+from graphomotor.core import models
 from graphomotor.io import reader
 
 
@@ -41,26 +42,28 @@ def test_parse_filename_invalid(invalid_filename: str) -> None:
 
 
 @pytest.mark.parametrize("missing_column", list(reader.DTYPE_MAP.keys()))
-def test_check_missing_columns(sample_data: pathlib.Path, missing_column: str) -> None:
+def test_check_missing_columns(
+    valid_spiral_data: pd.DataFrame, missing_column: str
+) -> None:
     """Test that missing columns raise a KeyError."""
-    data = pd.read_csv(sample_data)
-    data = data.drop(columns=[missing_column])
+    valid_spiral_data = valid_spiral_data.drop(columns=[missing_column])
     with pytest.raises(KeyError, match=f"Missing required columns: {missing_column}"):
-        reader._check_missing_columns(data)
+        reader._check_missing_columns(valid_spiral_data)
 
 
-def test_convert_start_time(sample_data: pathlib.Path) -> None:
+def test_convert_start_time() -> None:
     """Test that start time is converted correctly."""
-    data = pd.read_csv(sample_data)
-    data["epoch_time_in_seconds_start"] = data["epoch_time_in_seconds_start"] * 1000000
+    dummy_data = pd.DataFrame({"epoch_time_in_seconds_start": [10**15]})
     with pytest.raises(ValueError, match="Error converting 'start_time' to datetime"):
-        reader._convert_start_time(data)
+        reader._convert_start_time(dummy_data)
 
 
-def test_load_spiral_str_path(sample_data: pathlib.Path) -> None:
-    """Test that loading a spiral file with a string path works."""
+def test_load_spiral(sample_data: pathlib.Path) -> None:
+    """Test that spiral loads with string input and start time is moved to metadata."""
     spiral = reader.load_spiral(str(sample_data))
-    assert spiral is not None
+    assert isinstance(spiral, models.Spiral)
+    assert "epoch_time_in_seconds_start" not in spiral.data.columns
+    assert "start_time" in spiral.metadata
 
 
 def test_load_spiral_invalid_extension(sample_data: pathlib.Path) -> None:
@@ -69,9 +72,3 @@ def test_load_spiral_invalid_extension(sample_data: pathlib.Path) -> None:
     filename = invalid_file.as_posix().replace("[", "\\[").replace("]", "\\]")
     with pytest.raises(IOError, match=f"Error reading file {filename}"):
         reader.load_spiral(invalid_file)
-
-
-def test_load_spiral_drops_start_time(sample_data: pathlib.Path) -> None:
-    """Test that the 'epoch_time_in_seconds_start' column is dropped."""
-    spiral = reader.load_spiral(sample_data)
-    assert "epoch_time_in_seconds_start" not in spiral.data.columns

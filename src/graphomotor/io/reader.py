@@ -122,7 +122,10 @@ def load_spiral(filepath: pathlib.Path | str) -> models.Spiral:
 
     try:
         data = pd.read_csv(
-            filepath, dtype=dtypes, converters=converter, usecols=list(DTYPE_MAP.keys())
+            filepath,
+            dtype=accepted_dtypes,
+            converters=to_datetime_converter,
+            usecols=list(DTYPE_MAP.keys()),
         )
     except Exception as e:
         raise IOError(f"Error reading file {filepath}: {e}")
