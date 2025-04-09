@@ -118,7 +118,7 @@ def load_spiral(filepath: pathlib.Path | str) -> models.Spiral:
             float(x) * 1000, unit="ms", utc=True, exact=True
         ),
     }
-    dtypes = {k: v for k, v in DTYPE_MAP.items() if k != "UTC_Timestamp"}
+    accepted_dtypes = {k: v for k, v in DTYPE_MAP.items() if k != "UTC_Timestamp"}
 
     try:
         data = pd.read_csv(
