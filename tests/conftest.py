@@ -3,8 +3,11 @@
 import datetime
 import pathlib
 
+import numpy as np
 import pandas as pd
 import pytest
+
+from graphomotor.core import config, models
 
 
 @pytest.fixture
@@ -35,3 +38,21 @@ def valid_spiral_metadata() -> dict[str, str | datetime.datetime]:
             tz=datetime.timezone.utc,
         ),
     }
+
+
+@pytest.fixture
+def valid_spiral(
+    valid_spiral_data: pd.DataFrame,
+    valid_spiral_metadata: dict[str, str | datetime.datetime],
+) -> models.Spiral:
+    """Create a valid Spiral object."""
+    return models.Spiral(
+        data=valid_spiral_data,
+        metadata=valid_spiral_metadata,
+    )
+
+
+@pytest.fixture
+def reference_spiral() -> np.ndarray:
+    """Create a reference spiral for testing."""
+    return config.generate_reference_spiral()
