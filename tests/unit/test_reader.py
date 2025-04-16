@@ -70,6 +70,6 @@ def test_load_spiral(sample_data: pathlib.Path) -> None:
 def test_load_spiral_invalid_extension(sample_data: pathlib.Path) -> None:
     """Test that loading a non-CSV file raises an error."""
     invalid_file = sample_data.with_suffix(".txt")
-    filename = re.escape(invalid_file.as_posix())
+    filename = re.escape(str(invalid_file))
     with pytest.raises(IOError, match=f"Error reading file {filename}"):
         reader.load_spiral(invalid_file)
