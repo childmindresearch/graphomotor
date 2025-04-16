@@ -10,13 +10,13 @@ class Spiral(BaseModel):
     """A class representing a spiral drawing, encapsulating both raw data and metadata.
 
     Attributes:
-        data: DataFrame containing drawing data with required columns
-            (line_number, x, y, UTC_Timestamp, seconds)
+        data: DataFrame containing drawing data with required columns (line_number, x,
+            y, UTC_Timestamp, seconds).
         metadata: Dictionary containing metadata about the spiral:
-            - id: Unique identifier for the participant
-            - hand: Hand used ('Dom' for dominant, 'NonDom' for non-dominant)
-            - task: Task name
-            - start_time: Start time of drawing
+            - id: Unique identifier for the participant,
+            - hand: Hand used ('Dom' for dominant, 'NonDom' for non-dominant),
+            - task: Task name,
+            - start_time: Start time of drawing.
     """
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
