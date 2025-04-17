@@ -8,7 +8,13 @@ on:
 
 jobs:
   unit:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: [3.12, 3.13]
+        dependency-mode: [lowest-direct, highest]
+    runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
     - name: Install uv
@@ -18,12 +24,13 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version-file: pyproject.toml
+        python-version: ${{ matrix.python-version }}
     - name: Install the project
-      run: uv sync --only-dev
+      run: uv sync --only-dev --resolution=${{ matrix.dependency-mode }}
     - name: Run tests
       id: run-tests
-      run: >
+      shell: bash
+      run: |
         uv run pytest \
           --junitxml=pytest.xml \
           --cov-report=term-missing:skip-covered \

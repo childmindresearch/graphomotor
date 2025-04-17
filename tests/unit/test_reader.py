@@ -1,6 +1,7 @@
 """Test cases for reader.py functions."""
 
 import pathlib
+import re
 
 import pandas as pd
 import pytest
@@ -33,7 +34,7 @@ def test_parse_filename_valid(sample_data: pathlib.Path) -> None:
 )
 def test_parse_filename_invalid(invalid_filename: str) -> None:
     """Test that invalid filenames raise a ValueError."""
-    filename = invalid_filename.replace("[", "\\[").replace("]", "\\]")
+    filename = re.escape(invalid_filename)
     with pytest.raises(
         ValueError,
         match=f"Filename does not match expected pattern: {filename}",
@@ -69,6 +70,6 @@ def test_load_spiral(sample_data: pathlib.Path) -> None:
 def test_load_spiral_invalid_extension(sample_data: pathlib.Path) -> None:
     """Test that loading a non-CSV file raises an error."""
     invalid_file = sample_data.with_suffix(".txt")
-    filename = invalid_file.as_posix().replace("[", "\\[").replace("]", "\\]")
+    filename = re.escape(str(invalid_file))
     with pytest.raises(IOError, match=f"Error reading file {filename}"):
         reader.load_spiral(invalid_file)
