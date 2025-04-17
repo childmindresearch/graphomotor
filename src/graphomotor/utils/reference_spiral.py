@@ -5,13 +5,14 @@ from scipy import integrate, optimize
 
 _SPIRAL_CENTER_X = 50
 _SPIRAL_CENTER_Y = 50
-_SPIRAL_INITIAL_RADIUS = 0
+_SPIRAL_START_RADIUS = 0
 _SPIRAL_GROWTH_RATE = 1.075
-_SPIRAL_TOTAL_ROTATION = 8 * np.pi
+_SPIRAL_START_ANGLE = 0
+_SPIRAL_END_ANGLE = 8 * np.pi
 _SPIRAL_NUM_POINTS = 10000
 
 
-def _spiral_arc_length_integrand(t: float) -> float:
+def _arc_length_integrand(t: float) -> float:
     """Calculate the differential arc length at angle t for an Archimedean spiral.
 
     Args:
@@ -20,37 +21,26 @@ def _spiral_arc_length_integrand(t: float) -> float:
     Returns:
         Differential arc length value.
     """
-    r_t = _SPIRAL_INITIAL_RADIUS + _SPIRAL_GROWTH_RATE * t
+    r_t = _SPIRAL_START_RADIUS + _SPIRAL_GROWTH_RATE * t
     return np.sqrt(r_t**2 + _SPIRAL_GROWTH_RATE**2)
 
 
 def _calculate_arc_length(theta: float) -> float:
-    """Calculate the arc length of the spiral from 0 to theta.
+    """Calculate the arc length of the spiral from _SPIRAL_START_ANGLE to theta.
 
     Args:
         theta: The angle in radians.
 
     Returns:
-        The arc length of the spiral from 0 to theta.
+        The arc length of the spiral from _SPIRAL_START_ANGLE to theta.
     """
-    return integrate.quad(lambda t: _spiral_arc_length_integrand(t), 0, theta)[0]
-
-
-def _arc_length_difference(theta: float, target_arc_length: float) -> float:
-    """Function to find the root for a given arc length.
-
-    Args:
-        theta: Angle to evaluate.
-        target_arc_length: Target arc length value.
-
-    Returns:
-        Difference between calculated and target arc length.
-    """
-    return _calculate_arc_length(theta) - target_arc_length
+    return integrate.quad(
+        lambda t: _arc_length_integrand(t), _SPIRAL_START_ANGLE, theta
+    )[0]
 
 
 def _find_theta_for_arc_length(target_arc_length: float) -> float:
-    """Find the theta value for a given arc length.
+    """Find the theta value for a given arc length using numerical root finding.
 
     Args:
         target_arc_length: Target arc length.
@@ -59,8 +49,8 @@ def _find_theta_for_arc_length(target_arc_length: float) -> float:
         Angle theta corresponding to the arc length.
     """
     solution = optimize.root_scalar(
-        lambda theta: _arc_length_difference(theta, target_arc_length),
-        bracket=[0, _SPIRAL_TOTAL_ROTATION],
+        lambda theta: _calculate_arc_length(theta) - target_arc_length,
+        bracket=[_SPIRAL_START_ANGLE, _SPIRAL_END_ANGLE],
     )
     return solution.root
 
@@ -74,7 +64,7 @@ def generate_reference_spiral() -> np.ndarray:
     form.
 
     The algorithm works by:
-        1. Computing the total arc length for the entire spiral (0 to 8π),
+        1. Computing the total arc length for the entire spiral,
         2. Creating equidistant target arc length values,
         3. For each target arc length, finding the corresponding theta value that
            produces that arc length using numerical root finding,
@@ -87,22 +77,22 @@ def generate_reference_spiral() -> np.ndarray:
         - Cartesian coordinates: x = cx + r·cos(θ), y = cy + r·sin(θ)
 
     Parameters used:
-        - Center coordinates: (50, 50)
-        - Initial radius (a): 0
-        - Growth rate (b): 1.075
-        - Total rotation: 4 complete revolutions (θ from 0 to 8π)
-        - Number of points: 10,000
+        - Center coordinates: (cx, cy) = (_SPIRAL_CENTER_X, _SPIRAL_CENTER_Y)
+        - Start radius: a = _SPIRAL_START_RADIUS
+        - Growth rate: b = _SPIRAL_GROWTH_RATE
+        - Total rotation: θ = _SPIRAL_END_ANGLE - _SPIRAL_START_ANGLE
+        - Number of points: N = _SPIRAL_NUM_POINTS
 
     Returns:
-        Array with shape (10000, 2) containing Cartesian coordinates of the spiral.
+        Array with shape (N, 2) containing Cartesian coordinates of the spiral points.
     """
-    total_arc_length = _calculate_arc_length(_SPIRAL_TOTAL_ROTATION)
+    total_arc_length = _calculate_arc_length(_SPIRAL_END_ANGLE)
 
     arc_length_values = np.linspace(0, total_arc_length, _SPIRAL_NUM_POINTS)
 
     theta_values = np.array([_find_theta_for_arc_length(s) for s in arc_length_values])
 
-    r_values = _SPIRAL_INITIAL_RADIUS + _SPIRAL_GROWTH_RATE * theta_values
+    r_values = _SPIRAL_START_RADIUS + _SPIRAL_GROWTH_RATE * theta_values
     x_values = _SPIRAL_CENTER_X + r_values * np.cos(theta_values)
     y_values = _SPIRAL_CENTER_Y + r_values * np.sin(theta_values)
 
