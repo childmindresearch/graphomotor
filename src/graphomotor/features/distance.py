@@ -35,7 +35,7 @@ def calculate_hausdorff_metrics(
     """Calculate Hausdorff distance metrics for a spiral object.
 
     This function computes multiple features based on the Hausdorff distance between a
-    drawn spiral and a reference (ideal) spiral, as described in the [1]. Implementation
+    drawn spiral and a reference (ideal) spiral, as described in [1]. Implementation
     is based on the original R script provided with the publication. The Hausdorff
     distance measures the maximum distance of a set to the nearest point in the other
     set. This metric and its derivatives capture various aspects of the spatial
