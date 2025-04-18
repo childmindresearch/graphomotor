@@ -7,13 +7,13 @@ from graphomotor.utils import reference_spiral
 
 def test_generate_reference_spiral() -> None:
     """Test the generation of a reference spiral."""
-    spiral = reference_spiral.generate_reference_spiral()
-    arc_lengths = np.linalg.norm(spiral[1:] - spiral[:-1], axis=1)
-    mean_arc_length = np.mean(arc_lengths)
-
     expected_mean_arc_length = reference_spiral._calculate_arc_length(
         reference_spiral._SPIRAL_END_ANGLE
     ) / (reference_spiral._SPIRAL_NUM_POINTS - 1)
+
+    spiral = reference_spiral.generate_reference_spiral()
+    arc_lengths = np.linalg.norm(spiral[1:] - spiral[:-1], axis=1)
+    mean_arc_length = np.mean(arc_lengths)
 
     assert isinstance(spiral, np.ndarray)
     assert spiral.shape == (reference_spiral._SPIRAL_NUM_POINTS, 2)
