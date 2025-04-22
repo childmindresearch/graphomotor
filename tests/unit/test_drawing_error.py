@@ -20,13 +20,15 @@ def test_calculate_area_under_curve(monkeypatch: pytest.MonkeyPatch) -> None:
     )
 
     class MockSpiral:
-        def __init__(self, data: pd.DataFrame) -> None:
+        def __init__(self, data: pd.DataFrame, metadata: dict) -> None:
             self.data = data
+            self.metadata = metadata
 
     monkeypatch.setattr(models, "Spiral", MockSpiral)
 
     calculated_area = drawing_error.calculate_area_under_curve(
-        models.Spiral(data=pd.DataFrame({"x": x, "y": y1})), np.array([x, y2]).T
+        models.Spiral(data=pd.DataFrame({"x": x, "y": y1}), metadata={}),
+        np.array([x, y2]).T,
     )["area_under_curve"]
 
     assert np.isclose(calculated_area, expected_area, rtol=1e-3)
