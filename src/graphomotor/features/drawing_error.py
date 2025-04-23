@@ -8,7 +8,7 @@ from graphomotor.core import models
 
 def calculate_area_under_curve(
     drawn_spiral: models.Spiral, reference_spiral: np.ndarray
-) -> dict:
+) -> dict[str, float]:
     """Calculate the area between drawn and reference spirals.
 
     This function measures the deviation between drawn and reference spirals by

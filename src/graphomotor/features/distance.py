@@ -31,7 +31,7 @@ def _segment_data(data: np.ndarray, start_prop: float, end_prop: float) -> np.nd
 
 def calculate_hausdorff_metrics(
     spiral: models.Spiral, reference_spiral: np.ndarray
-) -> dict:
+) -> dict[str, float]:
     """Calculate Hausdorff distance metrics for a spiral object.
 
     This function computes multiple features based on the Hausdorff distance between a
