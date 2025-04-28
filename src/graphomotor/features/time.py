@@ -3,7 +3,7 @@
 from graphomotor.core import models
 
 
-def get_task_duration(spiral: models.Spiral) -> dict:
+def get_task_duration(spiral: models.Spiral) -> dict[str, float]:
     """Calculate the total duration of a spiral drawing task.
 
     Args:
