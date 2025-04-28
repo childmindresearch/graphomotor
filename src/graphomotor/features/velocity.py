@@ -30,7 +30,7 @@ def calculate_velocity_metrics(spiral: models.Spiral) -> dict[str, float]:
     vx = dx / dt
     vy = dy / dt
     velocity = np.sqrt(vx**2 + vy**2)
-    
+
     radial_velocity = dr / dt
     angular_velocity = dtheta / dt
 
