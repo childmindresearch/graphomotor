@@ -20,4 +20,4 @@ def test_calculate_area_under_curve(valid_spiral: models.Spiral) -> None:
         valid_spiral, np.column_stack((x, y2))
     )["area_under_curve"]
 
-    assert np.isclose(calculated_area, expected_area, rtol=1e-3)
+    assert np.isclose(calculated_area, expected_area, atol=0, rtol=1e-3)

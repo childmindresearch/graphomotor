@@ -3,7 +3,7 @@
 import numpy as np
 import pandas as pd
 
-from graphomotor.core import models
+from graphomotor.core import config, models
 from graphomotor.features import velocity
 
 
@@ -15,14 +15,38 @@ def test_calculate_velocity_metrics(valid_spiral: models.Spiral) -> None:
 
     t = np.linspace(0, time_total, num_points, endpoint=False)
     theta = np.linspace(0, theta_end, num_points, endpoint=False)
-    x = 50 + theta * np.cos(theta)
-    y = 50 + theta * np.sin(theta)
+    r = config._SpiralConfig.SPIRAL_GROWTH_RATE * theta
+    x = config._SpiralConfig.SPIRAL_CENTER_X + r * np.cos(theta)
+    y = config._SpiralConfig.SPIRAL_CENTER_Y + r * np.sin(theta)
 
     data = pd.DataFrame({"x": x, "y": y, "seconds": t})
     valid_spiral.data = data
 
-    expected_angular_velocity_sum = (theta_end / time_total) * (num_points - 1)
+    expected_angular_velocity_median = theta_end / time_total
+    expected_radial_velocity_median = (
+        config._SpiralConfig.SPIRAL_GROWTH_RATE * theta_end / time_total
+    )
+    expected_linear_velocity_median = np.median(
+        np.sqrt(np.gradient(x, t) ** 2 + np.gradient(y, t) ** 2)
+    )
 
     metrics = velocity.calculate_velocity_metrics(valid_spiral)
 
-    assert metrics["angular_velocity_sum"] == expected_angular_velocity_sum
+    assert np.isclose(
+        metrics["angular_velocity_median"],
+        expected_angular_velocity_median,
+        atol=0,
+        rtol=1e-14,
+    )
+    assert np.isclose(
+        metrics["radial_velocity_median"],
+        expected_radial_velocity_median,
+        atol=0,
+        rtol=1e-13,
+    )
+    assert np.isclose(
+        metrics["linear_velocity_median"],
+        expected_linear_velocity_median,
+        atol=0,
+        rtol=1e-4,
+    )

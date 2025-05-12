@@ -8,7 +8,7 @@ import pandas as pd
 import pytest
 
 from graphomotor.core import models
-from graphomotor.utils import reference_spiral
+from graphomotor.utils import generate_reference_spiral
 
 
 @pytest.fixture
@@ -56,4 +56,4 @@ def valid_spiral(
 @pytest.fixture
 def ref_spiral() -> np.ndarray:
     """Create a reference spiral for testing."""
-    return reference_spiral.generate_reference_spiral()
+    return generate_reference_spiral.generate_reference_spiral()

@@ -1,15 +1,9 @@
-"""Generate a reference spiral with equidistant points along its arc length."""
+"""Utility functions for generating an equidistant reference spiral."""
 
 import numpy as np
 from scipy import integrate, optimize
 
-_SPIRAL_CENTER_X = 50
-_SPIRAL_CENTER_Y = 50
-_SPIRAL_START_RADIUS = 0
-_SPIRAL_GROWTH_RATE = 1.075
-_SPIRAL_START_ANGLE = 0
-_SPIRAL_END_ANGLE = 8 * np.pi
-_SPIRAL_NUM_POINTS = 10000
+from graphomotor.core.config import _SpiralConfig
 
 
 def _arc_length_integrand(t: float) -> float:
@@ -21,8 +15,8 @@ def _arc_length_integrand(t: float) -> float:
     Returns:
         Differential arc length value.
     """
-    r_t = _SPIRAL_START_RADIUS + _SPIRAL_GROWTH_RATE * t
-    return np.sqrt(r_t**2 + _SPIRAL_GROWTH_RATE**2)
+    r_t = _SpiralConfig.SPIRAL_START_RADIUS + _SpiralConfig.SPIRAL_GROWTH_RATE * t
+    return np.sqrt(r_t**2 + _SpiralConfig.SPIRAL_GROWTH_RATE**2)
 
 
 def _calculate_arc_length(theta: float) -> float:
@@ -35,7 +29,7 @@ def _calculate_arc_length(theta: float) -> float:
         The arc length of the spiral from _SPIRAL_START_ANGLE to theta.
     """
     return integrate.quad(
-        lambda t: _arc_length_integrand(t), _SPIRAL_START_ANGLE, theta
+        lambda t: _arc_length_integrand(t), _SpiralConfig.SPIRAL_START_ANGLE, theta
     )[0]
 
 
@@ -50,7 +44,7 @@ def _find_theta_for_arc_length(target_arc_length: float) -> float:
     """
     solution = optimize.root_scalar(
         lambda theta: _calculate_arc_length(theta) - target_arc_length,
-        bracket=[_SPIRAL_START_ANGLE, _SPIRAL_END_ANGLE],
+        bracket=[_SpiralConfig.SPIRAL_START_ANGLE, _SpiralConfig.SPIRAL_END_ANGLE],
     )
     return solution.root
 
@@ -86,14 +80,19 @@ def generate_reference_spiral() -> np.ndarray:
     Returns:
         Array with shape (N, 2) containing Cartesian coordinates of the spiral points.
     """
-    total_arc_length = _calculate_arc_length(_SPIRAL_END_ANGLE)
+    total_arc_length = _calculate_arc_length(_SpiralConfig.SPIRAL_END_ANGLE)
 
-    arc_length_values = np.linspace(0, total_arc_length, _SPIRAL_NUM_POINTS)
+    arc_length_values = np.linspace(
+        0, total_arc_length, _SpiralConfig.SPIRAL_NUM_POINTS
+    )
 
     theta_values = np.array([_find_theta_for_arc_length(s) for s in arc_length_values])
 
-    r_values = _SPIRAL_START_RADIUS + _SPIRAL_GROWTH_RATE * theta_values
-    x_values = _SPIRAL_CENTER_X + r_values * np.cos(theta_values)
-    y_values = _SPIRAL_CENTER_Y + r_values * np.sin(theta_values)
+    r_values = (
+        _SpiralConfig.SPIRAL_START_RADIUS
+        + _SpiralConfig.SPIRAL_GROWTH_RATE * theta_values
+    )
+    x_values = _SpiralConfig.SPIRAL_CENTER_X + r_values * np.cos(theta_values)
+    y_values = _SpiralConfig.SPIRAL_CENTER_Y + r_values * np.sin(theta_values)
 
     return np.column_stack((x_values, y_values))
