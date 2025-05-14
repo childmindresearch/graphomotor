@@ -4,25 +4,26 @@ import numpy as np
 from scipy import stats
 
 from graphomotor.core import models
+from graphomotor.utils import center_spiral
 
 
-def _get_velocity_statistics(velocity: np.ndarray, type_: str) -> dict[str, float]:
-    """Calculate velocity metrics for a given type of velocity.
+def _calculate_statistics(values: np.ndarray, name: str) -> dict[str, float]:
+    """Helper function to calculate statistics for a given array.
 
     Args:
-        velocity: Numpy array of velocity values.
-        type_: Type of velocity (e.g., "linear_velocity", "radial_velocity",
-        "angular_velocity").
+        values: 1-D Numpy array of numerical values.
+        name: Name prefix for the statistics (e.g., "linear_velocity").
 
     Returns:
-        Dictionary containing calculated metrics for the specified type of velocity.
+        Dictionary containing calculated metrics (sum, median, variation, skewness,
+        kurtosis) with keys prefixed by the provided name.
     """
     return {
-        f"{type_}_sum": np.sum(np.abs(velocity)),
-        f"{type_}_median": np.median(np.abs(velocity)),
-        f"{type_}_variation": stats.variation(velocity),
-        f"{type_}_skewness": stats.skew(velocity),
-        f"{type_}_kurtosis": stats.kurtosis(velocity),
+        f"{name}_sum": np.sum(np.abs(values)),
+        f"{name}_median": np.median(np.abs(values)),
+        f"{name}_variation": stats.variation(values),
+        f"{name}_skewness": stats.skew(values),
+        f"{name}_kurtosis": stats.kurtosis(values),
     }
 
 
@@ -44,7 +45,7 @@ def calculate_velocity_metrics(spiral: models.Spiral) -> dict[str, float]:
            boundary.
 
     For each velocity type, the following metrics are calculated:
-        - Sum: Total absolute velocity over the entire drawing
+        - Sum: Sum of absolute velocity values
         - Median: Median of absolute velocity values
         - Variation: Coefficient of variation
         - Skewness: Asymmetry of the velocity distribution
@@ -56,14 +57,15 @@ def calculate_velocity_metrics(spiral: models.Spiral) -> dict[str, float]:
     Returns:
         Dictionary containing calculated velocity metrics.
     """
-    x_coord = spiral.data["x"].values - 50
-    y_coord = spiral.data["y"].values - 50
+    spiral = center_spiral.center_spiral(spiral)
+    x = spiral.data["x"].values
+    y = spiral.data["y"].values
     time = spiral.data["seconds"].values
-    radius = np.sqrt(x_coord**2 + y_coord**2)
-    theta = np.unwrap(np.arctan2(y_coord, x_coord))
+    radius = np.sqrt(x**2 + y**2)
+    theta = np.unwrap(np.arctan2(y, x))
 
-    dx = np.diff(x_coord)
-    dy = np.diff(y_coord)
+    dx = np.diff(x)
+    dy = np.diff(y)
     dt = np.diff(time)
     dr = np.diff(radius)
     dtheta = np.diff(theta)
@@ -73,7 +75,7 @@ def calculate_velocity_metrics(spiral: models.Spiral) -> dict[str, float]:
     angular_velocity = dtheta / dt
 
     return {
-        **_get_velocity_statistics(linear_velocity, "linear_velocity"),
-        **_get_velocity_statistics(radial_velocity, "radial_velocity"),
-        **_get_velocity_statistics(angular_velocity, "angular_velocity"),
+        **_calculate_statistics(linear_velocity, "linear_velocity"),
+        **_calculate_statistics(radial_velocity, "radial_velocity"),
+        **_calculate_statistics(angular_velocity, "angular_velocity"),
     }

@@ -20,14 +20,14 @@ class _SpiralConfig:
 def get_logger() -> logging.Logger:
     """Get the Graphomotor logger."""
     logger = logging.getLogger("graphomotor")
-    if logger.hasHandlers():
+    if logger.handlers:
         return logger
     logger.setLevel(logging.INFO)
-    handler = logging.StreamHandler()
     formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - "
         "%(filename)s:%(lineno)s - %(funcName)s - %(message)s",
     )
+    handler = logging.StreamHandler()
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     return logger
