@@ -16,6 +16,10 @@ class _SpiralConfig:
     SPIRAL_END_ANGLE = 8 * np.pi
     SPIRAL_NUM_POINTS = 10000
 
+    # TODO: edit the docstring
+    # TODO: think about a way to change these parameters
+    # (optional config parameter for orchestrator that modifies the config)
+
 
 def get_logger() -> logging.Logger:
     """Get the Graphomotor logger."""
