@@ -2,9 +2,74 @@
 
 import logging
 
+import numpy as np
 import pytest
 
 from graphomotor.core import config
+
+
+@pytest.mark.parametrize(
+    "custom_params, expected_params, expected_warnings",
+    [
+        (
+            {
+                "center_x": 25,
+                "center_y": 25,
+                "start_angle": np.pi,
+                "end_angle": 2 * np.pi,
+                "num_points": 100,
+            },
+            {
+                "center_x": 25,
+                "center_y": 25,
+                "start_radius": 0,
+                "growth_rate": 1.075,
+                "start_angle": np.pi,
+                "end_angle": 2 * np.pi,
+                "num_points": 100,
+            },
+            [],
+        ),
+        (
+            {
+                "growth_rate": 1,
+                "start_radius": 100,
+                "end_radius": 20,
+                "meaning_of_life": 42,
+            },
+            {
+                "center_x": 50,
+                "center_y": 50,
+                "start_radius": 100,
+                "growth_rate": 1,
+                "start_angle": 0,
+                "end_angle": 8 * np.pi,
+                "num_points": 10000,
+            },
+            ["end_radius", "meaning_of_life"],
+        ),
+    ],
+)
+def test_spiral_config_from_dict(
+    custom_params: dict[str, int | float],
+    expected_params: dict[str, int | float],
+    expected_warnings: list[str],
+    recwarn: pytest.WarningsRecorder,
+) -> None:
+    """Test the SpiralConfig.from_dict method with various inputs."""
+    spiral_config = config.SpiralConfig.from_dict(custom_params)
+
+    for key, value in expected_params.items():
+        assert getattr(spiral_config, key) == value
+
+    if expected_warnings:
+        assert len(recwarn) == len(expected_warnings)
+        for i, param in enumerate(expected_warnings):
+            assert f"Unknown configuration parameters will be ignored: {param}" in str(
+                recwarn[i].message
+            )
+    else:
+        assert len(recwarn) == 0
 
 
 def test_get_logger(caplog: pytest.LogCaptureFixture) -> None:

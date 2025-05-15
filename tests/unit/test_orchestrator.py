@@ -4,7 +4,7 @@ import pathlib
 
 import pytest
 
-from graphomotor.core import orchestrator
+from graphomotor.core import config, orchestrator
 
 ## TODO: test all functions here, then add a smoke test as well for the whole pipeline
 
@@ -31,12 +31,14 @@ def test_extract_features_categories(
                 input_path=sample_data,
                 output_path=None,
                 feature_categories=feature_categories,
+                spiral_config=config.SpiralConfig(),
             )
     else:
         features = orchestrator.extract_features(
             input_path=sample_data,
             output_path=None,
             feature_categories=feature_categories,
+            spiral_config=config.SpiralConfig(),
         )
 
         if expected_behavior == "multiple_valid":

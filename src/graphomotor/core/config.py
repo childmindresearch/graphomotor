@@ -1,24 +1,94 @@
 """Configuration module for Graphomotor."""
 
 import logging
+import warnings
+from dataclasses import dataclass
+from typing import Callable
 
 import numpy as np
 
+from graphomotor.core import models
+from graphomotor.features import distance, drawing_error, time, velocity
 
-class _SpiralConfig:
-    """Configuration for the reference spiral generation."""
 
-    SPIRAL_CENTER_X = 50
-    SPIRAL_CENTER_Y = 50
-    SPIRAL_START_RADIUS = 0
-    SPIRAL_GROWTH_RATE = 1.075
-    SPIRAL_START_ANGLE = 0
-    SPIRAL_END_ANGLE = 8 * np.pi
-    SPIRAL_NUM_POINTS = 10000
+class FeatureCategories:
+    """Class to hold valid feature categories for Graphomotor."""
 
-    # TODO: edit the docstring
-    # TODO: think about a way to change these parameters
-    # (optional config parameter for orchestrator that modifies the config)
+    DURATION = "duration"
+    VELOCITY = "velocity"
+    HAUSDORFF = "hausdorff"
+    AUC = "AUC"
+
+    @classmethod
+    def all(cls) -> set[str]:
+        """Return all valid feature categories."""
+        return {
+            cls.DURATION,
+            cls.VELOCITY,
+            cls.HAUSDORFF,
+            cls.AUC,
+        }
+
+    @classmethod
+    def get_extractors(
+        cls, spiral: models.Spiral, reference_spiral: np.ndarray
+    ) -> dict[str, Callable[[], dict[str, float]]]:
+        """Get all feature extractors with appropriate inputs.
+
+        Args:
+            spiral: The spiral data to extract features from.
+            reference_spiral: Reference spiral for comparison-based metrics.
+
+        Returns:
+            Dictionary mapping category names to their feature extractor functions.
+        """
+        return {
+            cls.DURATION: lambda: time.get_task_duration(spiral),
+            cls.VELOCITY: lambda: velocity.calculate_velocity_metrics(spiral),
+            cls.HAUSDORFF: lambda: distance.calculate_hausdorff_metrics(
+                spiral, reference_spiral
+            ),
+            cls.AUC: lambda: drawing_error.calculate_area_under_curve(
+                spiral, reference_spiral
+            ),
+        }
+
+
+@dataclass
+class SpiralConfig:
+    """Class for the parameters of anticipated spiral drawing."""
+
+    center_x: float = 50
+    center_y: float = 50
+    start_radius: float = 0
+    growth_rate: float = 1.075
+    start_angle: float = 0
+    end_angle: float = 8 * np.pi
+    num_points: int = 10000
+
+    @classmethod
+    def from_dict(cls, config_dict: dict[str, float | int]) -> "SpiralConfig":
+        """Create a configuration from a dictionary.
+
+        Args:
+            config_dict: Dictionary with configuration parameters.
+
+        Returns:
+            SpiralConfig instance with updated parameters.
+        """
+        config = cls()
+        for key, value in config_dict.items():
+            if hasattr(config, key):
+                setattr(config, key, value)
+            else:
+                valid_params = ", ".join(
+                    f.name for f in cls.__dataclass_fields__.values()
+                )
+                warnings.warn(
+                    f"Unknown configuration parameters will be ignored: {key}. "
+                    f"Valid parameters are: {valid_params}"
+                )
+        return config
 
 
 def get_logger() -> logging.Logger:

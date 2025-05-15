@@ -12,7 +12,8 @@ def center_spiral(spiral: models.Spiral) -> models.Spiral:
     Returns:
         Spiral object with centered spiral data.
     """
-    spiral.data["x"] -= config._SpiralConfig.SPIRAL_CENTER_X
-    spiral.data["y"] -= config._SpiralConfig.SPIRAL_CENTER_Y
+    spiral_config = config.SpiralConfig()
+    spiral.data["x"] -= spiral_config.center_x
+    spiral.data["y"] -= spiral_config.center_y
 
     return spiral

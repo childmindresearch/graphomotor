@@ -8,17 +8,10 @@ import numpy as np
 import pandas as pd
 
 from graphomotor.core import config, models
-from graphomotor.features import distance, drawing_error, time, velocity
 from graphomotor.io import reader
 from graphomotor.utils import center_spiral, generate_reference_spiral
 
 logger = config.get_logger()
-VALID_FEATURE_CATEGORIES = {
-    "duration",
-    "velocity",
-    "hausdorff",
-    "AUC",
-}  # move to config
 
 
 def _ensure_path(path: pathlib.Path | str) -> pathlib.Path:
@@ -45,8 +38,10 @@ def _validate_feature_categories(feature_categories: list[str]) -> set[str]:
     Raises:
         ValueError: If no valid feature categories are provided.
     """
-    unknown_categories = set(feature_categories) - VALID_FEATURE_CATEGORIES
-    valid_requested_categories = set(feature_categories) & VALID_FEATURE_CATEGORIES
+    unknown_categories = set(feature_categories) - config.FeatureCategories.all()
+    valid_requested_categories = (
+        set(feature_categories) & config.FeatureCategories.all()
+    )
 
     if unknown_categories:
         logger.warning(
@@ -57,7 +52,7 @@ def _validate_feature_categories(feature_categories: list[str]) -> set[str]:
     if not valid_requested_categories:
         error_msg = (
             "No valid feature categories provided. "
-            f"Supported categories: {VALID_FEATURE_CATEGORIES}"
+            f"Supported categories: {config.FeatureCategories.all()}"
         )
         logger.error(error_msg)
         raise ValueError(error_msg)
@@ -86,16 +81,9 @@ def get_feature_categories(
     """
     valid_categories = _validate_feature_categories(feature_categories)
 
-    feature_extractors = {
-        "duration": lambda: time.get_task_duration(spiral),
-        "velocity": lambda: velocity.calculate_velocity_metrics(spiral),
-        "hausdorff": lambda: distance.calculate_hausdorff_metrics(
-            spiral, reference_spiral
-        ),
-        "AUC": lambda: drawing_error.calculate_area_under_curve(
-            spiral, reference_spiral
-        ),
-    }
+    feature_extractors = config.FeatureCategories.get_extractors(
+        spiral, reference_spiral
+    )
 
     features = {}
     for category in valid_categories:
@@ -154,6 +142,7 @@ def extract_features(
     input_path: pathlib.Path | str,
     output_path: pathlib.Path | str | None,
     feature_categories: list[str],
+    spiral_config: config.SpiralConfig | None,
 ) -> dict[str, float]:
     """Extract features from spiral drawing data.
 
@@ -166,6 +155,8 @@ def extract_features(
             - "velocity": Extract velocity-based metrics.
             - "hausdorff": Extract Hausdorff distance metrics.
             - "AUC": Extract area under the curve metric.
+        spiral_config: Optional configuration for spiral parameters. If None, default
+            parameters are used.
 
     Returns:
         Dictionary containing the extracted features.
@@ -179,7 +170,10 @@ def extract_features(
     spiral = center_spiral.center_spiral(spiral)
 
     logger.debug("Generating reference spiral to calculate features")
-    reference_spiral = generate_reference_spiral.generate_reference_spiral()
+    config_to_use = spiral_config or config.SpiralConfig()
+    reference_spiral = generate_reference_spiral.generate_reference_spiral(
+        config=config_to_use
+    )
 
     features = get_feature_categories(spiral, reference_spiral, feature_categories)
     logger.info(f"Feature extraction complete. Extracted {len(features)} features")
@@ -195,6 +189,7 @@ def run_pipeline(
     input_path: pathlib.Path | str,
     output_path: pathlib.Path | str | None,
     feature_categories: list[str],
+    config_params: dict[str, float | int] | None = None,
 ) -> dict[str, float]:
     """Run the Graphomotor pipeline to extract features from spiral drawing data.
 
@@ -207,13 +202,25 @@ def run_pipeline(
             - "velocity": Extract velocity-based metrics.
             - "hausdorff": Extract Hausdorff distance metrics.
             - "AUC": Extract area under the curve metric.
+        config_params: Optional configuration parameters for spiral drawing. If None,
+            default parameters are used.
+
+    Returns:
+        Dictionary containing the extracted features.
     """
     logger.info("Starting Graphomotor pipeline")
     logger.info(f"Input path: {input_path}")
     logger.info(f"Output path: {output_path}")
     logger.info(f"Feature categories: {feature_categories}")
 
-    features = extract_features(input_path, output_path, feature_categories)
+    spiral_config = None
+    if config_params:
+        logger.info(f"Custom spiral configuration: {config_params}")
+        spiral_config = config.SpiralConfig.from_dict(config_params)
+
+    features = extract_features(
+        input_path, output_path, feature_categories, spiral_config
+    )
 
     logger.info("Graphomotor pipeline completed successfully")
     return features

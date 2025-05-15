@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, field_validator
 
 
 class Spiral(BaseModel):
-    """A class representing a spiral drawing, encapsulating both raw data and metadata.
+    """Class representing a spiral drawing, encapsulating both raw data and metadata.
 
     Attributes:
         data: DataFrame containing drawing data with required columns (line_number, x,
