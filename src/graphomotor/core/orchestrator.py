@@ -97,7 +97,7 @@ def get_feature_categories(
 
 def export_features_to_csv(
     spiral: models.Spiral,
-    features: dict[str, float],
+    features: dict[str, str],
     input_path: pathlib.Path,
     output_path: pathlib.Path,
 ) -> None:
@@ -127,14 +127,21 @@ def export_features_to_csv(
     else:
         output_file = output_path
 
-    features_df = pd.DataFrame([features]).T
+    metadata = {
+        "participant_id": participant_id,
+        "task": task,
+        "hand": hand,
+        "source_file": str(input_path),
+    }
 
-    features_df["participant_id"] = participant_id
-    features_df["task"] = task
-    features_df["hand"] = hand
-    features_df["source_file"] = str(input_path)
+    features_df = pd.DataFrame(
+        {
+            "variable": list(metadata.keys()) + list(features.keys()),
+            "value": list(metadata.values()) + list(features.values()),
+        }
+    )
 
-    features_df.to_csv(output_file, index=False)
+    features_df.to_csv(output_file, index=False, header=False)
     logger.debug(f"Features saved successfully to {output_file}")
 
 
@@ -143,7 +150,7 @@ def extract_features(
     output_path: pathlib.Path | str | None,
     feature_categories: list[str],
     spiral_config: config.SpiralConfig | None,
-) -> dict[str, float]:
+) -> dict[str, str]:
     """Extract features from spiral drawing data.
 
     Args:
@@ -174,15 +181,18 @@ def extract_features(
     reference_spiral = generate_reference_spiral.generate_reference_spiral(
         config=config_to_use
     )
+    reference_spiral = center_spiral.center_spiral(reference_spiral)
 
     features = get_feature_categories(spiral, reference_spiral, feature_categories)
     logger.info(f"Feature extraction complete. Extracted {len(features)} features")
 
+    formatted_features = {k: f"{v:.15f}" for k, v in features.items()}
+
     if output_path:
         output_path = _ensure_path(output_path)
-        export_features_to_csv(spiral, features, input_path, output_path)
+        export_features_to_csv(spiral, formatted_features, input_path, output_path)
 
-    return features
+    return formatted_features
 
 
 def run_pipeline(
@@ -190,7 +200,7 @@ def run_pipeline(
     output_path: pathlib.Path | str | None,
     feature_categories: list[str],
     config_params: dict[str, float | int] | None = None,
-) -> dict[str, float]:
+) -> dict[str, str]:
     """Run the Graphomotor pipeline to extract features from spiral drawing data.
 
     Args:
@@ -216,7 +226,7 @@ def run_pipeline(
     spiral_config = None
     if config_params:
         logger.info(f"Custom spiral configuration: {config_params}")
-        spiral_config = config.SpiralConfig.from_dict(config_params)
+        spiral_config = config.SpiralConfig.add_custom_params(config_params)
 
     features = extract_features(
         input_path, output_path, feature_categories, spiral_config

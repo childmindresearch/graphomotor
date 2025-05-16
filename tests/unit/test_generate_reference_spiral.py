@@ -1,4 +1,4 @@
-"""Test cases for reference_spiral.py functions."""
+"""Test cases for generate_reference_spiral.py functions."""
 
 import numpy as np
 

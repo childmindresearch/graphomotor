@@ -67,8 +67,8 @@ class SpiralConfig:
     num_points: int = 10000
 
     @classmethod
-    def from_dict(cls, config_dict: dict[str, float | int]) -> "SpiralConfig":
-        """Create a configuration from a dictionary.
+    def add_custom_params(cls, config_dict: dict[str, float | int]) -> "SpiralConfig":
+        """Update the SpiralConfig instance with custom parameters.
 
         Args:
             config_dict: Dictionary with configuration parameters.

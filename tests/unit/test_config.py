@@ -50,14 +50,14 @@ from graphomotor.core import config
         ),
     ],
 )
-def test_spiral_config_from_dict(
+def test_spiral_config_add_custom_params(
     custom_params: dict[str, int | float],
     expected_params: dict[str, int | float],
     expected_warnings: list[str],
     recwarn: pytest.WarningsRecorder,
 ) -> None:
-    """Test the SpiralConfig.from_dict method with various inputs."""
-    spiral_config = config.SpiralConfig.from_dict(custom_params)
+    """Test the SpiralConfig.add_custom_params method with various inputs."""
+    spiral_config = config.SpiralConfig.add_custom_params(custom_params)
 
     for key, value in expected_params.items():
         assert getattr(spiral_config, key) == value
