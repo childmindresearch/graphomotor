@@ -17,8 +17,8 @@ def test_calculate_velocity_metrics(valid_spiral: models.Spiral) -> None:
     t = np.linspace(0, time_total, num_points, endpoint=False)
     theta = np.linspace(0, theta_end, num_points, endpoint=False)
     r = spiral_config.growth_rate * theta
-    x = spiral_config.center_x + r * np.cos(theta)
-    y = spiral_config.center_y + r * np.sin(theta)
+    x = r * np.cos(theta)
+    y = r * np.sin(theta)
 
     data = pd.DataFrame({"x": x, "y": y, "seconds": t})
     valid_spiral.data = data

@@ -60,7 +60,7 @@ def _validate_feature_categories(feature_categories: list[str]) -> set[str]:
     return valid_requested_categories
 
 
-def get_feature_categories(
+def _get_feature_categories(
     spiral: models.Spiral,
     reference_spiral: np.ndarray,
     feature_categories: list[str],
@@ -95,7 +95,7 @@ def get_feature_categories(
     return features
 
 
-def export_features_to_csv(
+def _export_features_to_csv(
     spiral: models.Spiral,
     features: dict[str, str],
     input_path: pathlib.Path,
@@ -111,8 +111,6 @@ def export_features_to_csv(
     """
     logger.info(f"Saving extracted features to {output_path}")
 
-    os.makedirs(output_path.parent, exist_ok=True)
-
     participant_id = spiral.metadata.get("id")
     task = spiral.metadata.get("task")
     hand = spiral.metadata.get("hand")
@@ -122,10 +120,20 @@ def export_features_to_csv(
         f"{datetime.today().strftime('%Y%m%d')}.csv"
     )
 
-    if output_path.is_dir() or not output_path.suffix:
+    if not output_path.suffix:
+        if not os.path.exists(output_path):
+            logger.info(f"Creating directory that doesn't exist: {output_path}")
+        os.makedirs(output_path, exist_ok=True)
         output_file = output_path / filename
     else:
+        parent_dir = output_path.parent
+        if not os.path.exists(parent_dir):
+            logger.info(f"Creating parent directory that doesn't exist: {parent_dir}")
+        os.makedirs(parent_dir, exist_ok=True)
         output_file = output_path
+
+    if os.path.exists(output_file):
+        logger.info(f"Overwriting existing file: {output_file}")
 
     metadata = {
         "participant_id": participant_id,
@@ -141,8 +149,12 @@ def export_features_to_csv(
         }
     )
 
-    features_df.to_csv(output_file, index=False, header=False)
-    logger.debug(f"Features saved successfully to {output_file}")
+    try:
+        features_df.to_csv(output_file, index=False, header=False)
+        logger.debug(f"Features saved successfully to {output_file}")
+    except Exception as e:
+        logger.error(f"Failed to save features to {output_file}: {str(e)}")
+        raise
 
 
 def extract_features(
@@ -168,9 +180,6 @@ def extract_features(
     Returns:
         Dictionary containing the extracted features.
     """
-    # logger.info(f"Starting feature extraction for {input_path}")
-    # logger.info(f"Requested feature categories: {feature_categories}")
-
     logger.debug(f"Loading spiral data from {input_path}")
     input_path = _ensure_path(input_path)
     spiral = reader.load_spiral(input_path)
@@ -183,14 +192,14 @@ def extract_features(
     )
     reference_spiral = center_spiral.center_spiral(reference_spiral)
 
-    features = get_feature_categories(spiral, reference_spiral, feature_categories)
+    features = _get_feature_categories(spiral, reference_spiral, feature_categories)
     logger.info(f"Feature extraction complete. Extracted {len(features)} features")
 
     formatted_features = {k: f"{v:.15f}" for k, v in features.items()}
 
     if output_path:
         output_path = _ensure_path(output_path)
-        export_features_to_csv(spiral, formatted_features, input_path, output_path)
+        _export_features_to_csv(spiral, formatted_features, input_path, output_path)
 
     return formatted_features
 
@@ -205,8 +214,14 @@ def run_pipeline(
 
     Args:
         input_path: Path to the input CSV file containing spiral drawing data.
-        output_path: Path to save the extracted features. If None, features are not
-            saved.
+        output_path: Path where extracted features will be saved. Three behaviors are
+            possible:
+            - If None: Features are calculated but not saved to disk.
+            - If path includes file extension (e.g., "/path/to/output.csv"): This exact
+                file path is used.
+            - If path has no file extension (e.g., "/path/to/output"): A file is
+                created in that directory with auto-generated filename:
+                "/path/to/output/{participant_id}_{task}_{hand}_features_{date}.csv".
         feature_categories: List of feature categories to extract. Options are:
             - "duration": Extract task duration.
             - "velocity": Extract velocity-based metrics.
