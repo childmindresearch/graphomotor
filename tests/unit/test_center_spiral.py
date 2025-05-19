@@ -1,5 +1,7 @@
 """Test cases for center_spiral.py functions."""
 
+from typing import cast
+
 import numpy as np
 import pytest
 
@@ -40,4 +42,4 @@ def test_center_spiral_invalid_type(
         TypeError,
         match=f"Expected models.Spiral or np.ndarray, got {expected_type_name}",
     ):
-        center_spiral.center_spiral(invalid_input)
+        center_spiral.center_spiral(cast(models.Spiral, invalid_input))
