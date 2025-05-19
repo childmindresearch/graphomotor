@@ -67,9 +67,10 @@ def test_get_feature_categories(
 
 
 @pytest.mark.parametrize(
-    "output_has_extension, dir_exists, should_overwrite, feature_values",
+    "output_has_extension, dir_exists, overwrite, raise_exception, feature_values",
     [
         (
+            False,
             False,
             False,
             False,
@@ -79,11 +80,13 @@ def test_get_feature_categories(
             True,
             False,
             False,
+            False,
             {"feature1": "0", "feature2": "42.0"},
         ),
         (
             False,
             True,
+            False,
             False,
             {"feature1": "0", "feature3": "3.14"},
         ),
@@ -91,9 +94,18 @@ def test_get_feature_categories(
             True,
             True,
             False,
+            False,
             {"feature1": "0", "feature2": "42.0", "feature3": "3.14"},
         ),
         (
+            True,
+            True,
+            True,
+            False,
+            {"feature1": "0", "feature2": "42.0", "feature3": "3.14", "feature4": "1"},
+        ),
+        (
+            True,
             True,
             True,
             True,
@@ -104,7 +116,8 @@ def test_get_feature_categories(
 def test_export_features_to_csv(
     output_has_extension: bool,
     dir_exists: bool,
-    should_overwrite: bool,
+    overwrite: bool,
+    raise_exception: bool,
     feature_values: dict,
     valid_spiral: models.Spiral,
     tmp_path: pathlib.Path,
@@ -125,7 +138,7 @@ def test_export_features_to_csv(
         else:
             output_path = output_path / "nonexistent"
 
-    if should_overwrite:
+    if overwrite:
         output_path.write_text("This should be overwritten\n")
 
     expected_filename = (
@@ -148,15 +161,25 @@ def test_export_features_to_csv(
         expected_csv += f"feature2,{feature_values['feature2']}\n"
     if dir_exists:
         expected_csv += f"feature3,{feature_values['feature3']}\n"
-    if should_overwrite:
+    if overwrite:
         expected_csv += f"feature4,{feature_values['feature4']}\n"
 
-    orchestrator._export_features_to_csv(
-        valid_spiral,
-        feature_values,
-        input_path,
-        output_path,
-    )
+    if raise_exception:
+        output_path.chmod(0o444)
+        with pytest.raises(Exception):
+            orchestrator._export_features_to_csv(
+                valid_spiral,
+                feature_values,
+                input_path,
+                output_path,
+            )
+    else:
+        orchestrator._export_features_to_csv(
+            valid_spiral,
+            feature_values,
+            input_path,
+            output_path,
+        )
 
     actual_csv = expected_output_path.read_text()
 
@@ -165,10 +188,13 @@ def test_export_features_to_csv(
             assert "Creating parent directory that doesn't exist:" in caplog.text
         else:
             assert "Creating directory that doesn't exist:" in caplog.text
-    if should_overwrite:
+    if overwrite and not raise_exception:
         assert "Overwriting existing file:" in caplog.text
         assert "This should be overwritten" not in actual_csv
-    assert actual_csv == expected_csv
+    if raise_exception:
+        assert "Failed to save features to" in caplog.text
+    else:
+        assert actual_csv == expected_csv
 
 
 @pytest.mark.parametrize(
