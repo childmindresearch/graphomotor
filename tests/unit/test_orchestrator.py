@@ -2,6 +2,7 @@
 
 import pathlib
 from datetime import datetime
+from typing import cast
 
 import numpy as np
 import pytest
@@ -10,36 +11,56 @@ from graphomotor.core import config, models, orchestrator
 
 
 @pytest.mark.parametrize(
-    "feature_categories, expected_behavior",
+    "feature_categories, expected_valid_count",
     [
-        (["duration", "velocity", "hausdorff", "AUC"], "multiple_valid"),
-        (["duration"], "single_valid"),
-        (["duration", "unknown_category"], "contains_invalid"),
-        (["unknown_category"], "only_invalid"),
+        (["duration", "velocity", "hausdorff", "AUC"], 4),
+        (["duration"], 1),
+        (["duration", "velocity"], 2),
+        (["velocity", "hausdorff"], 2),
     ],
 )
-def test_validate_feature_categories(
-    feature_categories: list[str],
-    expected_behavior: str,
-    caplog: pytest.LogCaptureFixture,
+def test_validate_feature_categories_valid(
+    feature_categories: list[orchestrator.FeatureCategories],
+    expected_valid_count: int,
 ) -> None:
-    """Test _validate_feature_categories with various categories."""
-    if expected_behavior == "only_invalid":
-        with pytest.raises(ValueError, match="No valid feature categories provided"):
-            orchestrator._validate_feature_categories(feature_categories)
-    else:
-        valid_categories = orchestrator._validate_feature_categories(feature_categories)
+    """Test _validate_feature_categories with valid categories."""
+    valid_categories = orchestrator._validate_feature_categories(feature_categories)
+    assert len(valid_categories) == expected_valid_count
+    for category in feature_categories:
+        assert category in valid_categories
 
-        if expected_behavior == "multiple_valid":
-            assert len(valid_categories) == 4
-        else:
-            if expected_behavior == "contains_invalid":
-                assert (
-                    "Unknown feature categories requested, "
-                    "these categories will be ignored" in caplog.text
-                )
-            assert len(valid_categories) == 1
-            assert "duration" in valid_categories
+
+@pytest.mark.parametrize(
+    "feature_categories",
+    [
+        [],
+        ["unknown_category"],
+        ["unknown_category", "another_unknown"],
+    ],
+)
+def test_validate_feature_categories_only_invalid(
+    feature_categories: list[orchestrator.FeatureCategories],
+) -> None:
+    """Test _validate_feature_categories with only invalid categories."""
+    with pytest.raises(ValueError, match="No valid feature categories provided"):
+        orchestrator._validate_feature_categories(feature_categories)
+
+
+def test_validate_feature_categories_mixed(caplog: pytest.LogCaptureFixture) -> None:
+    """Test _validate_feature_categories with mix of valid and invalid categories."""
+    feature_categories = cast(
+        list[orchestrator.FeatureCategories],
+        [
+            "duration",
+            "meaning_of_life",
+        ],
+    )
+    valid_categories = orchestrator._validate_feature_categories(feature_categories)
+
+    assert len(valid_categories) == 1
+    assert "duration" in valid_categories
+    assert "Unknown feature categories requested" in caplog.text
+    assert "meaning_of_life" in caplog.text
 
 
 @pytest.mark.parametrize(
@@ -53,7 +74,7 @@ def test_validate_feature_categories(
     ],
 )
 def test_get_feature_categories(
-    feature_categories: list[str],
+    feature_categories: list[orchestrator.FeatureCategories],
     expected_feature_number: int,
     valid_spiral: models.Spiral,
     ref_spiral: np.ndarray,
@@ -66,179 +87,223 @@ def test_get_feature_categories(
     assert len(features) == expected_feature_number
 
 
-@pytest.mark.parametrize(
-    "output_has_extension, dir_exists, overwrite, raise_exception, feature_values",
-    [
-        (
-            False,
-            False,
-            False,
-            False,
-            {"feature1": "0"},
-        ),
-        (
-            True,
-            False,
-            False,
-            False,
-            {"feature1": "0", "feature2": "42.0"},
-        ),
-        (
-            False,
-            True,
-            False,
-            False,
-            {"feature1": "0", "feature3": "3.14"},
-        ),
-        (
-            True,
-            True,
-            False,
-            False,
-            {"feature1": "0", "feature2": "42.0", "feature3": "3.14"},
-        ),
-        (
-            True,
-            True,
-            True,
-            False,
-            {"feature1": "0", "feature2": "42.0", "feature3": "3.14", "feature4": "1"},
-        ),
-        (
-            True,
-            True,
-            True,
-            True,
-            {"feature1": "0", "feature2": "42.0", "feature3": "3.14", "feature4": "1"},
-        ),
-    ],
-)
-def test_export_features_to_csv(
-    output_has_extension: bool,
-    dir_exists: bool,
-    overwrite: bool,
-    raise_exception: bool,
-    feature_values: dict,
+def test_export_features_to_csv_extension_parent_dir(
+    valid_spiral: models.Spiral,
+    tmp_path: pathlib.Path,
+) -> None:
+    """Test _export_features_to_csv with extension and parent directory."""
+    input_path = pathlib.Path("/fake/input/path.csv")
+    output_path = tmp_path / "features.csv"
+
+    orchestrator._export_features_to_csv(
+        valid_spiral,
+        {"feature1": "0"},
+        input_path,
+        output_path,
+    )
+
+    assert output_path.is_file()
+
+
+def test_export_features_to_csv_extension_no_parent_dir(
     valid_spiral: models.Spiral,
     tmp_path: pathlib.Path,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Test _export_features_to_csv with various scenarios."""
+    """Test _export_features_to_csv with extension and no parent directory."""
     input_path = pathlib.Path("/fake/input/path.csv")
+    output_path = tmp_path / "nonexistent" / "features.csv"
 
-    if output_has_extension:
-        output_path = tmp_path / "features.csv"
-    else:
-        output_path = tmp_path / "output_dir"
+    orchestrator._export_features_to_csv(
+        valid_spiral,
+        {"feature1": "0"},
+        input_path,
+        output_path,
+    )
 
-    if not dir_exists:
-        if output_has_extension:
-            parent_dir = output_path.parent / "nonexistent"
-            output_path = parent_dir / output_path.name
-        else:
-            output_path = output_path / "nonexistent"
+    assert output_path.is_file()
+    assert "Creating parent directory that doesn't exist:" in caplog.text
 
-    if overwrite:
-        output_path.write_text("This should be overwritten\n")
+
+def test_export_features_to_csv_no_extension_dir_exists(
+    valid_spiral: models.Spiral,
+    tmp_path: pathlib.Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test _export_features_to_csv with no extension and existing directory."""
+    input_path = pathlib.Path("/fake/input/path.csv")
+    output_path = tmp_path
 
     expected_filename = (
         f"{valid_spiral.metadata['id']}_{valid_spiral.metadata['task']}_{valid_spiral.metadata['hand']}_"
         f"features_{datetime.today().strftime('%Y%m%d')}.csv"
     )
 
-    expected_output_path = output_path
-    if not output_has_extension:
-        expected_output_path = output_path / expected_filename
+    expected_output_path = output_path / expected_filename
 
-    expected_csv = (
-        f"participant_id,{valid_spiral.metadata['id']}\n"
-        f"task,{valid_spiral.metadata['task']}\n"
-        f"hand,{valid_spiral.metadata['hand']}\n"
-        f"source_file,{input_path}\n"
-        f"feature1,{feature_values['feature1']}\n"
+    orchestrator._export_features_to_csv(
+        valid_spiral,
+        {"feature1": "0"},
+        input_path,
+        output_path,
     )
-    if output_has_extension:
-        expected_csv += f"feature2,{feature_values['feature2']}\n"
-    if dir_exists:
-        expected_csv += f"feature3,{feature_values['feature3']}\n"
-    if overwrite:
-        expected_csv += f"feature4,{feature_values['feature4']}\n"
 
-    if raise_exception:
-        output_path.chmod(0o444)
-        with pytest.raises(Exception):
-            orchestrator._export_features_to_csv(
-                valid_spiral,
-                feature_values,
-                input_path,
-                output_path,
-            )
-    else:
-        orchestrator._export_features_to_csv(
-            valid_spiral,
-            feature_values,
-            input_path,
-            output_path,
-        )
-
-    actual_csv = expected_output_path.read_text()
-
-    if not dir_exists:
-        if output_has_extension:
-            assert "Creating parent directory that doesn't exist:" in caplog.text
-        else:
-            assert "Creating directory that doesn't exist:" in caplog.text
-    if overwrite and not raise_exception:
-        assert "Overwriting existing file:" in caplog.text
-        assert "This should be overwritten" not in actual_csv
-    if raise_exception:
-        assert "Failed to save features to" in caplog.text
-    else:
-        assert actual_csv == expected_csv
+    assert expected_output_path.is_file()
 
 
-@pytest.mark.parametrize(
-    "output_path, spiral_config",
-    [
-        (None, None),
-        ("temp_path", None),
-        (
-            None,
-            config.SpiralConfig.add_custom_params(
-                {"center_x": 0, "center_y": 0, "growth_rate": 0}
-            ),
-        ),
-    ],
-)
-def test_extract_features(
-    sample_data: pathlib.Path,
-    output_path: pathlib.Path | None,
-    spiral_config: config.SpiralConfig | None,
+def test_export_features_to_csv_no_extension_no_dir(
     valid_spiral: models.Spiral,
     tmp_path: pathlib.Path,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
-    """Test extract_features function with valid categories."""
-    if output_path:
-        output_path = tmp_path / "features.csv"
-    feature_categories = ["duration", "velocity", "hausdorff", "AUC"]
-    features = orchestrator.extract_features(
-        sample_data, output_path, feature_categories, spiral_config
+    """Test _export_features_to_csv with no extension and no directory."""
+    input_path = pathlib.Path("/fake/input/path.csv")
+    output_path = tmp_path / "output_dir"
+
+    expected_filename = (
+        f"{valid_spiral.metadata['id']}_{valid_spiral.metadata['task']}_{valid_spiral.metadata['hand']}_"
+        f"features_{datetime.today().strftime('%Y%m%d')}.csv"
     )
-    expected_max_hausdorff_distance = 0
-    if spiral_config:
-        expected_max_hausdorff_distance = max(
-            np.sqrt(x**2 + y**2)
-            for x, y in zip(valid_spiral.data["x"], valid_spiral.data["y"])
-        )
+
+    expected_output_path = output_path / expected_filename
+
+    orchestrator._export_features_to_csv(
+        valid_spiral,
+        {"feature1": "0"},
+        input_path,
+        output_path,
+    )
+
+    assert expected_output_path.is_file()
+    assert "Creating directory that doesn't exist:" in caplog.text
+
+
+def test_export_features_to_csv_overwrite(
+    valid_spiral: models.Spiral,
+    tmp_path: pathlib.Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test _export_features_to_csv with overwrite option."""
+    input_path = pathlib.Path("/fake/input/path.csv")
+    output_path = tmp_path / "features.csv"
+    output_path.write_text("This should be overwritten\n")
+
+    orchestrator._export_features_to_csv(
+        valid_spiral,
+        {"feature1": "0"},
+        input_path,
+        output_path,
+    )
+
+    csv_content = output_path.read_text()
+
+    assert output_path.is_file()
+    assert "Overwriting existing file:" in caplog.text
+    assert "This should be overwritten" not in csv_content
+
+
+def test_export_features_to_csv_raise_exception(
+    valid_spiral: models.Spiral,
+    tmp_path: pathlib.Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test _export_features_to_csv raises an exception with a read-only file."""
+    input_path = pathlib.Path("/fake/input/path.csv")
+    output_path = tmp_path / "features.csv"
+    original_content = "So Long, and Thanks for All the Fish"
+    output_path.write_text(original_content)
+    output_path.chmod(0o444)
+
+    orchestrator._export_features_to_csv(
+        valid_spiral,
+        {"feature1": "0"},
+        input_path,
+        output_path,
+    )
+
+    assert output_path.read_text() == original_content
+    assert "Failed to save features to" in caplog.text
+    assert "Permission denied" in caplog.text
+
+
+def test_extract_features_no_output_no_config(sample_data: pathlib.Path) -> None:
+    """Test extract_features with no output path or custom config."""
+    feature_categories: list[orchestrator.FeatureCategories] = [
+        "duration",
+        "velocity",
+        "hausdorff",
+        "AUC",
+    ]
+    features = orchestrator.extract_features(
+        sample_data, None, feature_categories, None
+    )
 
     assert isinstance(features, dict)
     assert len(features) == 25
     assert all(isinstance(value, str) for value in features.values())
     assert all(len(value.split(".")[-1]) <= 15 for value in features.values())
-    if output_path:
-        assert output_path.is_file()
-    if spiral_config:
-        assert (
-            features["hausdorff_distance_maximum"]
-            == f"{expected_max_hausdorff_distance:.15f}"
-        )
+
+
+def test_extract_features_with_output_path(
+    sample_data: pathlib.Path,
+    tmp_path: pathlib.Path,
+) -> None:
+    """Test extract_features with an output path specified."""
+    output_path = tmp_path / "features.csv"
+    feature_categories: list[orchestrator.FeatureCategories] = [
+        "duration",
+        "velocity",
+        "hausdorff",
+        "AUC",
+    ]
+
+    features = orchestrator.extract_features(
+        sample_data, output_path, feature_categories, None
+    )
+
+    csv_content = output_path.read_text()
+    lines = csv_content.strip().split("\n")
+    header_lines = lines[:4]
+    feature_lines = lines[4:]
+
+    assert output_path.is_file()
+    assert len(lines) == 29
+    assert any(line.startswith("participant_id,") for line in header_lines)
+    assert any(line.startswith("task,") for line in header_lines)
+    assert any(line.startswith("hand,") for line in header_lines)
+    assert any(line.startswith("source_file,") for line in header_lines)
+    for line in feature_lines:
+        name, value = line.split(",", 1)
+        assert name in features
+        assert features[name] == value
+        if "." in value:
+            assert len(value.split(".")[-1]) <= 15
+
+
+def test_extract_features_with_custom_spiral_config(
+    sample_data: pathlib.Path,
+    valid_spiral: models.Spiral,
+) -> None:
+    """Test extract_features with a custom spiral configuration."""
+    spiral_config = config.SpiralConfig.add_custom_params(
+        {"center_x": 0, "center_y": 0, "growth_rate": 0}
+    )
+    feature_categories: list[orchestrator.FeatureCategories] = [
+        "duration",
+        "velocity",
+        "hausdorff",
+        "AUC",
+    ]
+    features = orchestrator.extract_features(
+        sample_data, None, feature_categories, spiral_config
+    )
+
+    expected_max_hausdorff_distance = max(
+        np.sqrt(x**2 + y**2)
+        for x, y in zip(valid_spiral.data["x"], valid_spiral.data["y"])
+    )
+
+    assert (
+        features["hausdorff_distance_maximum"]
+        == f"{expected_max_hausdorff_distance:.15f}"
+    )

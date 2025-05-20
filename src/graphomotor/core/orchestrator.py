@@ -3,6 +3,7 @@
 import os
 import pathlib
 from datetime import datetime
+from typing import Literal
 
 import numpy as np
 import pandas as pd
@@ -12,6 +13,8 @@ from graphomotor.io import reader
 from graphomotor.utils import center_spiral, generate_reference_spiral
 
 logger = config.get_logger()
+
+FeatureCategories = Literal["duration", "velocity", "hausdorff", "AUC"]
 
 
 def _ensure_path(path: pathlib.Path | str) -> pathlib.Path:
@@ -26,7 +29,9 @@ def _ensure_path(path: pathlib.Path | str) -> pathlib.Path:
     return pathlib.Path(path) if isinstance(path, str) else path
 
 
-def _validate_feature_categories(feature_categories: list[str]) -> set[str]:
+def _validate_feature_categories(
+    feature_categories: list[FeatureCategories],
+) -> set[str]:
     """Validate requested feature categories and return valid ones.
 
     Args:
@@ -38,10 +43,10 @@ def _validate_feature_categories(feature_categories: list[str]) -> set[str]:
     Raises:
         ValueError: If no valid feature categories are provided.
     """
-    unknown_categories = set(feature_categories) - config.FeatureCategories.all()
-    valid_requested_categories = (
-        set(feature_categories) & config.FeatureCategories.all()
-    )
+    feature_categories_set: set[str] = set(feature_categories)
+    supported_categories_set = models.FeatureCategories.all()
+    unknown_categories = feature_categories_set - supported_categories_set
+    valid_requested_categories = feature_categories_set & supported_categories_set
 
     if unknown_categories:
         logger.warning(
@@ -52,7 +57,7 @@ def _validate_feature_categories(feature_categories: list[str]) -> set[str]:
     if not valid_requested_categories:
         error_msg = (
             "No valid feature categories provided. "
-            f"Supported categories: {config.FeatureCategories.all()}"
+            f"Supported categories: {supported_categories_set}"
         )
         logger.error(error_msg)
         raise ValueError(error_msg)
@@ -63,7 +68,7 @@ def _validate_feature_categories(feature_categories: list[str]) -> set[str]:
 def _get_feature_categories(
     spiral: models.Spiral,
     reference_spiral: np.ndarray,
-    feature_categories: list[str],
+    feature_categories: list[FeatureCategories],
 ) -> dict[str, float]:
     """Feature categories dispatcher.
 
@@ -81,7 +86,7 @@ def _get_feature_categories(
     """
     valid_categories = _validate_feature_categories(feature_categories)
 
-    feature_extractors = config.FeatureCategories.get_extractors(
+    feature_extractors = models.FeatureCategories.get_extractors(
         spiral, reference_spiral
     )
 
@@ -153,14 +158,14 @@ def _export_features_to_csv(
         features_df.to_csv(output_file, index=False, header=False)
         logger.debug(f"Features saved successfully to {output_file}")
     except Exception as e:
+        # Allowed to pass in Jupyter Notebook scenarios.
         logger.error(f"Failed to save features to {output_file}: {str(e)}")
-        raise
 
 
 def extract_features(
     input_path: pathlib.Path | str,
     output_path: pathlib.Path | str | None,
-    feature_categories: list[str],
+    feature_categories: list[FeatureCategories],
     spiral_config: config.SpiralConfig | None,
 ) -> dict[str, str]:
     """Extract features from spiral drawing data.
@@ -183,16 +188,18 @@ def extract_features(
     logger.debug(f"Loading spiral data from {input_path}")
     input_path = _ensure_path(input_path)
     spiral = reader.load_spiral(input_path)
-    spiral = center_spiral.center_spiral(spiral)
+    centered_spiral = center_spiral.center_spiral(spiral)
 
     logger.debug("Generating reference spiral to calculate features")
     config_to_use = spiral_config or config.SpiralConfig()
     reference_spiral = generate_reference_spiral.generate_reference_spiral(
         config=config_to_use
     )
-    reference_spiral = center_spiral.center_spiral(reference_spiral)
+    centered_reference_spiral = center_spiral.center_spiral(reference_spiral)
 
-    features = _get_feature_categories(spiral, reference_spiral, feature_categories)
+    features = _get_feature_categories(
+        centered_spiral, centered_reference_spiral, feature_categories
+    )
     logger.info(f"Feature extraction complete. Extracted {len(features)} features")
 
     formatted_features = {k: f"{v:.15f}" for k, v in features.items()}
@@ -207,7 +214,7 @@ def extract_features(
 def run_pipeline(
     input_path: pathlib.Path | str,
     output_path: pathlib.Path | str | None,
-    feature_categories: list[str],
+    feature_categories: list[FeatureCategories],
     config_params: dict[str, float | int] | None = None,
 ) -> dict[str, str]:
     """Run the Graphomotor pipeline to extract features from spiral drawing data.

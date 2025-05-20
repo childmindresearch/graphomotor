@@ -9,7 +9,7 @@ from graphomotor.core import config
 
 
 @pytest.mark.parametrize(
-    "custom_params, expected_params, expected_warnings",
+    "custom_params, expected_params",
     [
         (
             {
@@ -28,8 +28,25 @@ from graphomotor.core import config
                 "end_angle": 2 * np.pi,
                 "num_points": 100,
             },
-            [],
         ),
+    ],
+)
+def test_spiral_config_add_custom_params_valid(
+    custom_params: dict[str, int | float],
+    expected_params: dict[str, int | float],
+    recwarn: pytest.WarningsRecorder,
+) -> None:
+    """Test that SpiralConfig.add_custom_params correctly sets parameter values."""
+    spiral_config = config.SpiralConfig.add_custom_params(custom_params)
+
+    for key, value in expected_params.items():
+        assert getattr(spiral_config, key) == value
+        assert len(recwarn) == 0
+
+
+@pytest.mark.parametrize(
+    "custom_params, expected_params, expected_warnings",
+    [
         (
             {
                 "growth_rate": 1,
@@ -50,26 +67,22 @@ from graphomotor.core import config
         ),
     ],
 )
-def test_spiral_config_add_custom_params(
+def test_spiral_config_add_custom_params_warnings(
     custom_params: dict[str, int | float],
     expected_params: dict[str, int | float],
     expected_warnings: list[str],
     recwarn: pytest.WarningsRecorder,
 ) -> None:
-    """Test the SpiralConfig.add_custom_params method with various inputs."""
+    """Test that SpiralConfig.add_custom_params issues warnings appropriately."""
     spiral_config = config.SpiralConfig.add_custom_params(custom_params)
 
+    assert len(recwarn) == len(expected_warnings)
     for key, value in expected_params.items():
         assert getattr(spiral_config, key) == value
-
-    if expected_warnings:
-        assert len(recwarn) == len(expected_warnings)
-        for i, param in enumerate(expected_warnings):
-            assert f"Unknown configuration parameters will be ignored: {param}" in str(
-                recwarn[i].message
-            )
-    else:
-        assert len(recwarn) == 0
+    for i, param in enumerate(expected_warnings):
+        assert f"Unknown configuration parameters will be ignored: {param}" in str(
+            recwarn[i].message
+        )
 
 
 def test_get_logger(caplog: pytest.LogCaptureFixture) -> None:

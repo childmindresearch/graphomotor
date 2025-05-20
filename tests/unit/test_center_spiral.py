@@ -17,8 +17,8 @@ def test_center_spiral_valid_type(
     centered_ref_spiral = center_spiral.center_spiral(ref_spiral)
 
     assert isinstance(centered_perfect_spiral, models.Spiral)
-    assert np.isclose(centered_perfect_spiral.data["x"].iloc[0], 0)
-    assert np.isclose(centered_perfect_spiral.data["y"].iloc[0], 0)
+    assert centered_perfect_spiral.data["x"].iloc[0] == 0
+    assert centered_perfect_spiral.data["y"].iloc[0] == 0
 
     assert isinstance(centered_ref_spiral, np.ndarray)
     assert np.array_equal(centered_ref_spiral[0], [0, 0])

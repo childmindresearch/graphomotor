@@ -3,55 +3,8 @@
 import logging
 import warnings
 from dataclasses import dataclass
-from typing import Callable
 
 import numpy as np
-
-from graphomotor.core import models
-from graphomotor.features import distance, drawing_error, time, velocity
-
-
-class FeatureCategories:
-    """Class to hold valid feature categories for Graphomotor."""
-
-    DURATION = "duration"
-    VELOCITY = "velocity"
-    HAUSDORFF = "hausdorff"
-    AUC = "AUC"
-
-    @classmethod
-    def all(cls) -> set[str]:
-        """Return all valid feature categories."""
-        return {
-            cls.DURATION,
-            cls.VELOCITY,
-            cls.HAUSDORFF,
-            cls.AUC,
-        }
-
-    @classmethod
-    def get_extractors(
-        cls, spiral: models.Spiral, reference_spiral: np.ndarray
-    ) -> dict[str, Callable[[], dict[str, float]]]:
-        """Get all feature extractors with appropriate inputs.
-
-        Args:
-            spiral: The spiral data to extract features from.
-            reference_spiral: Reference spiral for comparison-based metrics.
-
-        Returns:
-            Dictionary mapping category names to their feature extractor functions.
-        """
-        return {
-            cls.DURATION: lambda: time.get_task_duration(spiral),
-            cls.VELOCITY: lambda: velocity.calculate_velocity_metrics(spiral),
-            cls.HAUSDORFF: lambda: distance.calculate_hausdorff_metrics(
-                spiral, reference_spiral
-            ),
-            cls.AUC: lambda: drawing_error.calculate_area_under_curve(
-                spiral, reference_spiral
-            ),
-        }
 
 
 @dataclass
