@@ -156,7 +156,7 @@ def _export_features_to_csv(
 
     try:
         features_df.to_csv(output_file, index=False, header=False)
-        logger.debug(f"Features saved successfully to {output_file}")
+        logger.info(f"Features saved successfully to {output_file}")
     except Exception as e:
         # Allowed to pass in Jupyter Notebook scenarios.
         logger.error(f"Failed to save features to {output_file}: {str(e)}")
