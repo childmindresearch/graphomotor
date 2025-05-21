@@ -213,32 +213,42 @@ def extract_features(
 
 def run_pipeline(
     input_path: pathlib.Path | str,
-    output_path: pathlib.Path | str | None,
-    feature_categories: list[FeatureCategories],
+    output_path: pathlib.Path | str | None = None,
+    feature_categories: list[FeatureCategories] = [
+        "duration",
+        "velocity",
+        "hausdorff",
+        "AUC",
+    ],
     config_params: dict[str, float | int] | None = None,
 ) -> dict[str, str]:
-    """Run the Graphomotor pipeline to extract features from spiral drawing data.
+    """Run the Graphomotor pipeline to extract features from spiral drawings.
 
     Args:
-        input_path: Path to the input CSV file containing spiral drawing data.
-        output_path: Path where extracted features will be saved. Three behaviors are
-            possible:
-            - If None: Features are calculated but not saved to disk.
-            - If path includes file extension (e.g., "/path/to/output.csv"): This exact
-                file path is used.
-            - If path has no file extension (e.g., "/path/to/output"): A file is
-                created in that directory with auto-generated filename:
-                "/path/to/output/{participant_id}_{task}_{hand}_features_{date}.csv".
-        feature_categories: List of feature categories to extract. Options are:
-            - "duration": Extract task duration.
-            - "velocity": Extract velocity-based metrics.
-            - "hausdorff": Extract Hausdorff distance metrics.
-            - "AUC": Extract area under the curve metric.
-        config_params: Optional configuration parameters for spiral drawing. If None,
-            default parameters are used.
+        input_path: Path to the input CSV file with spiral drawing data.
+        output_path: Path to save extracted features. If None, features aren't saved. If
+            path has an extension, features are saved to that file. If path points to a
+            directory, a file is created with participant ID, task, hand, and date in
+            the filename.
+        feature_categories: Feature categories to extract. Defaults to all available
+            categories:
+            - "duration": Task duration
+            - "velocity": Velocity-based metrics
+            - "hausdorff": Hausdorff distance metrics
+            - "AUC": Area under the curve metric
+        config_params: Optional dictionary with custom spiral configuration parameters.
+            These parameters control reference spiral generation and spiral centering.
+            If None, default parameters are used. Supported parameters are:
+            - "center_x": X-coordinate of the spiral center. Default is 50.
+            - "center_y": Y-coordinate of the spiral center. Default is 50.
+            - "start_radius": Starting radius of the spiral. Default is 0.
+            - "growth_rate": Growth rate of the spiral. Default is 1.075.
+            - "start_angle": Starting angle of the spiral. Default is 0.
+            - "end_angle": Ending angle of the spiral. Default is 8π.
+            - "num_points": Number of points in the spiral. Default is 10000.
 
     Returns:
-        Dictionary containing the extracted features.
+        Dictionary of extracted features.
     """
     logger.info("Starting Graphomotor pipeline")
     logger.info(f"Input path: {input_path}")
