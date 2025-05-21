@@ -1,15 +1,15 @@
 """Utility functions for centering a spiral."""
 
-from typing import overload
+import typing
 
 import numpy as np
 
 from graphomotor.core import config, models
 
 
-@overload
+@typing.overload
 def center_spiral(spiral: models.Spiral) -> models.Spiral: ...
-@overload
+@typing.overload
 def center_spiral(spiral: np.ndarray) -> np.ndarray: ...
 def center_spiral(spiral):
     """Center a spiral by translating it to the origin.

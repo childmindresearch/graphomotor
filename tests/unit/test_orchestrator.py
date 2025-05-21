@@ -1,8 +1,8 @@
 """Tests for the orchestrator module."""
 
+import datetime
 import pathlib
-from datetime import datetime
-from typing import cast
+import typing
 
 import numpy as np
 import pytest
@@ -48,7 +48,7 @@ def test_validate_feature_categories_only_invalid(
 
 def test_validate_feature_categories_mixed(caplog: pytest.LogCaptureFixture) -> None:
     """Test _validate_feature_categories with mix of valid and invalid categories."""
-    feature_categories = cast(
+    feature_categories = typing.cast(
         list[orchestrator.FeatureCategories],
         [
             "duration",
@@ -136,7 +136,7 @@ def test_export_features_to_csv_no_extension_dir_exists(
 
     expected_filename = (
         f"{valid_spiral.metadata['id']}_{valid_spiral.metadata['task']}_{valid_spiral.metadata['hand']}_"
-        f"features_{datetime.today().strftime('%Y%m%d')}.csv"
+        f"features_{datetime.datetime.today().strftime('%Y%m%d')}.csv"
     )
 
     expected_output_path = output_path / expected_filename
@@ -162,7 +162,7 @@ def test_export_features_to_csv_no_extension_no_dir(
 
     expected_filename = (
         f"{valid_spiral.metadata['id']}_{valid_spiral.metadata['task']}_{valid_spiral.metadata['hand']}_"
-        f"features_{datetime.today().strftime('%Y%m%d')}.csv"
+        f"features_{datetime.datetime.today().strftime('%Y%m%d')}.csv"
     )
 
     expected_output_path = output_path / expected_filename

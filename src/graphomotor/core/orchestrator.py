@@ -1,9 +1,9 @@
 """Runner for the Graphomotor pipeline."""
 
+import datetime
 import os
 import pathlib
-from datetime import datetime
-from typing import Literal
+import typing
 
 import numpy as np
 import pandas as pd
@@ -14,7 +14,7 @@ from graphomotor.utils import center_spiral, generate_reference_spiral
 
 logger = config.get_logger()
 
-FeatureCategories = Literal["duration", "velocity", "hausdorff", "AUC"]
+FeatureCategories = typing.Literal["duration", "velocity", "hausdorff", "AUC"]
 
 
 def _ensure_path(path: pathlib.Path | str) -> pathlib.Path:
@@ -122,7 +122,7 @@ def _export_features_to_csv(
 
     filename = (
         f"{participant_id}_{task}_{hand}_features_"
-        f"{datetime.today().strftime('%Y%m%d')}.csv"
+        f"{datetime.datetime.today().strftime('%Y%m%d')}.csv"
     )
 
     if not output_path.suffix:
@@ -220,7 +220,19 @@ def run_pipeline(
         "hausdorff",
         "AUC",
     ],
-    config_params: dict[str, float | int] | None = None,
+    config_params: dict[
+        typing.Literal[
+            "center_x",
+            "center_y",
+            "start_radius",
+            "growth_rate",
+            "start_angle",
+            "end_angle",
+            "num_points",
+        ],
+        float | int,
+    ]
+    | None = None,
 ) -> dict[str, str]:
     """Run the Graphomotor pipeline to extract features from spiral drawings.
 
@@ -238,14 +250,14 @@ def run_pipeline(
             - "AUC": Area under the curve metric
         config_params: Optional dictionary with custom spiral configuration parameters.
             These parameters control reference spiral generation and spiral centering.
-            If None, default parameters are used. Supported parameters are:
-            - "center_x": X-coordinate of the spiral center. Default is 50.
-            - "center_y": Y-coordinate of the spiral center. Default is 50.
-            - "start_radius": Starting radius of the spiral. Default is 0.
-            - "growth_rate": Growth rate of the spiral. Default is 1.075.
-            - "start_angle": Starting angle of the spiral. Default is 0.
-            - "end_angle": Ending angle of the spiral. Default is 8π.
-            - "num_points": Number of points in the spiral. Default is 10000.
+            If None, default configuration is used. Supported parameters are:
+            - "center_x" (float): X-coordinate of the spiral center. Default is 50.
+            - "center_y" (float): Y-coordinate of the spiral center. Default is 50.
+            - "start_radius" (float): Starting radius of the spiral. Default is 0.
+            - "growth_rate" (float): Growth rate of the spiral. Default is 1.075.
+            - "start_angle" (float): Starting angle of the spiral. Default is 0.
+            - "end_angle" (float): Ending angle of the spiral. Default is 8π.
+            - "num_points" (int): Number of points in the spiral. Default is 10000.
 
     Returns:
         Dictionary of extracted features.
@@ -258,7 +270,9 @@ def run_pipeline(
     spiral_config = None
     if config_params:
         logger.info(f"Custom spiral configuration: {config_params}")
-        spiral_config = config.SpiralConfig.add_custom_params(config_params)
+        spiral_config = config.SpiralConfig.add_custom_params(
+            typing.cast(dict, config_params)
+        )
 
     features = extract_features(
         input_path, output_path, feature_categories, spiral_config

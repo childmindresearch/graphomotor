@@ -1,14 +1,14 @@
 """Internal data class for spiral drawing data."""
 
-from datetime import datetime
-from typing import Callable
+import datetime
+import typing
 
 import numpy as np
 import pandas as pd
-from pydantic import BaseModel, ConfigDict, field_validator
+import pydantic
 
 
-class Spiral(BaseModel):
+class Spiral(pydantic.BaseModel):
     """Class representing a spiral drawing, encapsulating both raw data and metadata.
 
     Attributes:
@@ -21,12 +21,12 @@ class Spiral(BaseModel):
             - start_time: Start time of drawing.
     """
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
 
     data: pd.DataFrame
-    metadata: dict[str, str | datetime]
+    metadata: dict[str, str | datetime.datetime]
 
-    @field_validator("data")
+    @pydantic.field_validator("data")
     @classmethod
     def validate_dataframe(cls, v: pd.DataFrame) -> pd.DataFrame:
         """Validate that DataFrame contains required columns and correct data types.
@@ -46,7 +46,7 @@ class Spiral(BaseModel):
 
         return v
 
-    @field_validator("metadata")
+    @pydantic.field_validator("metadata")
     @classmethod
     def validate_metadata(cls, v: dict) -> dict:
         """Validate metadata dictionary for required keys and correct data types.
@@ -102,7 +102,7 @@ class FeatureCategories:
     @classmethod
     def get_extractors(
         cls, spiral: Spiral, reference_spiral: np.ndarray
-    ) -> dict[str, Callable[[], dict[str, float]]]:
+    ) -> dict[str, typing.Callable[[], dict[str, float]]]:
         """Get all feature extractors with appropriate inputs.
 
         Args:

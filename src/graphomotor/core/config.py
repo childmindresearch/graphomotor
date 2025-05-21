@@ -1,13 +1,13 @@
 """Configuration module for Graphomotor."""
 
+import dataclasses
 import logging
 import warnings
-from dataclasses import dataclass
 
 import numpy as np
 
 
-@dataclass
+@dataclasses.dataclass
 class SpiralConfig:
     """Class for the parameters of anticipated spiral drawing."""
 
