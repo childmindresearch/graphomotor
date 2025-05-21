@@ -4,7 +4,6 @@ import numpy as np
 from scipy import stats
 
 from graphomotor.core import models
-from graphomotor.utils import center_spiral
 
 
 def _calculate_statistics(values: np.ndarray, name: str) -> dict[str, float]:
@@ -57,7 +56,6 @@ def calculate_velocity_metrics(spiral: models.Spiral) -> dict[str, float]:
     Returns:
         Dictionary containing calculated velocity metrics.
     """
-    spiral = center_spiral.center_spiral(spiral)
     x = spiral.data["x"].values
     y = spiral.data["y"].values
     time = spiral.data["seconds"].values

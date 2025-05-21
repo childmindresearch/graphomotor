@@ -1,13 +1,15 @@
 """Internal data class for spiral drawing data."""
 
-from datetime import datetime
+import datetime
+import typing
 
+import numpy as np
 import pandas as pd
-from pydantic import BaseModel, ConfigDict, field_validator
+import pydantic
 
 
-class Spiral(BaseModel):
-    """A class representing a spiral drawing, encapsulating both raw data and metadata.
+class Spiral(pydantic.BaseModel):
+    """Class representing a spiral drawing, encapsulating both raw data and metadata.
 
     Attributes:
         data: DataFrame containing drawing data with required columns (line_number, x,
@@ -19,12 +21,12 @@ class Spiral(BaseModel):
             - start_time: Start time of drawing.
     """
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
 
     data: pd.DataFrame
-    metadata: dict[str, str | datetime]
+    metadata: dict[str, str | datetime.datetime]
 
-    @field_validator("data")
+    @pydantic.field_validator("data")
     @classmethod
     def validate_dataframe(cls, v: pd.DataFrame) -> pd.DataFrame:
         """Validate that DataFrame contains required columns and correct data types.
@@ -44,7 +46,7 @@ class Spiral(BaseModel):
 
         return v
 
-    @field_validator("metadata")
+    @pydantic.field_validator("metadata")
     @classmethod
     def validate_metadata(cls, v: dict) -> dict:
         """Validate metadata dictionary for required keys and correct data types.
@@ -77,3 +79,49 @@ class Spiral(BaseModel):
             )
 
         return v
+
+
+class FeatureCategories:
+    """Class to hold valid feature categories for Graphomotor."""
+
+    DURATION = "duration"
+    VELOCITY = "velocity"
+    HAUSDORFF = "hausdorff"
+    AUC = "AUC"
+
+    @classmethod
+    def all(cls) -> set[str]:
+        """Return all valid feature categories."""
+        return {
+            cls.DURATION,
+            cls.VELOCITY,
+            cls.HAUSDORFF,
+            cls.AUC,
+        }
+
+    @classmethod
+    def get_extractors(
+        cls, spiral: Spiral, reference_spiral: np.ndarray
+    ) -> dict[str, typing.Callable[[], dict[str, float]]]:
+        """Get all feature extractors with appropriate inputs.
+
+        Args:
+            spiral: The spiral data to extract features from.
+            reference_spiral: Reference spiral for comparison-based metrics.
+
+        Returns:
+            Dictionary mapping category names to their feature extractor functions.
+        """
+        # Importing feature modules here to avoid circular imports.
+        from graphomotor.features import distance, drawing_error, time, velocity
+
+        return {
+            cls.DURATION: lambda: time.get_task_duration(spiral),
+            cls.VELOCITY: lambda: velocity.calculate_velocity_metrics(spiral),
+            cls.HAUSDORFF: lambda: distance.calculate_hausdorff_metrics(
+                spiral, reference_spiral
+            ),
+            cls.AUC: lambda: drawing_error.calculate_area_under_curve(
+                spiral, reference_spiral
+            ),
+        }

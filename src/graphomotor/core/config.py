@@ -1,20 +1,47 @@
 """Configuration module for Graphomotor."""
 
+import dataclasses
 import logging
+import warnings
 
 import numpy as np
 
 
-class _SpiralConfig:
-    """Configuration for the reference spiral generation."""
+@dataclasses.dataclass
+class SpiralConfig:
+    """Class for the parameters of anticipated spiral drawing."""
 
-    SPIRAL_CENTER_X = 50
-    SPIRAL_CENTER_Y = 50
-    SPIRAL_START_RADIUS = 0
-    SPIRAL_GROWTH_RATE = 1.075
-    SPIRAL_START_ANGLE = 0
-    SPIRAL_END_ANGLE = 8 * np.pi
-    SPIRAL_NUM_POINTS = 10000
+    center_x: float = 50
+    center_y: float = 50
+    start_radius: float = 0
+    growth_rate: float = 1.075
+    start_angle: float = 0
+    end_angle: float = 8 * np.pi
+    num_points: int = 10000
+
+    @classmethod
+    def add_custom_params(cls, config_dict: dict[str, float | int]) -> "SpiralConfig":
+        """Update the SpiralConfig instance with custom parameters.
+
+        Args:
+            config_dict: Dictionary with configuration parameters.
+
+        Returns:
+            SpiralConfig instance with updated parameters.
+        """
+        config = cls()
+        for key, value in config_dict.items():
+            if hasattr(config, key):
+                setattr(config, key, value)
+            else:
+                valid_params = ", ".join(
+                    f.name for f in cls.__dataclass_fields__.values()
+                )
+                warnings.warn(
+                    f"Unknown configuration parameters will be ignored: {key}. "
+                    f"Valid parameters are: {valid_params}"
+                )
+        return config
 
 
 def get_logger() -> logging.Logger:

@@ -7,7 +7,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from graphomotor.core import models
+from graphomotor.core import config, models
+from graphomotor.io import reader
 from graphomotor.utils import generate_reference_spiral
 
 
@@ -17,7 +18,10 @@ def sample_data() -> pathlib.Path:
     return (
         pathlib.Path(__file__).parent
         / "sample_data"
-        / "[5123456]d3afad5c-8a5d-4292-8f54-24109ea6f793-648c7b3e-8819-c112-0b4f-6f3000000000-spiral_trace1_Dom.csv"  # noqa: E501
+        / (
+            "[5123456]65318bf53c36ce79135b1049-648c7d0e8819c1120b4f708d"
+            "-spiral_trace1_Dom.csv"
+        )
     )
 
 
@@ -35,7 +39,7 @@ def valid_spiral_metadata() -> dict[str, str | datetime.datetime]:
         "hand": "Dom",
         "task": "spiral_trace1",
         "start_time": datetime.datetime.fromtimestamp(
-            1701700376.296,
+            1697745697.08,
             tz=datetime.timezone.utc,
         ),
     }
@@ -56,4 +60,14 @@ def valid_spiral(
 @pytest.fixture
 def ref_spiral() -> np.ndarray:
     """Create a reference spiral for testing."""
-    return generate_reference_spiral.generate_reference_spiral()
+    return generate_reference_spiral.generate_reference_spiral(config.SpiralConfig())
+
+
+@pytest.fixture
+def perfect_spiral() -> models.Spiral:
+    """Create a perfect Spiral object."""
+    return reader.load_spiral(
+        pathlib.Path(__file__).parent
+        / "sample_data"
+        / "[5000000]perfect-3000-points-spiral_trace1_Dom.csv"
+    )
