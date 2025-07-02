@@ -193,7 +193,7 @@ def extract_features(
     logger.debug("Generating reference spiral to calculate features")
     config_to_use = spiral_config or config.SpiralConfig()
     reference_spiral = generate_reference_spiral.generate_reference_spiral(
-        config=config_to_use
+        spiral_config=config_to_use
     )
     centered_reference_spiral = center_spiral.center_spiral(reference_spiral)
 
