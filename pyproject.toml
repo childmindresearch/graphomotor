@@ -1,9 +1,10 @@
 [project]
 name = "graphomotor"
 version = "0.1.0"
-description = "Toolkit for analysis of Graphomotor study tasks"
+description = "A Python toolkit for analysis of graphomotor data collected via Curious"
 authors = [
-  {name = "Alp Erkent", email = "alp.erkent@childmind.org"}
+  {name = "Alp Erkent", email = "alp.erkent@childmind.org"},
+  {name = "Adam Santorelli", email = "adam.santorelli@childmind.org"}
 ]
 license = "LGPL-2.1"
 readme = "README.md"
@@ -39,7 +40,7 @@ src = ["src"]
 target-version = "py312"
 
 [tool.ruff.lint]
-select = ["ANN", "D", "E", "F", "I"]
+select = ["ANN", "D", "E", "F", "I", "INP"]
 ignore = []
 fixable = ["ALL"]
 unfixable = []
