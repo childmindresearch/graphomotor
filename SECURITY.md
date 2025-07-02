@@ -1,19 +1,10 @@
-# This file is a placeholder, will be updated later.
-
 # Security
 
 Child Mind Institute values the security of our users, data, and servers. We take the security of our systems seriously and encourage users to report any suspected security vulnerabilities promptly.
 
 ## Supported Versions
 
-MODIFY:
-
-Note which version(s) will receive security updates. For example:
-
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.0.x   | :white_check_mark: |
-| 0.9.x   | :x:                |
+Only the latest minor version will receive security updates. All older minor versions should be considered unmaintained.
 
 ## Reporting Vulnerabilities
 
