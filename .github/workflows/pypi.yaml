@@ -32,7 +32,7 @@ jobs:
         python-version-file: pyproject.toml
 
     - name: Install uv
-      uses: astral-sh/setup-uv@v6
+      uses: astral-sh/setup-uv@bd01e18f51369d5a26f1651c3cb451d3417e3bba   # v6.3.1
       with:
         enable-cache: true
 
@@ -74,6 +74,6 @@ jobs:
 
     - name: Publish to PyPI
       if: steps.version-check.outputs.version_changed == 'true'
-      uses: pypa/gh-action-pypi-publish@release/v1
+      uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc   # v1.12.4
         # Alternative: use uv publish with trusted publishing
         # run: uv publish --token ${{ secrets.PYPI_API_TOKEN }}
