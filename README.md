@@ -26,11 +26,11 @@ The toolkit extracts clinically relevant metrics from digitized drawing data. Cu
 
 | Task | Preprocessing | Feature Extraction | Visualization |
 | :--- | :---: | :---: | :---: |
-| Spiral | ![pending status](https://img.shields.io/badge/pending-red) | ![in progress status](https://img.shields.io/badge/in_progress-yellow) | ![pending status](https://img.shields.io/badge/pending-red) |
-| Rey-Osterrieth Complex Figure | ![pending status](https://img.shields.io/badge/pending-red) | ![pending status](https://img.shields.io/badge/pending-red) | ![pending status](https://img.shields.io/badge/pending-red) |
-| Alphabetic Writing | ![pending status](https://img.shields.io/badge/pending-red) | ![pending status](https://img.shields.io/badge/pending-red) | ![pending status](https://img.shields.io/badge/pending-red) |
-| Digit Symbol Substitution | ![pending status](https://img.shields.io/badge/pending-red) | ![pending status](https://img.shields.io/badge/pending-red) | ![pending status](https://img.shields.io/badge/pending-red) |
-| Trails Making | ![pending status](https://img.shields.io/badge/pending-red) | ![pending status](https://img.shields.io/badge/pending-red) | ![pending status](https://img.shields.io/badge/pending-red) |
+| Spiral | ![Spiral: Preprocessing Pending](https://img.shields.io/badge/pending-red) | ![Spiral: Feature Extraction In Progress](https://img.shields.io/badge/in_progress-yellow) | ![Spiral: Visualization Pending](https://img.shields.io/badge/pending-red) |
+| Rey-Osterrieth Complex Figure | ![Rey-Osterrieth: Preprocessing Pending](https://img.shields.io/badge/pending-red) | ![Rey-Osterrieth: Feature Extraction Pending](https://img.shields.io/badge/pending-red) | ![Rey-Osterrieth: Visualization Pending](https://img.shields.io/badge/pending-red) |
+| Alphabetic Writing | ![Alphabetic Writing: Preprocessing Pending](https://img.shields.io/badge/pending-red) | ![Alphabetic Writing: Feature Extraction Pending](https://img.shields.io/badge/pending-red) | ![Alphabetic Writing: Visualization Pending](https://img.shields.io/badge/pending-red) |
+| Digit Symbol Substitution | ![Digit Symbol Substitution: Preprocessing Pending](https://img.shields.io/badge/pending-red) | ![Digit Symbol Substitution: Feature Extraction Pending](https://img.shields.io/badge/pending-red) | ![Digit Symbol Substitution: Visualization Pending](https://img.shields.io/badge/pending-red) |
+| Trails Making | ![Trails Making: Preprocessing Pending](https://img.shields.io/badge/pending-red) | ![Trails Making: Feature Extraction Pending](https://img.shields.io/badge/pending-red) | ![Trails Making: Visualization Pending](https://img.shields.io/badge/pending-red) |
 
 ## Installation
 
