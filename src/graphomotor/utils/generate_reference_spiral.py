@@ -16,7 +16,7 @@ def _arc_length_integrand(t: float, spiral_config: config.SpiralConfig) -> float
 
     Args:
         t: Angle parameter.
-        spiral_config: Spiral configuration.
+        spiral_config: Configuration parameters for the spiral.
 
     Returns:
         Differential arc length value.
@@ -30,7 +30,7 @@ def _calculate_arc_length(theta: float, spiral_config: config.SpiralConfig) -> f
 
     Args:
         theta: The angle in radians.
-        spiral_config: Spiral configuration.
+        spiral_config: Configuration parameters for the spiral.
 
     Returns:
         The arc length of the spiral from start_angle to theta.
@@ -49,7 +49,7 @@ def _find_theta_for_arc_length(
 
     Args:
         target_arc_length: Target arc length.
-        spiral_config: Spiral configuration.
+        spiral_config: Configuration parameters for the spiral.
 
     Returns:
         Angle theta corresponding to the arc length.
@@ -65,7 +65,7 @@ def _get_spiral_cache_key(spiral_config: config.SpiralConfig) -> str:
     """Generate a cache key based on spiral configuration parameters.
 
     Args:
-        spiral_config: Spiral configuration.
+        spiral_config: Configuration parameters for the spiral.
 
     Returns:
         Hash string representing the configuration.
@@ -83,13 +83,13 @@ def _get_cache_path(spiral_config: config.SpiralConfig) -> pathlib.Path:
     """Get the cache file path for a given spiral configuration.
 
     Args:
-        spiral_config: Spiral configuration.
+        spiral_config: Configuration parameters for the spiral.
 
     Returns:
         Path to the cache file.
     """
     cache_key = _get_spiral_cache_key(spiral_config)
-    package_cache_dir = pathlib.Path(__file__).parent.parent / "data"
+    package_cache_dir = pathlib.Path(__file__).parent.parent / "cache"
 
     try:
         package_cache_dir.mkdir(parents=True, exist_ok=True)
@@ -98,7 +98,7 @@ def _get_cache_path(spiral_config: config.SpiralConfig) -> pathlib.Path:
         test_file.unlink()
     except (PermissionError, OSError):
         logger.warning(
-            "Package data directory is not writable. "
+            "Package cache directory is not writable. "
             "Cannot save reference spiral to cache."
         )
 

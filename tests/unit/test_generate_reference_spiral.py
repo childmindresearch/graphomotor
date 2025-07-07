@@ -88,7 +88,7 @@ def test_get_cache_path(caplog: pytest.LogCaptureFixture) -> None:
         assert test_file.exists()
         test_file.unlink()
     except (PermissionError, OSError):
-        assert "Package data directory is not writable" in caplog.text
+        assert "Package cache directory is not writable" in caplog.text
 
 
 def test_load_reference_spiral_no_cache() -> None:
