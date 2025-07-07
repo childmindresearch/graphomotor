@@ -118,6 +118,26 @@ def test_load_reference_spiral_with_cache() -> None:
             cache_path.unlink()
 
 
+def test_load_reference_spiral_corrupted_cache(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test loading a reference spiral when cache file is corrupted."""
+    spiral_config = config.SpiralConfig(center_x=666.0, center_y=666.0, num_points=50)
+
+    cache_path = generate_reference_spiral._get_cache_path(spiral_config)
+    cache_path.write_text("corrupted data")
+
+    try:
+        result = generate_reference_spiral._load_reference_spiral(spiral_config)
+
+        assert result is None
+        assert "Error loading cached spiral" in caplog.text
+        assert str(cache_path) in caplog.text
+    finally:
+        if cache_path.exists():
+            cache_path.unlink()
+
+
 def test_generate_reference_spiral() -> None:
     """Test the main generate_reference_spiral function."""
     spiral_config = config.SpiralConfig(center_x=777.0, center_y=777.0, num_points=200)
