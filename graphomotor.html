@@ -25,9 +25,14 @@
             <ul>
   <li><a href="#graphomotor-study-toolkit">Graphomotor Study Toolkit</a>
   <ul>
-    <li><a href="#progress">Progress</a></li>
+    <li><a href="#development-progress">Development Progress</a></li>
+    <li><a href="#data-format-requirements">Data Format Requirements</a></li>
+    <li><a href="#feature-extraction-capabilities">Feature Extraction Capabilities</a></li>
     <li><a href="#installation">Installation</a></li>
-    <li><a href="#links-or-references">Links or References</a></li>
+    <li><a href="#quick-start">Quick Start</a></li>
+    <li><a href="#future-directions">Future Directions</a></li>
+    <li><a href="#contributing">Contributing</a></li>
+    <li><a href="#references">References</a></li>
   </ul></li>
 </ul>
 
@@ -56,74 +61,188 @@ graphomotor    </h1>
 
                         <div class="docstring"><h1 id="graphomotor-study-toolkit">Graphomotor Study Toolkit</h1>
 
+<p>A Python toolkit for analysis of graphomotor data collected via Curious.</p>
+
+<p><a href="https://doi.org/10.5281/zenodo.15800191"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.15800191.svg" alt="DOI" /></a></p>
+
 <p><a href="https://github.com/childmindresearch/graphomotor/actions/workflows/test.yaml?query=branch%3Amain"><img src="https://github.com/childmindresearch/graphomotor/actions/workflows/test.yaml/badge.svg?branch=main" alt="Build" /></a>
 <a href="https://codecov.io/gh/childmindresearch/graphomotor"><img src="https://codecov.io/gh/childmindresearch/graphomotor/branch/main/graph/badge.svg?token=22HWWFWPW5" alt="codecov" /></a>
 <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff" /></a>
 <img src="https://img.shields.io/badge/stability-experimental-orange.svg" alt="stability-experimental" />
 <a href="https://github.com/childmindresearch/graphomotor/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-LGPL--2.1-blue.svg" alt="LGPL--2.1 License" /></a>
-<a href="https://childmindresearch.github.io/graphomotor"><img src="https://img.shields.io/badge/api-docs-blue" alt="pages" /></a></p>
+<a href="https://childmindresearch.github.io/graphomotor"><img src="https://img.shields.io/badge/api-docs-blue" alt="Documentation" /></a></p>
 
-<p>A Python toolkit for the analysis of Graphomotor study.</p>
+<p>Welcome to <code><a href="">graphomotor</a></code>, a specialized Python library for analyzing graphomotor data collected via <a href="https://www.gettingcurious.com/">Curious</a>. This toolkit provides comprehensive tools for processing, analyzing, and visualizing data from various graphomotor assessment tasks including spiral drawing, trails making, alphabetic writing, digit symbol substitution, and the Rey-Osterrieth Complex Figure Test.</p>
 
-<h2 id="progress">Progress</h2>
+<h2 id="development-progress">Development Progress</h2>
+
+<p>⚠️ <strong>This package is under active development.</strong> Currently, the focus is on the Spiral task. After finalizing feature extraction, the next steps will involve implementing both preprocessing and visualization for this task. Once these parts are in place, we plan to extend support to other tasks.</p>
 
 <table>
 <thead>
 <tr>
-  <th style="text-align:left;">Task name</th>
+  <th style="text-align:left;">Task</th>
   <th style="text-align:center;">Preprocessing</th>
-  <th style="text-align:center;">Feature extraction</th>
+  <th style="text-align:center;">Feature Extraction</th>
   <th style="text-align:center;">Visualization</th>
 </tr>
 </thead>
 <tbody>
 <tr>
   <td style="text-align:left;">Spiral</td>
-  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="data_cleaning" /></td>
-  <td style="text-align:center;"><img src="https://img.shields.io/badge/in_progress-yellow" alt="feature_extraction" /></td>
-  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="visualization" /></td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="Spiral: Preprocessing Pending" /></td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/in_progress-yellow" alt="Spiral: Feature Extraction In Progress" /></td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="Spiral: Visualization Pending" /></td>
 </tr>
 <tr>
   <td style="text-align:left;">Rey-Osterrieth Complex Figure</td>
-  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="data_cleaning" /></td>
-  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="feature_extraction" /></td>
-  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="visualization" /></td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="Rey-Osterrieth: Preprocessing Pending" /></td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="Rey-Osterrieth: Feature Extraction Pending" /></td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="Rey-Osterrieth: Visualization Pending" /></td>
 </tr>
 <tr>
   <td style="text-align:left;">Alphabetic Writing</td>
-  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="data_cleaning" /></td>
-  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="feature_extraction" /></td>
-  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="visualization" /></td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="Alphabetic Writing: Preprocessing Pending" /></td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="Alphabetic Writing: Feature Extraction Pending" /></td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="Alphabetic Writing: Visualization Pending" /></td>
 </tr>
 <tr>
-  <td style="text-align:left;">Digit Symbol Substitute</td>
-  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="data_cleaning" /></td>
-  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="feature_extraction" /></td>
-  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="visualization" /></td>
+  <td style="text-align:left;">Digit Symbol Substitution</td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="Digit Symbol Substitution: Preprocessing Pending" /></td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="Digit Symbol Substitution: Feature Extraction Pending" /></td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="Digit Symbol Substitution: Visualization Pending" /></td>
 </tr>
 <tr>
   <td style="text-align:left;">Trails Making</td>
-  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="data_cleaning" /></td>
-  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="feature_extraction" /></td>
-  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="visualization" /></td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="Trails Making: Preprocessing Pending" /></td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="Trails Making: Feature Extraction Pending" /></td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="Trails Making: Visualization Pending" /></td>
 </tr>
 </tbody>
 </table>
 
+<h2 id="data-format-requirements">Data Format Requirements</h2>
+
+<p>⚠️ <strong>This implementation requires data to adhere to a specific format matching the standard output from <a href="https://mindlogger.atlassian.net/servicedesk/customer/portal/3/article/859242501">Curious drawing responses</a>.</strong></p>
+
+<p>When exporting drawing data from Curious, you typically receive the following files:</p>
+
+<ul>
+<li><strong>report.csv</strong>: Contains the participants' actual responses.</li>
+<li><strong>activity_user_journey.csv</strong>: Logs the entire journey through the activity, including button actions like "Next", "Skip", "Back", and "Undo", regardless of whether a response was provided.</li>
+<li><strong>drawing-responses-{date}.zip</strong>: A ZIP archive with raw drawing response CSV files for each participant (e.g., <code>drawing-responses-Mon May 29 2023.zip</code>).</li>
+<li><strong>media-responses-{date}.zip</strong>: A ZIP archive containing SVG files for the drawing responses (e.g., <code>media-responses-Mon May 29 2023.zip</code>).</li>
+<li><strong>trails-responses-{date}.zip</strong>: A ZIP archive with raw trail making response CSV files (if there are any) for each participant (e.g., <code>trails-responses-Mon May 29 2023.zip</code>).</li>
+</ul>
+
+<p>For Spiral tasks, the toolkit uses only the CSV files from the drawing responses ZIP. Support for additional tasks will be added in future releases.</p>
+
+<h3 id="file-naming-convention">File Naming Convention</h3>
+
+<p>Your spiral data files must follow this naming convention:</p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>[5123456]a7f3b2e9-d4c8-f1a6-e5b9-c2d7f8a3e6b4-spiral_trace1_Dom.csv
+</code></pre>
+</div>
+
+<p>Where:</p>
+
+<ul>
+<li><strong>Participant ID</strong>: Must be enclosed in brackets <code>[]</code> and be a 7-digit number starting with <code>5</code> (e.g., <code>[5123456]</code>) that matches the <code>target_secret_id</code> column in the <strong>report.csv</strong> file.</li>
+<li><strong>Activity Submission ID</strong>: Must be a 32-character hexadecimal string (e.g., <code>18f2-45ea-a1e4-2334e07cc706</code>) that matches the <code>id</code> column in the <strong>report.csv</strong> file.</li>
+<li><strong>Task</strong>: Must be one of the following that matches the <code>item</code> column in the <strong>report.csv</strong> file:
+<ul>
+<li><code>spiral_trace1_Dom</code> through <code>spiral_trace5_Dom</code> (dominant hand tracing tasks)</li>
+<li><code>spiral_trace1_NonDom</code> through <code>spiral_trace5_NonDom</code> (non-dominant hand tracing tasks)</li>
+<li><code>spiral_recall1_Dom</code> through <code>spiral_recall3_Dom</code> (dominant hand recall tasks)</li>
+<li><code>spiral_recall1_NonDom</code> through <code>spiral_recall3_NonDom</code> (non-dominant hand recall tasks)</li>
+</ul></li>
+</ul>
+
+<h3 id="data-format">Data Format</h3>
+
+<p>Your spiral data CSV file must contain the following columns:</p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>line_number, x, y, UTC_Timestamp, seconds, epoch_time_in_seconds_start
+</code></pre>
+</div>
+
+<p>This format represents the standard output from <a href="https://mindlogger.atlassian.net/servicedesk/customer/portal/3/article/596082739">Curious drawing responses data dictionary</a>.</p>
+
+<h2 id="feature-extraction-capabilities">Feature Extraction Capabilities</h2>
+
+<p>The toolkit extracts clinically relevant metrics from digitized drawing data. Currently implemented features include:</p>
+
+<ul>
+<li><strong>Temporal Features</strong>: Task completion duration.</li>
+<li><strong>Velocity Features</strong>: Velocity analysis including linear, radial, and angular velocity components with statistical measures (sum, median, variation, skewness, kurtosis).</li>
+<li><strong>Distance Features</strong>: Spatial accuracy measurements using Hausdorff distance metrics with temporal normalizations and segment-specific analysis.</li>
+<li><strong>Drawing Error Features</strong>: Area under the curve (AUC) calculations between drawn paths and ideal reference trajectories to quantify spatial accuracy.</li>
+</ul>
+
 <h2 id="installation">Installation</h2>
 
-<p>Install the newest development version via :</p>
+<p>Install the graphomotor package from PyPI:</p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>graphomotor
+</code></pre>
+</div>
+
+<p>Or install the latest development version directly from GitHub:</p>
 
 <div class="pdoc-code codehilite">
 <pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/childmindresearch/graphomotor
 </code></pre>
 </div>
 
-<h2 id="links-or-references">Links or References</h2>
+<h2 id="quick-start">Quick Start</h2>
 
-<ul>
-<li><a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">A very important resource</a></li>
-</ul>
+<p>Currently, <code><a href="">graphomotor</a></code> is available as an importable Python library. CLI functionality is planned for future releases.</p>
+
+<h3 id="extracting-features-from-spiral-drawing-data">Extracting Features from Spiral Drawing Data</h3>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn"><a href="graphomotor/core.html">graphomotor.core</a></span><span class="w"> </span><span class="kn">import</span> <span class="n">orchestrator</span>
+
+<span class="c1"># Path to your spiral drawing data file</span>
+<span class="n">input_file</span> <span class="o">=</span> <span class="s2">&quot;path/to/your/spiral_data.csv&quot;</span>
+
+<span class="c1"># Directory where extracted features will be saved</span>
+<span class="n">output_dir</span> <span class="o">=</span> <span class="s2">&quot;path/to/output/directory&quot;</span>
+
+<span class="c1"># Run the analysis pipeline</span>
+<span class="n">features</span> <span class="o">=</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">run_pipeline</span><span class="p">(</span>
+    <span class="n">input_path</span><span class="o">=</span><span class="n">input_file</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="o">=</span><span class="n">output_dir</span>
+<span class="p">)</span>
+
+<span class="c1"># Features are returned as a dictionary and saved as CSV</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully extracted </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">features</span><span class="p">)</span><span class="si">}</span><span class="s2"> feature categories&quot;</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>For detailed configuration options and additional parameters, refer to the <a href="https://childmindresearch.github.io/graphomotor/graphomotor/core/orchestrator.html#run_pipeline"><code>run_pipeline</code> documentation</a>.</p>
+
+<blockquote>
+  <p><strong>Note:</strong> Currently, only single file processing is supported, with batch processing planned for future releases.</p>
+</blockquote>
+
+<h2 id="future-directions">Future Directions</h2>
+
+<p>The Graphomotor Study Toolkit is under active development. For more detailed information about upcoming features and development plans, please refer to our <a href="https://github.com/childmindresearch/graphomotor/issues">GitHub Issues</a> page.</p>
+
+<h2 id="contributing">Contributing</h2>
+
+<p>We welcome contributions from the community! If you're interested in contributing, please review our <a href="CONTRIBUTING.md">Contributing Guidelines</a> for information on how to get started, coding standards, and the pull request process.</p>
+
+<h2 id="references">References</h2>
+
+<ol>
+<li>Messan, K. S., Kia, S. M., Narayan, V. A., Redmond, S. J., Kogan, A., Hussain, M. A., McKhann, G. M. II, &amp; Vahdat, S. (2022). Assessment of Smartphone-Based Spiral Tracing in Multiple Sclerosis Reveals Intra-Individual Reproducibility as a Major Determinant of the Clinical Utility of the Digital Test. Frontiers in Medical Technology, 3, 714682. <a href="https://doi.org/10.3389/fmedt.2021.714682">https://doi.org/10.3389/fmedt.2021.714682</a></li>
+</ol>
 </div>
 
                         <input id="mod-graphomotor-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
