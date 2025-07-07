@@ -1,0 +1,79 @@
+name: Publish to PyPI
+
+permissions:
+  id-token: write # Required for trusted publishing
+  contents: read # Required to checkout code
+  actions: write # Required to cancel runs
+
+on:
+  workflow_run:
+    workflows: [Python Tests]
+    types:
+    - completed
+    branches:
+    - main
+
+jobs:
+  pypi-release:
+    name: PyPI Release
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    environment:
+      name: pypi
+      url: https://pypi.org/project/graphomotor/
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 2   # Need 2 commits to compare for version changes
+
+    - uses: actions/setup-python@v5
+      with:
+        python-version-file: pyproject.toml
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@bd01e18f51369d5a26f1651c3cb451d3417e3bba   # v6.3.1
+      with:
+        enable-cache: true
+
+    - name: Check if version changed
+      id: version-check
+      run: |
+        if git diff HEAD^1 HEAD --name-only | grep -q "pyproject.toml"; then
+          version_change=$(git diff HEAD^1 HEAD pyproject.toml | grep -E "^(\+|-)version =")
+          if [[ -n "$version_change" ]]; then
+            echo "version_changed=true" >> $GITHUB_OUTPUT
+            echo "Version changed detected:"
+            echo "$version_change"
+          else
+            echo "version_changed=false" >> $GITHUB_OUTPUT
+            echo "pyproject.toml changed but version did not change"
+          fi
+        else
+          echo "version_changed=false" >> $GITHUB_OUTPUT
+          echo "pyproject.toml did not change"
+        fi
+
+    - name: Skip release if version unchanged
+      if: steps.version-check.outputs.version_changed == 'false'
+      run: |
+        echo "No version change detected, skipping release"
+        gh run cancel ${{ github.run_id }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build package
+      if: steps.version-check.outputs.version_changed == 'true'
+      run: uv build
+
+    - name: Verify build artifacts
+      if: steps.version-check.outputs.version_changed == 'true'
+      run: |
+        ls -la dist/
+        python -c "import tarfile; tarfile.open('dist/*.tar.gz').getnames()" || true
+
+    - name: Publish to PyPI
+      if: steps.version-check.outputs.version_changed == 'true'
+      uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc   # v1.12.4
+        # Alternative: use uv publish with trusted publishing
+        # run: uv publish --token ${{ secrets.PYPI_API_TOKEN }}
