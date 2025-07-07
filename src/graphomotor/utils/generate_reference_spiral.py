@@ -82,10 +82,6 @@ def _get_spiral_cache_key(spiral_config: config.SpiralConfig) -> str:
 def _get_cache_path(spiral_config: config.SpiralConfig) -> pathlib.Path:
     """Get the cache file path for a given spiral configuration.
 
-    The function tries multiple cache locations in order of preference:
-    1. Package data directory (preferred for bundled distributions)
-    2. User cache directory (fallback for read-only package installations)
-
     Args:
         spiral_config: Spiral configuration.
 
@@ -100,14 +96,13 @@ def _get_cache_path(spiral_config: config.SpiralConfig) -> pathlib.Path:
         test_file = package_cache_dir / ".write_test"
         test_file.touch()
         test_file.unlink()
-        cache_dir = package_cache_dir
     except (PermissionError, OSError):
-        import tempfile
+        logger.warning(
+            "Package data directory is not writable. "
+            "Cannot save reference spiral to cache."
+        )
 
-        cache_dir = pathlib.Path(tempfile.gettempdir()) / "graphomotor_cache"
-        logger.debug(f"Package cache not writable, using fallback: {cache_dir}")
-
-    return cache_dir / f"reference_spiral_{cache_key}.npy"
+    return package_cache_dir / f"reference_spiral_{cache_key}.npy"
 
 
 def _load_reference_spiral(spiral_config: config.SpiralConfig) -> np.ndarray | None:
@@ -124,10 +119,10 @@ def _load_reference_spiral(spiral_config: config.SpiralConfig) -> np.ndarray | N
     if cache_path.exists():
         try:
             spiral = np.load(cache_path)
-            print(f"Loaded pre-computed reference spiral from {cache_path}")
+            logger.info(f"Loaded pre-computed reference spiral from {cache_path}")
             return spiral
         except Exception as e:
-            print(f"Error loading cached spiral from {cache_path}: {e}")
+            logger.warning(f"Error loading cached spiral from {cache_path}: {e}")
             return None
 
     return None

@@ -1,10 +1,9 @@
 """Test cases for generate_reference_spiral.py functions."""
 
 import pathlib
-import stat
-import tempfile
 
 import numpy as np
+import pytest
 
 from graphomotor.core import config
 from graphomotor.utils import generate_reference_spiral
@@ -61,8 +60,8 @@ def test_get_spiral_cache_key() -> None:
     assert key3 != key4
 
 
-def test_get_cache_path() -> None:
-    """Test cache path generation, structure, and consistency."""
+def test_get_cache_path(caplog: pytest.LogCaptureFixture) -> None:
+    """Test cache path generation, structure, consistency, and directory creation."""
     config1 = config.SpiralConfig()
     config2 = config.SpiralConfig(center_x=100.0)
 
@@ -70,76 +69,26 @@ def test_get_cache_path() -> None:
     cache_path2 = generate_reference_spiral._get_cache_path(config2)
     cache_path3 = generate_reference_spiral._get_cache_path(config1)
 
+    cache_dir = cache_path1.parent
+    test_file = cache_dir / "test_write_check.tmp"
+
     assert isinstance(cache_path1, pathlib.Path)
+
     assert cache_path1.name.startswith("reference_spiral_")
     assert cache_path1.name.endswith(".npy")
 
     assert cache_path1 != cache_path2
     assert cache_path1 == cache_path3
 
-
-def test_get_cache_path_with_write_privileges() -> None:
-    """Test directory creation and write access when package dir is writable."""
-    spiral_config = config.SpiralConfig()
-    cache_path = generate_reference_spiral._get_cache_path(spiral_config)
-    cache_dir = cache_path.parent
-    test_file = cache_dir / "test_write_check.tmp"
-
-    assert cache_dir.exists(), "Cache directory should be created"
-    assert cache_dir.is_dir(), "Cache path parent should be a directory"
-
     try:
+        assert cache_dir.exists()
+        assert cache_dir.is_dir()
+
         test_file.write_text("test content")
-        assert test_file.exists(), "Should be able to write to cache directory"
+        assert test_file.exists()
         test_file.unlink()
-    except PermissionError:
-        pass
-
-
-def test_get_cache_path_readonly_fallback_behavior() -> None:
-    """Test fallback to temp directory when package dir is read-only."""
-    spiral_config = config.SpiralConfig()
-
-    # Get the normal cache path to identify the package directory
-    normal_cache_path = generate_reference_spiral._get_cache_path(spiral_config)
-    package_data_dir = normal_cache_path.parent
-
-    try:
-        # Make the package data directory read-only temporarily
-        original_permissions = package_data_dir.stat().st_mode
-        package_data_dir.chmod(stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH)
-
-        try:
-            # Get cache path again - should fallback to temp directory
-            readonly_cache_path = generate_reference_spiral._get_cache_path(
-                spiral_config
-            )
-            readonly_cache_dir = readonly_cache_path.parent
-
-            # Verify fallback to temp directory
-            temp_root = pathlib.Path(tempfile.gettempdir())
-            assert str(readonly_cache_dir).startswith(str(temp_root)), (
-                "Should fallback to temp directory when package dir is read-only"
-            )
-
-            # Verify directory can be created and is writable
-            readonly_cache_dir.mkdir(parents=True, exist_ok=True)
-            assert readonly_cache_dir.exists() and readonly_cache_dir.is_dir()
-
-            # Test write access with a single file operation
-            test_file = readonly_cache_dir / "test_fallback_write.tmp"
-            test_file.write_text("fallback test")
-            test_file.unlink()
-
-        finally:
-            # Restore original permissions
-            package_data_dir.chmod(original_permissions)
-
     except (PermissionError, OSError):
-        # Fallback test for restricted environments
-        cache_path = generate_reference_spiral._get_cache_path(spiral_config)
-        cache_path.parent.mkdir(parents=True, exist_ok=True)
-        assert cache_path.parent.exists() and cache_path.parent.is_dir()
+        assert "Package data directory is not writable" in caplog.text
 
 
 def test_load_reference_spiral_no_cache() -> None:

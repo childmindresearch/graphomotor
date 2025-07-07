@@ -60,8 +60,7 @@ def valid_spiral(
 @pytest.fixture
 def ref_spiral() -> np.ndarray:
     """Create a reference spiral for testing."""
-    spiral_config = config.SpiralConfig()
-    return generate_reference_spiral.generate_reference_spiral(spiral_config)
+    return generate_reference_spiral.generate_reference_spiral(config.SpiralConfig())
 
 
 @pytest.fixture
