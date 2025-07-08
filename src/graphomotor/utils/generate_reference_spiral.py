@@ -1,5 +1,5 @@
 """Utility functions for generating an equidistant reference spiral."""
-
+import functools
 import hashlib
 import pathlib
 
@@ -156,7 +156,7 @@ def _compute_reference_spiral(
 
     return np.column_stack((x_values, y_values))
 
-
+@functools.lru_cache(maxsize=48)
 def generate_reference_spiral(spiral_config: config.SpiralConfig) -> np.ndarray:
     """Generate a reference spiral with equidistant points along its arc length.
 
