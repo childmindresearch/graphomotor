@@ -7,7 +7,7 @@ import warnings
 import numpy as np
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class SpiralConfig:
     """Class for the parameters of anticipated spiral drawing."""
 
