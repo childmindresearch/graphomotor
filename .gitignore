@@ -1,6 +1,8 @@
+# copilot
+.github/**/*.md
+
 # data
 data/
-src/graphomotor/cache/
 
 # scripts
 scripts/

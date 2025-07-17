@@ -55,7 +55,7 @@ def _find_theta_for_incremental_arc_length(
         spiral_config: Spiral configuration.
 
     Returns:
-        Angle theta corresponding to the target cumulative arc length.
+        Angle theta that results in the target arc length increment from current_theta.
     """
     solution = optimize.root_scalar(
         lambda theta: _calculate_arc_length_between(current_theta, theta, spiral_config)
@@ -74,9 +74,8 @@ def generate_reference_spiral(spiral_config: config.SpiralConfig) -> np.ndarray:
     for feature extraction algorithms that compare user-drawn spirals with an ideal
     form.
 
-    The function first attempts to load a pre-computed spiral from cache. If not found,
-    it calculates the spiral using numerical computation and automatically saves it
-    to cache for future use.
+    This function is decorated with an LRU cache to store pre-computed spirals for
+    faster retrieval on subsequent calls with the same configuration.
 
     The algorithm works by:
         1. Computing the total arc length for the entire spiral,
