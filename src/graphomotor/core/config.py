@@ -2,12 +2,31 @@
 
 import dataclasses
 import logging
-import warnings
+from typing import Any
 
 import numpy as np
 
 
-@dataclasses.dataclass
+def get_logger() -> logging.Logger:
+    """Get the Graphomotor logger."""
+    logger = logging.getLogger("graphomotor")
+    if logger.handlers:
+        return logger
+    logger.setLevel(logging.INFO)
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - "
+        "%(filename)s:%(lineno)s - %(funcName)s - %(message)s",
+    )
+    handler = logging.StreamHandler()
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    return logger
+
+
+logger = get_logger()
+
+
+@dataclasses.dataclass(frozen=True)
 class SpiralConfig:
     """Class for the parameters of anticipated spiral drawing."""
 
@@ -29,32 +48,17 @@ class SpiralConfig:
         Returns:
             SpiralConfig instance with updated parameters.
         """
-        config = cls()
+        valid_params = {f.name for f in cls.__dataclass_fields__.values()}
+        filtered_params: dict[str, Any] = {}
+
         for key, value in config_dict.items():
-            if hasattr(config, key):
-                setattr(config, key, value)
+            if key in valid_params:
+                filtered_params[key] = value
             else:
-                valid_params = ", ".join(
-                    f.name for f in cls.__dataclass_fields__.values()
-                )
-                warnings.warn(
+                valid_param_names = ", ".join(valid_params)
+                logger.warning(
                     f"Unknown configuration parameters will be ignored: {key}. "
-                    f"Valid parameters are: {valid_params}"
+                    f"Valid parameters are: {valid_param_names}"
                 )
-        return config
 
-
-def get_logger() -> logging.Logger:
-    """Get the Graphomotor logger."""
-    logger = logging.getLogger("graphomotor")
-    if logger.handlers:
-        return logger
-    logger.setLevel(logging.INFO)
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - "
-        "%(filename)s:%(lineno)s - %(funcName)s - %(message)s",
-    )
-    handler = logging.StreamHandler()
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-    return logger
+        return cls(**filtered_params)
