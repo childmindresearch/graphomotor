@@ -1,14 +1,11 @@
 """Utility functions for generating an equidistant reference spiral."""
 
-import hashlib
-import pathlib
+import functools
 
 import numpy as np
 from scipy import integrate, optimize
 
 from graphomotor.core import config
-
-logger = config.get_logger()
 
 
 def _arc_length_integrand(t: float, spiral_config: config.SpiralConfig) -> float:
@@ -16,7 +13,7 @@ def _arc_length_integrand(t: float, spiral_config: config.SpiralConfig) -> float
 
     Args:
         t: Angle parameter.
-        spiral_config: Configuration parameters for the spiral.
+        spiral_config: Spiral configuration.
 
     Returns:
         Differential arc length value.
@@ -25,138 +22,50 @@ def _arc_length_integrand(t: float, spiral_config: config.SpiralConfig) -> float
     return np.sqrt(r_t**2 + spiral_config.growth_rate**2)
 
 
-def _calculate_arc_length(theta: float, spiral_config: config.SpiralConfig) -> float:
-    """Calculate the arc length of the spiral from start_angle to theta.
+def _calculate_arc_length_between(
+    theta_start: float, theta_end: float, spiral_config: config.SpiralConfig
+) -> float:
+    """Calculate the arc length of the spiral between two theta values.
 
     Args:
-        theta: The angle in radians.
-        spiral_config: Configuration parameters for the spiral.
+        theta_start: Starting angle in radians.
+        theta_end: Ending angle in radians.
+        spiral_config: Spiral configuration.
 
     Returns:
-        The arc length of the spiral from start_angle to theta.
+        The arc length of the spiral from theta_start to theta_end.
     """
     return integrate.quad(
         lambda t: _arc_length_integrand(t, spiral_config),
-        spiral_config.start_angle,
-        theta,
+        theta_start,
+        theta_end,
     )[0]
 
 
-def _find_theta_for_arc_length(
-    target_arc_length: float, spiral_config: config.SpiralConfig
+def _find_theta_for_incremental_arc_length(
+    target_increment: float,
+    current_theta: float,
+    spiral_config: config.SpiralConfig,
 ) -> float:
-    """Find the theta value for a given arc length using numerical root finding.
+    """Find the theta value for a given incremental arc length from current position.
 
     Args:
-        target_arc_length: Target arc length.
-        spiral_config: Configuration parameters for the spiral.
+        target_increment: Target arc length increment from current position.
+        current_theta: Current theta position.
+        spiral_config: Spiral configuration.
 
     Returns:
-        Angle theta corresponding to the arc length.
+        Angle theta corresponding to the target cumulative arc length.
     """
     solution = optimize.root_scalar(
-        lambda theta: _calculate_arc_length(theta, spiral_config) - target_arc_length,
-        bracket=[spiral_config.start_angle, spiral_config.end_angle],
+        lambda theta: _calculate_arc_length_between(current_theta, theta, spiral_config)
+        - target_increment,
+        bracket=(current_theta, spiral_config.end_angle),
     )
     return solution.root
 
 
-def _get_spiral_cache_key(spiral_config: config.SpiralConfig) -> str:
-    """Generate a cache key based on spiral configuration parameters.
-
-    Args:
-        spiral_config: Configuration parameters for the spiral.
-
-    Returns:
-        Hash string representing the configuration.
-    """
-    config_str = (
-        f"{spiral_config.center_x}_{spiral_config.center_y}_"
-        f"{spiral_config.start_radius}_{spiral_config.growth_rate}_"
-        f"{spiral_config.start_angle}_{spiral_config.end_angle}_"
-        f"{spiral_config.num_points}"
-    )
-    return hashlib.md5(config_str.encode()).hexdigest()
-
-
-def _get_cache_path(spiral_config: config.SpiralConfig) -> pathlib.Path:
-    """Get the cache file path for a given spiral configuration.
-
-    Args:
-        spiral_config: Configuration parameters for the spiral.
-
-    Returns:
-        Path to the cache file.
-    """
-    cache_key = _get_spiral_cache_key(spiral_config)
-    package_cache_dir = pathlib.Path(__file__).parent.parent / "cache"
-
-    try:
-        package_cache_dir.mkdir(parents=True, exist_ok=True)
-        test_file = package_cache_dir / ".write_test"
-        test_file.touch()
-        test_file.unlink()
-    except (PermissionError, OSError):
-        logger.warning(
-            "Package cache directory is not writable. "
-            "Cannot save reference spiral to cache."
-        )
-
-    return package_cache_dir / f"reference_spiral_{cache_key}.npy"
-
-
-def _load_reference_spiral(spiral_config: config.SpiralConfig) -> np.ndarray | None:
-    """Load a pre-computed reference spiral from disk.
-
-    Args:
-        spiral_config: Configuration parameters for the spiral.
-
-    Returns:
-        Reference spiral array if found, None otherwise.
-    """
-    cache_path = _get_cache_path(spiral_config)
-
-    if cache_path.exists():
-        try:
-            spiral = np.load(cache_path)
-            logger.info(f"Loaded pre-computed reference spiral from {cache_path}")
-            return spiral
-        except Exception as e:
-            logger.warning(f"Error loading cached spiral from {cache_path}: {e}")
-            return None
-
-    return None
-
-
-def _compute_reference_spiral(
-    spiral_config: config.SpiralConfig,
-) -> np.ndarray:
-    """Generate a reference spiral using numerical computation.
-
-    This is the computation-heavy implementation that performs numerical integration and
-    root finding to create equidistant points along the spiral.
-
-    Args:
-        spiral_config: Configuration parameters for the spiral.
-
-    Returns:
-        Array with shape (N, 2) containing Cartesian coordinates of the spiral points.
-    """
-    total_arc_length = _calculate_arc_length(spiral_config.end_angle, spiral_config)
-
-    arc_length_values = np.linspace(0, total_arc_length, spiral_config.num_points)
-
-    theta_values = np.array(
-        [_find_theta_for_arc_length(s, spiral_config) for s in arc_length_values]
-    )
-
-    r_values = spiral_config.start_radius + spiral_config.growth_rate * theta_values
-    x_values = spiral_config.center_x + r_values * np.cos(theta_values)
-    y_values = spiral_config.center_y + r_values * np.sin(theta_values)
-
-    return np.column_stack((x_values, y_values))
-
-
+@functools.lru_cache(maxsize=48)
 def generate_reference_spiral(spiral_config: config.SpiralConfig) -> np.ndarray:
     """Generate a reference spiral with equidistant points along its arc length.
 
@@ -183,8 +92,7 @@ def generate_reference_spiral(spiral_config: config.SpiralConfig) -> np.ndarray:
         - Cartesian coordinates: x = cx + r·cos(θ), y = cy + r·sin(θ)
 
     Parameters are defined in the SpiralConfig class:
-        - Center coordinates: (cx, cy) = (spiral_config.center_x,
-          spiral_config.center_y)
+        - Center coordinates: cx, cy = spiral_config.center_x, spiral_config.center_y
         - Start radius: a = spiral_config.start_radius
         - Growth rate: b = spiral_config.growth_rate
         - Total rotation: θ = spiral_config.end_angle - spiral_config.start_angle
@@ -196,17 +104,24 @@ def generate_reference_spiral(spiral_config: config.SpiralConfig) -> np.ndarray:
     Returns:
         Array with shape (N, 2) containing Cartesian coordinates of the spiral points.
     """
-    cached_spiral = _load_reference_spiral(spiral_config)
-    if cached_spiral is not None:
-        return cached_spiral
+    total_arc_length = _calculate_arc_length_between(
+        spiral_config.start_angle, spiral_config.end_angle, spiral_config
+    )
 
-    logger.info("No cached reference spiral found, generating new reference spiral...")
-    spiral = _compute_reference_spiral(spiral_config)
+    arc_length_increment = total_arc_length / (spiral_config.num_points - 1)
 
-    cache_path = _get_cache_path(spiral_config)
-    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    theta_values = np.zeros(spiral_config.num_points)
+    theta_values[0] = spiral_config.start_angle
 
-    logger.info(f"Saving generated reference spiral to cache: {cache_path}")
-    np.save(cache_path, spiral)
+    for i in range(1, spiral_config.num_points):
+        theta_values[i] = _find_theta_for_incremental_arc_length(
+            arc_length_increment,
+            theta_values[i - 1],
+            spiral_config,
+        )
 
-    return spiral
+    r_values = spiral_config.start_radius + spiral_config.growth_rate * theta_values
+    x_values = spiral_config.center_x + r_values * np.cos(theta_values)
+    y_values = spiral_config.center_y + r_values * np.sin(theta_values)
+
+    return np.column_stack((x_values, y_values))

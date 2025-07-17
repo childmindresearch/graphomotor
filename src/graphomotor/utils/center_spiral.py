@@ -27,13 +27,17 @@ def center_spiral(spiral):
     spiral_config = config.SpiralConfig()
 
     if isinstance(spiral, models.Spiral):
-        spiral.data["x"] -= spiral_config.center_x
-        spiral.data["y"] -= spiral_config.center_y
-        return spiral
+        centered_spiral = models.Spiral(
+            data=spiral.data.copy(), metadata=spiral.metadata.copy()
+        )
+        centered_spiral.data["x"] -= spiral_config.center_x
+        centered_spiral.data["y"] -= spiral_config.center_y
+        return centered_spiral
     elif isinstance(spiral, np.ndarray):
-        spiral[:, 0] -= spiral_config.center_x
-        spiral[:, 1] -= spiral_config.center_y
-        return spiral
+        centered_spiral = spiral.copy()
+        centered_spiral[:, 0] -= spiral_config.center_x
+        centered_spiral[:, 1] -= spiral_config.center_y
+        return centered_spiral
     else:
         raise TypeError(
             f"Expected models.Spiral or np.ndarray, got {type(spiral).__name__}"
