@@ -96,28 +96,91 @@ Currently, `graphomotor` is available as an importable Python library. CLI funct
 
 ### Extracting Features from Spiral Drawing Data
 
+#### Single File Processing
+
 ```python
 from graphomotor.core import orchestrator
 
 # Path to your spiral drawing data file
 input_file = "path/to/your/spiral_data.csv"
 
-# Directory where extracted features will be saved
-output_dir = "path/to/output/directory"
-
-# Run the analysis pipeline
+# Option 1: Process file without saving any CSV file
+# Only return the features dictionary
 features = orchestrator.run_pipeline(
-    input_path=input_file,
-    output_path=output_dir
+    input_path=input_file
 )
 
-# Features are returned as a dictionary and saved as CSV
-print(f"Successfully extracted {len(features)} feature categories")
+# Option 2: Save to a directory with auto-generated filename
+# Creates a CSV file with auto-generated name in the specified directory
+# Format: {participant_id}_{task}_{hand}_features_{YYYYMMDD}.csv
+features = orchestrator.run_pipeline(
+    input_path=input_file,
+    output_path="path/to/output/directory"
+)
+
+# Option 3: Save to a specific CSV file
+# Features will be saved to the specified file path
+features = orchestrator.run_pipeline(
+    input_path=input_file,
+    output_path="path/to/features.csv"
+)
+
+# Features are returned as a dictionary in all cases
+print(f"Successfully extracted {len(features)} features:")
+for feature_name, value in features.items():
+    print(f"{feature_name}: {value}")
+```
+
+#### Batch Processing
+
+```python
+from graphomotor.core import orchestrator
+
+# Path to directory containing multiple spiral drawing data files
+input_dir = "path/to/your/spiral_data_directory"
+
+# Option 1: Process files without saving any CSV files
+# Only return the DataFrame with extracted features
+features = orchestrator.run_pipeline(
+    input_path=input_dir,
+)
+
+# Option 2: Save individual CSV files for each processed file
+# Creates separate CSV files with auto-generated names in the specified directory
+# Format: {participant_id}_{task}_{hand}_features_{YYYYMMDD}.csv
+features = orchestrator.run_pipeline(
+    input_path=input_dir,
+    output_path="path/to/output/directory"
+)
+
+# Option 3: Save to a specific CSV file (single consolidated file)
+# All features will be written to one specified file
+features = orchestrator.run_pipeline(
+    input_path=input_dir,
+    output_path="path/to/consolidated_features.csv"
+)
+
+# Features are returned as a pandas DataFrame with source files as index
+# Columns include: participant_id, task, hand, and calculated features
+print(f"Successfully processed {len(features)} files")
+
+# Access metadata and features for a specific file
+for file_path in features.index:
+    print(f"File: {file_path}")
+    print(f"Participant: {features.loc[file_path, 'participant_id']}")
+    print(f"Task: {features.loc[file_path, 'task']}")
+    print(f"Hand: {features.loc[file_path, 'hand']}")
+    print(f"Duration: {features.loc[file_path, 'duration']}")
+
+# Or work with the DataFrame directly
+print(f"Mean duration across all files: {features['duration'].astype(float).mean()}")
+print(f"Spiral with highest linear velocity: {features['linear_velocity_median'].astype(float).idxmax()}")
+
+# Easy filtering and grouping by metadata
+print(f"Files with dominant hand: {len(features[features['hand'] == 'Dom'])}")
 ```
 
 For detailed configuration options and additional parameters, refer to the [`run_pipeline` documentation](https://childmindresearch.github.io/graphomotor/graphomotor/core/orchestrator.html#run_pipeline).
-
-> **Note:** Currently, only single file processing is supported, with batch processing planned for future releases.
 
 ## Future Directions
 

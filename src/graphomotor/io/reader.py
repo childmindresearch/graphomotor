@@ -135,6 +135,7 @@ def load_spiral(filepath: pathlib.Path | str) -> models.Spiral:
     metadata = _parse_filename(filepath.stem)
 
     metadata["start_time"] = _convert_start_time(data)
+    metadata["source_path"] = str(filepath)
 
     data = data.drop(columns=["epoch_time_in_seconds_start"])
 

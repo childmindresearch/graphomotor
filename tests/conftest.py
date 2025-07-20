@@ -42,6 +42,8 @@ def valid_spiral_metadata() -> dict[str, str | datetime.datetime]:
             1697745697.08,
             tz=datetime.timezone.utc,
         ),
+        "source_path": "sample_data/[5123456]"
+        "65318bf53c36ce79135b1049-648c7d0e8819c1120b4f708d-spiral_trace1_Dom.csv",
     }
 
 

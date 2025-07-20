@@ -18,7 +18,8 @@ class Spiral(pydantic.BaseModel):
             - id: Unique identifier for the participant,
             - hand: Hand used ('Dom' for dominant, 'NonDom' for non-dominant),
             - task: Task name,
-            - start_time: Start time of drawing.
+            - start_time: Start time of drawing,
+            - source_path: Path to the source CSV file.
     """
 
     model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
