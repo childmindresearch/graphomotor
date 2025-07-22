@@ -87,30 +87,6 @@ def test_validate_feature_categories_mixed(caplog: pytest.LogCaptureFixture) -> 
     assert "meaning_of_life" in caplog.text
 
 
-@pytest.mark.parametrize(
-    "feature_categories, expected_feature_number",
-    [
-        (["duration"], 1),
-        (["velocity"], 15),
-        (["hausdorff"], 8),
-        (["AUC"], 1),
-        (["duration", "velocity", "hausdorff", "AUC"], 25),
-    ],
-)
-def test_extract_feature_categories(
-    feature_categories: list[orchestrator.FeatureCategories],
-    expected_feature_number: int,
-    valid_spiral: models.Spiral,
-    ref_spiral: np.ndarray,
-) -> None:
-    """Test _get_feature_categories with various categories."""
-    features = orchestrator._extract_feature_categories(
-        valid_spiral, ref_spiral, feature_categories
-    )
-
-    assert len(features) == expected_feature_number
-
-
 def test_export_features_to_csv_extension_parent_dir(
     valid_spiral: models.Spiral,
     tmp_path: pathlib.Path,
@@ -258,6 +234,35 @@ def test_export_directory_features_to_csv_creates_parent_dir(
     assert output_path.exists()
     assert len(saved_df) == 2
     assert list(saved_df.columns) == ["participant_id", "task", "hand", "test_feature"]
+
+
+@pytest.mark.parametrize(
+    "feature_categories, expected_feature_number",
+    [
+        (["duration"], 1),
+        (["velocity"], 15),
+        (["hausdorff"], 8),
+        (["AUC"], 1),
+        (["duration", "velocity", "hausdorff", "AUC"], 25),
+    ],
+)
+def test_extract_features_categories(
+    feature_categories: list[orchestrator.FeatureCategories],
+    expected_feature_number: int,
+    valid_spiral: models.Spiral,
+    ref_spiral: np.ndarray,
+) -> None:
+    """Test extract_features with various feature categories."""
+    centered_spiral = center_spiral.center_spiral(valid_spiral)
+    centered_reference_spiral = center_spiral.center_spiral(ref_spiral)
+
+    features = orchestrator.extract_features(
+        centered_spiral, None, feature_categories, centered_reference_spiral
+    )
+
+    assert len(features) == expected_feature_number
+    assert all(isinstance(value, str) for value in features.values())
+    assert all(len(value.split(".")[-1]) <= 15 for value in features.values())
 
 
 def test_extract_features_no_output_no_config(

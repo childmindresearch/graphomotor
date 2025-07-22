@@ -79,41 +79,6 @@ def _validate_feature_categories(
     return valid_requested_categories
 
 
-def _extract_feature_categories(
-    spiral: models.Spiral,
-    reference_spiral: np.ndarray,
-    feature_categories: list[FeatureCategories],
-) -> dict[str, float]:
-    """Feature categories dispatcher.
-
-    This function chooses which feature categories to extract based on the provided
-    sequence of valid category names and returns a dictionary containing the extracted
-    features.
-
-    Args:
-        spiral: The spiral data to extract features from.
-        reference_spiral: The reference spiral used for calculating features.
-        feature_categories: List of feature categories to extract.
-
-    Returns:
-        Dictionary containing the extracted features.
-    """
-    valid_categories = _validate_feature_categories(feature_categories)
-
-    feature_extractors = models.FeatureCategories.get_extractors(
-        spiral, reference_spiral
-    )
-
-    features = {}
-    for category in valid_categories:
-        logger.debug(f"Extracting {category} features")
-        category_features = feature_extractors[category]()
-        features.update(category_features)
-        logger.debug(f"{category.capitalize()} features extracted: {category_features}")
-
-    return features
-
-
 def _export_features_to_csv(
     spiral: models.Spiral,
     features: dict[str, str],
@@ -236,7 +201,11 @@ def extract_features(
     feature_categories: list[FeatureCategories],
     reference_spiral: np.ndarray,
 ) -> dict[str, str]:
-    """Extract features from spiral drawing data.
+    """Extract feature categories from spiral drawing data.
+
+    This function chooses which feature categories to extract based on the provided
+    sequence of valid category names, exports the features to the specified output path
+    if provided, and returns a dictionary containing the extracted features.
 
     Args:
         spiral: Spiral object containing drawing data and metadata.
@@ -252,7 +221,19 @@ def extract_features(
     Returns:
         Dictionary containing the extracted features.
     """
-    features = _extract_feature_categories(spiral, reference_spiral, feature_categories)
+    valid_categories = _validate_feature_categories(feature_categories)
+
+    feature_extractors = models.FeatureCategories.get_extractors(
+        spiral, reference_spiral
+    )
+
+    features = {}
+    for category in valid_categories:
+        logger.debug(f"Extracting {category} features")
+        category_features = feature_extractors[category]()
+        features.update(category_features)
+        logger.debug(f"{category.capitalize()} features extracted: {category_features}")
+
     logger.info(f"Feature extraction complete. Extracted {len(features)} features")
 
     formatted_features = {k: f"{v:.15f}" for k, v in features.items()}
@@ -420,19 +401,20 @@ def run_pipeline(
               participant/task/hand/date.
         feature_categories: List of feature categories to extract. Defaults to all
             available:
-            - "duration": Task duration
-            - "velocity": Velocity-based metrics
-            - "hausdorff": Hausdorff distance metrics
-            - "AUC": Area under the curve metric
+            - "duration": Task duration.
+            - "velocity": Velocity-based metrics.
+            - "hausdorff": Hausdorff distance metrics.
+            - "AUC": Area under the curve metric.
         config_params: Dictionary of custom spiral configuration parameters for
-            reference spiral generation and centering. Supported keys:
-            - "center_x"
-            - "center_y"
-            - "start_radius"
-            - "growth_rate"
-            - "start_angle"
-            - "end_angle"
-            - "num_points"
+            reference spiral generation and centering. If None, default configuration is
+            used. Supported parameters are:
+            - "center_x" (float): X-coordinate of the spiral center. Default is 50.
+            - "center_y" (float): Y-coordinate of the spiral center. Default is 50.
+            - "start_radius" (float): Starting radius of the spiral. Default is 0.
+            - "growth_rate" (float): Growth rate of the spiral. Default is 1.075.
+            - "start_angle" (float): Starting angle of the spiral. Default is 0.
+            - "end_angle" (float): Ending angle of the spiral. Default is 8π.
+            - "num_points" (int): Number of points in the spiral. Default is 10000.
 
     Returns:
         If input_path is a file: Dictionary of extracted features.
