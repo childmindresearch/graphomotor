@@ -9,8 +9,8 @@ from graphomotor.utils import generate_reference_spiral
 def test_generate_reference_spiral() -> None:
     """Test the generation of a reference spiral."""
     spiral_config = config.SpiralConfig()
-    expected_mean_arc_length = generate_reference_spiral._calculate_arc_length(
-        spiral_config.end_angle, spiral_config
+    expected_mean_arc_length = generate_reference_spiral._calculate_arc_length_between(
+        spiral_config.start_angle, spiral_config.end_angle, spiral_config
     ) / (spiral_config.num_points - 1)
 
     spiral = generate_reference_spiral.generate_reference_spiral(spiral_config)

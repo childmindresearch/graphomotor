@@ -34,14 +34,14 @@ from graphomotor.core import config
 def test_spiral_config_add_custom_params_valid(
     custom_params: dict[str, int | float],
     expected_params: dict[str, int | float],
-    recwarn: pytest.WarningsRecorder,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test that SpiralConfig.add_custom_params correctly sets parameter values."""
     spiral_config = config.SpiralConfig.add_custom_params(custom_params)
 
     for key, value in expected_params.items():
         assert getattr(spiral_config, key) == value
-        assert len(recwarn) == 0
+        assert len(caplog.records) == 0
 
 
 @pytest.mark.parametrize(
@@ -71,17 +71,17 @@ def test_spiral_config_add_custom_params_warnings(
     custom_params: dict[str, int | float],
     expected_params: dict[str, int | float],
     expected_warnings: list[str],
-    recwarn: pytest.WarningsRecorder,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test that SpiralConfig.add_custom_params issues warnings appropriately."""
     spiral_config = config.SpiralConfig.add_custom_params(custom_params)
 
-    assert len(recwarn) == len(expected_warnings)
+    assert len(caplog.records) == len(expected_warnings)
     for key, value in expected_params.items():
         assert getattr(spiral_config, key) == value
     for i, param in enumerate(expected_warnings):
         assert f"Unknown configuration parameters will be ignored: {param}" in str(
-            recwarn[i].message
+            caplog.records[i].message
         )
 
 
