@@ -6,7 +6,7 @@ from graphomotor.core import config
 from graphomotor.utils import generate_reference_spiral
 
 
-def test_compute_reference_spiral() -> None:
+def test_generate_reference_spiral() -> None:
     """Test the generation of a reference spiral."""
     spiral_config = config.SpiralConfig()
     expected_mean_arc_length = generate_reference_spiral._calculate_arc_length_between(
