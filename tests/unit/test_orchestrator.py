@@ -236,6 +236,54 @@ def test_export_directory_features_to_csv_creates_parent_dir(
     assert list(saved_df.columns) == ["participant_id", "task", "hand", "test_feature"]
 
 
+def test_export_directory_features_to_csv_overwrite(
+    tmp_path: pathlib.Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test _export_directory_features_to_csv overwrites existing file."""
+    test_data = {
+        "participant_id": ["5123456"],
+        "task": ["spiral_trace1"],
+        "hand": ["Dom"],
+        "test_feature": [1.0],
+    }
+    df = pd.DataFrame(test_data)
+    df.index.name = "source_file"
+
+    output_path = tmp_path / "output.csv"
+    output_path.write_text("This should be overwritten\n")
+
+    orchestrator._export_directory_features_to_csv(df, output_path)
+
+    assert output_path.exists()
+    assert "Overwriting existing file:" in caplog.text
+    assert "This should be overwritten" not in output_path.read_text()
+
+
+def test_export_directory_features_to_csv_exception(
+    tmp_path: pathlib.Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test _export_directory_features_to_csv handles exception with read-only file."""
+    test_data = {
+        "participant_id": ["5123456"],
+        "task": ["spiral_trace1"],
+        "hand": ["Dom"],
+        "test_feature": [1.0],
+    }
+    df = pd.DataFrame(test_data)
+    df.index.name = "source_file"
+
+    output_path = tmp_path / "output.csv"
+    output_path.write_text("Original content")
+    output_path.chmod(0o444)
+
+    orchestrator._export_directory_features_to_csv(df, output_path)
+
+    assert "Failed to save batch features to" in caplog.text
+    assert "Permission denied" in caplog.text
+
+
 @pytest.mark.parametrize(
     "feature_categories, expected_feature_number",
     [
@@ -467,3 +515,51 @@ def test_run_pipeline_directory_to_single_csv(
     assert "participant_id" in saved_df.columns
     assert "task" in saved_df.columns
     assert "hand" in saved_df.columns
+
+
+def test_run_pipeline_directory_with_failed_files(
+    tmp_path: pathlib.Path,
+    sample_data: pathlib.Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test run_pipeline with directory containing files that fail processing."""
+    input_dir = tmp_path / "input"
+    input_dir.mkdir()
+
+    valid_file = input_dir / "[5123456]test-spiral_trace1_Dom.csv"
+    valid_file.write_text(sample_data.read_text())
+
+    invalid_file = input_dir / "[5123457]test-spiral_trace1_Dom.csv"
+    invalid_file.write_text("invalid,csv,data\n1,2,3")
+
+    feature_categories: list[orchestrator.FeatureCategories] = ["duration"]
+
+    result = orchestrator.run_pipeline(input_dir, None, feature_categories)
+
+    assert isinstance(result, pd.DataFrame)
+    assert len(result) == 1
+    assert f"Failed to process {len([invalid_file.name])} files:" in caplog.text
+    assert invalid_file.name in caplog.text
+    assert "Batch processing complete. Successfully processed 1 files" in caplog.text
+
+
+def test_run_pipeline_directory_all_files_fail(
+    tmp_path: pathlib.Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test run_pipeline with directory where all files fail processing."""
+    input_dir = tmp_path / "input"
+    input_dir.mkdir()
+
+    for i in range(2):
+        invalid_file = input_dir / f"[512345{i}]test-spiral_trace1_Dom.csv"
+        invalid_file.write_text("invalid,csv,data\n1,2,3")
+
+    feature_categories: list[orchestrator.FeatureCategories] = ["duration"]
+
+    result = orchestrator.run_pipeline(input_dir, None, feature_categories)
+
+    assert isinstance(result, pd.DataFrame)
+    assert len(result) == 0
+    assert "Failed to process 2 files:" in caplog.text
+    assert "Batch processing complete. Successfully processed 0 files" in caplog.text
