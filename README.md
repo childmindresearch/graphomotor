@@ -105,30 +105,37 @@ from graphomotor.core import orchestrator
 input_file = "path/to/your/spiral_data.csv"
 
 # Option 1: Process file without saving any CSV file
-# Only return the features dictionary
-features = orchestrator.run_pipeline(
+# Only return the DataFrame with extracted features
+features_df = orchestrator.run_pipeline(
     input_path=input_file
 )
 
 # Option 2: Save to a directory with auto-generated filename
 # Creates a CSV file with auto-generated name in the specified directory
-# Format: {participant_id}_{task}_{hand}_features_{YYYYMMDD}.csv
-features = orchestrator.run_pipeline(
+# Format: {participant_id}_{task}_{hand}_features_{YYYYMMDD_HHMM}.csv
+features_df = orchestrator.run_pipeline(
     input_path=input_file,
     output_path="path/to/output/directory"
 )
 
 # Option 3: Save to a specific CSV file
 # Features will be saved to the specified file path
-features = orchestrator.run_pipeline(
+features_df = orchestrator.run_pipeline(
     input_path=input_file,
     output_path="path/to/features.csv"
 )
 
-# Features are returned as a dictionary in all cases
-print(f"Successfully extracted {len(features)} features:")
-for feature_name, value in features.items():
-    print(f"{feature_name}: {value}")
+# Features are returned as a pandas DataFrame with source file as index
+print(f"Successfully processed {len(features_df)} file")
+print(f"Extracted features: {list(features_df.columns)}")
+
+# Access the single file's data (features_df has one row)
+file_path = features_df.index[0]
+print(f"File: {file_path}")
+print(f"Participant: {features_df.loc[file_path, 'participant_id']}")
+print(f"Task: {features_df.loc[file_path, 'task']}")
+print(f"Hand: {features_df.loc[file_path, 'hand']}")
+print(f"Duration: {features_df.loc[file_path, 'duration']}")
 ```
 
 #### Batch Processing
@@ -141,43 +148,43 @@ input_dir = "path/to/your/spiral_data_directory"
 
 # Option 1: Process files without saving any CSV files
 # Only return the DataFrame with extracted features
-features = orchestrator.run_pipeline(
+features_df = orchestrator.run_pipeline(
     input_path=input_dir,
 )
 
-# Option 2: Save individual CSV files for each processed file
-# Creates separate CSV files with auto-generated names in the specified directory
-# Format: {participant_id}_{task}_{hand}_features_{YYYYMMDD}.csv
-features = orchestrator.run_pipeline(
+# Option 2: Save to a directory with auto-generated filename
+# Creates a single consolidated CSV file with auto-generated name
+# Format: batch_features_{YYYYMMDD_HHMM}.csv
+features_df = orchestrator.run_pipeline(
     input_path=input_dir,
     output_path="path/to/output/directory"
 )
 
 # Option 3: Save to a specific CSV file (single consolidated file)
 # All features will be written to one specified file
-features = orchestrator.run_pipeline(
+features_df = orchestrator.run_pipeline(
     input_path=input_dir,
     output_path="path/to/consolidated_features.csv"
 )
 
 # Features are returned as a pandas DataFrame with source files as index
-# Columns include: participant_id, task, hand, and calculated features
-print(f"Successfully processed {len(features)} files")
+# Columns include: participant_id, task, hand, start_time, and calculated features
+print(f"Successfully processed {len(features_df)} files")
 
 # Access metadata and features for a specific file
-for file_path in features.index:
+for file_path in features_df.index:
     print(f"File: {file_path}")
-    print(f"Participant: {features.loc[file_path, 'participant_id']}")
-    print(f"Task: {features.loc[file_path, 'task']}")
-    print(f"Hand: {features.loc[file_path, 'hand']}")
-    print(f"Duration: {features.loc[file_path, 'duration']}")
+    print(f"Participant: {features_df.loc[file_path, 'participant_id']}")
+    print(f"Task: {features_df.loc[file_path, 'task']}")
+    print(f"Hand: {features_df.loc[file_path, 'hand']}")
+    print(f"Duration: {features_df.loc[file_path, 'duration']}")
 
 # Or work with the DataFrame directly
-print(f"Mean duration across all files: {features['duration'].astype(float).mean()}")
-print(f"Spiral with highest linear velocity: {features['linear_velocity_median'].astype(float).idxmax()}")
+print(f"Mean duration across all files: {features_df['duration'].astype(float).mean()}")
+print(f"Spiral with highest linear velocity: {features_df['linear_velocity_median'].astype(float).idxmax()}")
 
 # Easy filtering and grouping by metadata
-print(f"Files with dominant hand: {len(features[features['hand'] == 'Dom'])}")
+print(f"Files with dominant hand: {len(features_df[features_df['hand'] == 'Dom'])}")
 ```
 
 For detailed configuration options and additional parameters, refer to the [`run_pipeline` documentation](https://childmindresearch.github.io/graphomotor/graphomotor/core/orchestrator.html#run_pipeline).
