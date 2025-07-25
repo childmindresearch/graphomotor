@@ -20,7 +20,7 @@ def _calculate_statistics(values: np.ndarray, name: str) -> dict[str, float]:
     return {
         f"{name}_sum": np.sum(np.abs(values)),
         f"{name}_median": np.median(np.abs(values)),
-        f"{name}_variation": stats.variation(values),
+        f"{name}_coefficient_of_variation": stats.variation(values),
         f"{name}_skewness": stats.skew(values),
         f"{name}_kurtosis": stats.kurtosis(values),
     }
@@ -46,7 +46,7 @@ def calculate_velocity_metrics(spiral: models.Spiral) -> dict[str, float]:
     For each velocity type, the following metrics are calculated:
         - Sum: Sum of absolute velocity values
         - Median: Median of absolute velocity values
-        - Variation: Coefficient of variation
+        - Coefficient of variation: Standard deviation divided by the mean
         - Skewness: Asymmetry of the velocity distribution
         - Kurtosis: Tailedness of the velocity distribution
 

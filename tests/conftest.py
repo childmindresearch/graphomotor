@@ -42,6 +42,8 @@ def valid_spiral_metadata() -> dict[str, str | datetime.datetime]:
             1697745697.08,
             tz=datetime.timezone.utc,
         ),
+        "source_path": "sample_data/[5123456]"
+        "65318bf53c36ce79135b1049-648c7d0e8819c1120b4f708d-spiral_trace1_Dom.csv",
     }
 
 
@@ -70,4 +72,17 @@ def perfect_spiral() -> models.Spiral:
         pathlib.Path(__file__).parent
         / "sample_data"
         / "[5000000]perfect-3000-points-spiral_trace1_Dom.csv"
+    )
+
+
+@pytest.fixture
+def sample_features() -> pd.DataFrame:
+    """Create a sample features DataFrame for testing."""
+    return pd.DataFrame(
+        {
+            "participant_id": ["5123456"],
+            "task": ["spiral_trace1"],
+            "hand": ["Dom"],
+            "test_feature": [1.0],
+        }
     )

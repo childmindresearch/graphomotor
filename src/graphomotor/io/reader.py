@@ -21,8 +21,8 @@ DTYPE_MAP = {
 def _parse_filename(filename: str) -> dict[str, str | datetime.datetime]:
     """Extract metadata from spiral drawing filename.
 
-    The function parses filenames of MindLogger exports of drawing data that are
-    typically formatted as '[5123456]mindlogger-ID-spiral_trace2_NonDom'. It extracts
+    The function parses filenames of Curious exports of drawing data that are
+    typically formatted as '[5123456]curious-ID-spiral_trace2_NonDom'. It extracts
     the participant ID (the value within the brackets), task name ('spiral_trace' or
     'spiral_recall', followed by the trial number from 1 to 5), and hand used (dominant
     or non-dominant). Regular expressions are used to match the expected pattern
@@ -32,7 +32,7 @@ def _parse_filename(filename: str) -> dict[str, str | datetime.datetime]:
     later in the load_spiral function.
 
     Args:
-        filename: Filename of the spiral drawing CSV file from MindLogger export.
+        filename: Filename of the spiral drawing CSV file from Curious export.
 
     Returns:
         Dictionary containing extracted metadata:
@@ -135,6 +135,7 @@ def load_spiral(filepath: pathlib.Path | str) -> models.Spiral:
     metadata = _parse_filename(filepath.stem)
 
     metadata["start_time"] = _convert_start_time(data)
+    metadata["source_path"] = str(filepath)
 
     data = data.drop(columns=["epoch_time_in_seconds_start"])
 
