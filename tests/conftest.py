@@ -73,3 +73,16 @@ def perfect_spiral() -> models.Spiral:
         / "sample_data"
         / "[5000000]perfect-3000-points-spiral_trace1_Dom.csv"
     )
+
+
+@pytest.fixture
+def sample_features() -> pd.DataFrame:
+    """Create a sample features DataFrame for testing."""
+    return pd.DataFrame(
+        {
+            "participant_id": ["5123456"],
+            "task": ["spiral_trace1"],
+            "hand": ["Dom"],
+            "test_feature": [1.0],
+        }
+    )

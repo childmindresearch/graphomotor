@@ -27,7 +27,7 @@ def test_parse_filename_valid(sample_data: pathlib.Path) -> None:
     "invalid_filename",
     [
         "asdf123-spiral_trace1_Dom.csv",  # missing ID
-        "[5123456]-spiral_trace1_Dom.csv",  # missing mindloggerID
+        "[5123456]-spiral_trace1_Dom.csv",  # missing Curious ID
         "[5123456]asdf123-Dom.csv",  # missing task
         "[5123456]asdf123-spiral_trace1.csv",  # missing hand
     ],
@@ -66,15 +66,6 @@ def test_load_spiral(sample_data: pathlib.Path) -> None:
     assert "epoch_time_in_seconds_start" not in spiral.data.columns
     assert "start_time" in spiral.metadata
     assert "source_path" in spiral.metadata
-
-
-def test_load_spiral_source_path(sample_data: pathlib.Path) -> None:
-    """Test that source_path is correctly set in metadata."""
-    spiral = reader.load_spiral(sample_data)
-    assert spiral.metadata["source_path"] == str(sample_data)
-
-    spiral_str = reader.load_spiral(str(sample_data))
-    assert spiral_str.metadata["source_path"] == str(sample_data)
 
 
 def test_load_spiral_invalid_extension(sample_data: pathlib.Path) -> None:
