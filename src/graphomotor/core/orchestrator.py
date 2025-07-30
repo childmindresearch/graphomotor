@@ -146,13 +146,13 @@ def export_features_to_csv(
         results_df.to_csv(output_file)
         logger.debug(f"Features saved successfully to {output_file}")
     except Exception as e:
-        logger.error(f"Failed to save features to {output_file}: {str(e)}")
+        logger.warning(f"Failed to save features to {output_file}: {str(e)}")
 
 
 def _run_file(
     input_path: pathlib.Path,
     feature_categories: list[FeatureCategories],
-    spiral_config: config.SpiralConfig | None,
+    spiral_config: config.SpiralConfig,
 ) -> dict[str, str]:
     """Process a single file for feature extraction.
 
@@ -180,7 +180,7 @@ def _run_file(
 def _run_directory(
     input_path: pathlib.Path,
     feature_categories: list[FeatureCategories],
-    spiral_config: config.SpiralConfig | None,
+    spiral_config: config.SpiralConfig,
 ) -> list[dict[str, str]]:
     """Process all CSV files in a directory and its subdirectories.
 
@@ -228,7 +228,7 @@ def _run_directory(
             results.append(features)
             logger.debug(f"Successfully processed {csv_file.name}")
         except Exception as e:
-            logger.error(f"Failed to process {csv_file.name}: {str(e)}")
+            logger.warning(f"Failed to process {csv_file.name}: {str(e)}")
             failed_files.append(csv_file.name)
             continue
 

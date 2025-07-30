@@ -66,9 +66,6 @@ def test_validate_feature_categories_mixed(caplog: pytest.LogCaptureFixture) -> 
     assert "meaning_of_life" in caplog.text
 
 
-# Tests for extract_features()
-
-
 @pytest.mark.parametrize(
     "feature_categories, expected_feature_number",
     [
