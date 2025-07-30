@@ -82,8 +82,8 @@
 </span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a><span class="k">def</span><span class="w"> </span><span class="nf">_parse_filename</span><span class="p">(</span><span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">]:</span>
 </span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract metadata from spiral drawing filename.</span>
 </span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a>
-</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="sd">    The function parses filenames of MindLogger exports of drawing data that are</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="sd">    typically formatted as &#39;[5123456]mindlogger-ID-spiral_trace2_NonDom&#39;. It extracts</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="sd">    The function parses filenames of Curious exports of drawing data that are</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a><span class="sd">    typically formatted as &#39;[5123456]curious-ID-spiral_trace2_NonDom&#39;. It extracts</span>
 </span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="sd">    the participant ID (the value within the brackets), task name (&#39;spiral_trace&#39; or</span>
 </span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="sd">    &#39;spiral_recall&#39;, followed by the trial number from 1 to 5), and hand used (dominant</span>
 </span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a><span class="sd">    or non-dominant). Regular expressions are used to match the expected pattern</span>
@@ -93,7 +93,7 @@
 </span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a><span class="sd">    later in the load_spiral function.</span>
 </span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a>
 </span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a><span class="sd">    Args:</span>
-</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a><span class="sd">        filename: Filename of the spiral drawing CSV file from MindLogger export.</span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a><span class="sd">        filename: Filename of the spiral drawing CSV file from Curious export.</span>
 </span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a>
 </span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a><span class="sd">    Returns:</span>
 </span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a><span class="sd">        Dictionary containing extracted metadata:</span>
@@ -196,10 +196,11 @@
 </span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a>    <span class="n">metadata</span> <span class="o">=</span> <span class="n">_parse_filename</span><span class="p">(</span><span class="n">filepath</span><span class="o">.</span><span class="n">stem</span><span class="p">)</span>
 </span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>
 </span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>    <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;start_time&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_convert_start_time</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>
-</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>    <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;epoch_time_in_seconds_start&quot;</span><span class="p">])</span>
-</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>
-</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>    <span class="k">return</span> <span class="n">models</span><span class="o">.</span><span class="n">Spiral</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">)</span>
+</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>    <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;source_path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>
+</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>    <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;epoch_time_in_seconds_start&quot;</span><span class="p">])</span>
+</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>
+</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>    <span class="k">return</span> <span class="n">models</span><span class="o">.</span><span class="n">Spiral</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -270,10 +271,11 @@
 </span><span id="load_spiral-136"><a href="#load_spiral-136"><span class="linenos">136</span></a>    <span class="n">metadata</span> <span class="o">=</span> <span class="n">_parse_filename</span><span class="p">(</span><span class="n">filepath</span><span class="o">.</span><span class="n">stem</span><span class="p">)</span>
 </span><span id="load_spiral-137"><a href="#load_spiral-137"><span class="linenos">137</span></a>
 </span><span id="load_spiral-138"><a href="#load_spiral-138"><span class="linenos">138</span></a>    <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;start_time&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_convert_start_time</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-</span><span id="load_spiral-139"><a href="#load_spiral-139"><span class="linenos">139</span></a>
-</span><span id="load_spiral-140"><a href="#load_spiral-140"><span class="linenos">140</span></a>    <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;epoch_time_in_seconds_start&quot;</span><span class="p">])</span>
-</span><span id="load_spiral-141"><a href="#load_spiral-141"><span class="linenos">141</span></a>
-</span><span id="load_spiral-142"><a href="#load_spiral-142"><span class="linenos">142</span></a>    <span class="k">return</span> <span class="n">models</span><span class="o">.</span><span class="n">Spiral</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">)</span>
+</span><span id="load_spiral-139"><a href="#load_spiral-139"><span class="linenos">139</span></a>    <span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;source_path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+</span><span id="load_spiral-140"><a href="#load_spiral-140"><span class="linenos">140</span></a>
+</span><span id="load_spiral-141"><a href="#load_spiral-141"><span class="linenos">141</span></a>    <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;epoch_time_in_seconds_start&quot;</span><span class="p">])</span>
+</span><span id="load_spiral-142"><a href="#load_spiral-142"><span class="linenos">142</span></a>
+</span><span id="load_spiral-143"><a href="#load_spiral-143"><span class="linenos">143</span></a>    <span class="k">return</span> <span class="n">models</span><span class="o">.</span><span class="n">Spiral</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">)</span>
 </span></pre></div>
 
 

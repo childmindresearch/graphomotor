@@ -123,7 +123,7 @@
 </span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>    <span class="k">return</span> <span class="n">solution</span><span class="o">.</span><span class="n">root</span>
 </span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>
 </span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>
-</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a><span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">48</span><span class="p">)</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a><span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span>
 </span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a><span class="k">def</span><span class="w"> </span><span class="nf">generate_reference_spiral</span><span class="p">(</span><span class="n">spiral_config</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">SpiralConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 </span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate a reference spiral with equidistant points along its arc length.</span>
 </span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>
@@ -189,7 +189,7 @@
                 <section id="generate_reference_spiral">
                             <input id="generate_reference_spiral-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
-                    <div class="decorator decorator-functools.lru_cache">@functools.lru_cache(maxsize=48)</div>
+                    <div class="decorator decorator-functools.lru_cache">@functools.lru_cache</div>
 
         <span class="def">def</span>
         <span class="name">generate_reference_spiral</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">spiral_config</span><span class="p">:</span> <span class="n"><a href="../core/config.html#SpiralConfig">graphomotor.core.config.SpiralConfig</a></span></span><span class="return-annotation">) -> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>:</span></span>
@@ -198,7 +198,7 @@
 
     </div>
     <a class="headerlink" href="#generate_reference_spiral"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="generate_reference_spiral-69"><a href="#generate_reference_spiral-69"><span class="linenos"> 69</span></a><span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">48</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="generate_reference_spiral-69"><a href="#generate_reference_spiral-69"><span class="linenos"> 69</span></a><span class="nd">@functools</span><span class="o">.</span><span class="n">lru_cache</span>
 </span><span id="generate_reference_spiral-70"><a href="#generate_reference_spiral-70"><span class="linenos"> 70</span></a><span class="k">def</span><span class="w"> </span><span class="nf">generate_reference_spiral</span><span class="p">(</span><span class="n">spiral_config</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">SpiralConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 </span><span id="generate_reference_spiral-71"><a href="#generate_reference_spiral-71"><span class="linenos"> 71</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate a reference spiral with equidistant points along its arc length.</span>
 </span><span id="generate_reference_spiral-72"><a href="#generate_reference_spiral-72"><span class="linenos"> 72</span></a>

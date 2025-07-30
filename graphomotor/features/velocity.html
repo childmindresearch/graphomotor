@@ -78,7 +78,7 @@
 </span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>    <span class="k">return</span> <span class="p">{</span>
 </span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">_sum&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">values</span><span class="p">)),</span>
 </span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">_median&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">values</span><span class="p">)),</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">_variation&quot;</span><span class="p">:</span> <span class="n">stats</span><span class="o">.</span><span class="n">variation</span><span class="p">(</span><span class="n">values</span><span class="p">),</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">_coefficient_of_variation&quot;</span><span class="p">:</span> <span class="n">stats</span><span class="o">.</span><span class="n">variation</span><span class="p">(</span><span class="n">values</span><span class="p">),</span>
 </span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">_skewness&quot;</span><span class="p">:</span> <span class="n">stats</span><span class="o">.</span><span class="n">skew</span><span class="p">(</span><span class="n">values</span><span class="p">),</span>
 </span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">_kurtosis&quot;</span><span class="p">:</span> <span class="n">stats</span><span class="o">.</span><span class="n">kurtosis</span><span class="p">(</span><span class="n">values</span><span class="p">),</span>
 </span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>    <span class="p">}</span>
@@ -104,7 +104,7 @@
 </span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a><span class="sd">    For each velocity type, the following metrics are calculated:</span>
 </span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a><span class="sd">        - Sum: Sum of absolute velocity values</span>
 </span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a><span class="sd">        - Median: Median of absolute velocity values</span>
-</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a><span class="sd">        - Variation: Coefficient of variation</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a><span class="sd">        - Coefficient of variation: Standard deviation divided by the mean</span>
 </span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a><span class="sd">        - Skewness: Asymmetry of the velocity distribution</span>
 </span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a><span class="sd">        - Kurtosis: Tailedness of the velocity distribution</span>
 </span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a>
@@ -170,7 +170,7 @@
 </span><span id="calculate_velocity_metrics-47"><a href="#calculate_velocity_metrics-47"><span class="linenos">47</span></a><span class="sd">    For each velocity type, the following metrics are calculated:</span>
 </span><span id="calculate_velocity_metrics-48"><a href="#calculate_velocity_metrics-48"><span class="linenos">48</span></a><span class="sd">        - Sum: Sum of absolute velocity values</span>
 </span><span id="calculate_velocity_metrics-49"><a href="#calculate_velocity_metrics-49"><span class="linenos">49</span></a><span class="sd">        - Median: Median of absolute velocity values</span>
-</span><span id="calculate_velocity_metrics-50"><a href="#calculate_velocity_metrics-50"><span class="linenos">50</span></a><span class="sd">        - Variation: Coefficient of variation</span>
+</span><span id="calculate_velocity_metrics-50"><a href="#calculate_velocity_metrics-50"><span class="linenos">50</span></a><span class="sd">        - Coefficient of variation: Standard deviation divided by the mean</span>
 </span><span id="calculate_velocity_metrics-51"><a href="#calculate_velocity_metrics-51"><span class="linenos">51</span></a><span class="sd">        - Skewness: Asymmetry of the velocity distribution</span>
 </span><span id="calculate_velocity_metrics-52"><a href="#calculate_velocity_metrics-52"><span class="linenos">52</span></a><span class="sd">        - Kurtosis: Tailedness of the velocity distribution</span>
 </span><span id="calculate_velocity_metrics-53"><a href="#calculate_velocity_metrics-53"><span class="linenos">53</span></a>
@@ -223,7 +223,7 @@ are:
 <p>For each velocity type, the following metrics are calculated:
     - Sum: Sum of absolute velocity values
     - Median: Median of absolute velocity values
-    - Variation: Coefficient of variation
+    - Coefficient of variation: Standard deviation divided by the mean
     - Skewness: Asymmetry of the velocity distribution
     - Kurtosis: Tailedness of the velocity distribution</p>
 

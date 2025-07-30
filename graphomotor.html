@@ -25,11 +25,11 @@
             <ul>
   <li><a href="#graphomotor-study-toolkit">Graphomotor Study Toolkit</a>
   <ul>
-    <li><a href="#development-progress">Development Progress</a></li>
-    <li><a href="#data-format-requirements">Data Format Requirements</a></li>
     <li><a href="#feature-extraction-capabilities">Feature Extraction Capabilities</a></li>
     <li><a href="#installation">Installation</a></li>
     <li><a href="#quick-start">Quick Start</a></li>
+    <li><a href="#development-progress">Development Progress</a></li>
+    <li><a href="#data-format-requirements">Data Format Requirements</a></li>
     <li><a href="#future-directions">Future Directions</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#references">References</a></li>
@@ -72,11 +72,149 @@ graphomotor    </h1>
 <a href="https://github.com/childmindresearch/graphomotor/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-LGPL--2.1-blue.svg" alt="LGPL--2.1 License" /></a>
 <a href="https://childmindresearch.github.io/graphomotor"><img src="https://img.shields.io/badge/api-docs-blue" alt="Documentation" /></a></p>
 
-<p>Welcome to <code><a href="">graphomotor</a></code>, a specialized Python library for analyzing graphomotor data collected via <a href="https://www.gettingcurious.com/">Curious</a>. This toolkit provides comprehensive tools for processing, analyzing, and visualizing data from various graphomotor assessment tasks including spiral drawing, trails making, alphabetic writing, digit symbol substitution, and the Rey-Osterrieth Complex Figure Test.</p>
+<p>Welcome to <code><a href="">graphomotor</a></code>, a specialized Python library for analyzing graphomotor data collected via <a href="https://www.gettingcurious.com/">Curious</a>. This toolkit aims to provide comprehensive tools for processing, analyzing, and visualizing data from various graphomotor assessment tasks, including spiral drawing, trails making, alphabetic writing, digit symbol substitution, and the Rey-Osterrieth Complex Figure Test.</p>
+
+<blockquote>
+  <p>⚠️ <strong>This package is under active development.</strong> Currently, the focus is on the spiral drawing task. After finalizing feature extraction, the next steps will involve implementing both preprocessing and visualization for this task. Once these parts are in place, we plan to extend support to other tasks.</p>
+</blockquote>
+
+<h2 id="feature-extraction-capabilities">Feature Extraction Capabilities</h2>
+
+<p>The toolkit extracts clinically relevant metrics from digitized drawing data. Currently implemented features include:</p>
+
+<ul>
+<li><strong>Temporal Features</strong>: Task completion duration.</li>
+<li><strong>Velocity Features</strong>: Velocity analysis including linear, radial, and angular velocity components with statistical measures (sum, median, variation, skewness, kurtosis).</li>
+<li><strong>Distance Features</strong>: Spatial accuracy measurements using Hausdorff distance metrics with temporal normalizations and segment-specific analysis.</li>
+<li><strong>Drawing Error Features</strong>: Area under the curve (AUC) calculations between drawn paths and ideal reference trajectories to quantify spatial accuracy.</li>
+</ul>
+
+<h2 id="installation">Installation</h2>
+
+<p>Install the graphomotor package from PyPI:</p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>graphomotor
+</code></pre>
+</div>
+
+<p>Or install the latest development version directly from GitHub:</p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/childmindresearch/graphomotor
+</code></pre>
+</div>
+
+<h2 id="quick-start">Quick Start</h2>
+
+<blockquote>
+  <p>⚠️ This library <strong>requires input data to adhere to a specific format</strong> matching the standard output from <a href="https://mindlogger.atlassian.net/servicedesk/customer/portal/3/article/859242501">Curious drawing responses</a>. See more details in the <a href="#data-format-requirements">Data Format Requirements</a> section below.</p>
+</blockquote>
+
+<h3 id="extracting-features-from-spiral-drawing-data">Extracting Features from Spiral Drawing Data</h3>
+
+<h4 id="single-file-processing">Single File Processing</h4>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn"><a href="graphomotor/core.html">graphomotor.core</a></span><span class="w"> </span><span class="kn">import</span> <span class="n">orchestrator</span>
+
+<span class="c1"># Path to your spiral drawing data file</span>
+<span class="n">input_file</span> <span class="o">=</span> <span class="s2">&quot;path/to/your/spiral_data.csv&quot;</span>
+
+<span class="c1"># Option 1: Process file without saving any CSV file</span>
+<span class="c1"># Only return the DataFrame with extracted features</span>
+<span class="n">features_df</span> <span class="o">=</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">run_pipeline</span><span class="p">(</span>
+    <span class="n">input_path</span><span class="o">=</span><span class="n">input_file</span>
+<span class="p">)</span>
+
+<span class="c1"># Features are returned as a pandas DataFrame with source file as index</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Extracted features: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">features_df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Access the single file&#39;s data (features_df has one row)</span>
+<span class="n">file_path</span> <span class="o">=</span> <span class="n">features_df</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File: </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Participant: </span><span class="si">{</span><span class="n">features_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">file_path</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;participant_id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Task: </span><span class="si">{</span><span class="n">features_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">file_path</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;task&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Hand: </span><span class="si">{</span><span class="n">features_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">file_path</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;hand&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Duration: </span><span class="si">{</span><span class="n">features_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">file_path</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;duration&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code><span class="c1"># Option 2: Save to a directory with auto-generated filename</span>
+<span class="c1"># Creates a CSV file with auto-generated name in the specified directory</span>
+<span class="c1"># Format: {participant_id}_{task}_{hand}_features_{YYYYMMDD_HHMM}.csv</span>
+<span class="n">features_df</span> <span class="o">=</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">run_pipeline</span><span class="p">(</span>
+    <span class="n">input_path</span><span class="o">=</span><span class="n">input_file</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="o">=</span><span class="s2">&quot;path/to/output/directory&quot;</span>
+<span class="p">)</span>
+</code></pre>
+</div>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code><span class="c1"># Option 3: Save to a specific CSV file</span>
+<span class="c1"># Features will be saved to the specified file path</span>
+<span class="n">features_df</span> <span class="o">=</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">run_pipeline</span><span class="p">(</span>
+    <span class="n">input_path</span><span class="o">=</span><span class="n">input_file</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="o">=</span><span class="s2">&quot;path/to/features.csv&quot;</span>
+<span class="p">)</span>
+</code></pre>
+</div>
+
+<h4 id="batch-processing">Batch Processing</h4>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn"><a href="graphomotor/core.html">graphomotor.core</a></span><span class="w"> </span><span class="kn">import</span> <span class="n">orchestrator</span>
+
+<span class="c1"># Path to directory containing multiple spiral drawing data files</span>
+<span class="n">input_dir</span> <span class="o">=</span> <span class="s2">&quot;path/to/your/spiral_data_directory&quot;</span>
+
+<span class="c1"># Option 1: Process files without saving any CSV files</span>
+<span class="c1"># Only return the DataFrame with extracted features</span>
+<span class="n">features_df</span> <span class="o">=</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">run_pipeline</span><span class="p">(</span>
+    <span class="n">input_path</span><span class="o">=</span><span class="n">input_dir</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Features are returned as a pandas DataFrame with source files as index</span>
+<span class="c1"># Columns include: participant_id, task, hand, start_time, and calculated features</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully processed </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">features_df</span><span class="p">)</span><span class="si">}</span><span class="s2"> files&quot;</span><span class="p">)</span>
+
+<span class="c1"># Access metadata and features for a specific file</span>
+<span class="k">for</span> <span class="n">file_path</span> <span class="ow">in</span> <span class="n">features_df</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File: </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Participant: </span><span class="si">{</span><span class="n">features_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">file_path</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;participant_id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Task: </span><span class="si">{</span><span class="n">features_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">file_path</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;task&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Hand: </span><span class="si">{</span><span class="n">features_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">file_path</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;hand&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Duration: </span><span class="si">{</span><span class="n">features_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">file_path</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;duration&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code><span class="c1"># Option 2: Save to a directory with auto-generated filename</span>
+<span class="c1"># Creates a single consolidated CSV file with auto-generated name</span>
+<span class="c1"># Format: batch_features_{YYYYMMDD_HHMM}.csv</span>
+<span class="n">features_df</span> <span class="o">=</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">run_pipeline</span><span class="p">(</span>
+    <span class="n">input_path</span><span class="o">=</span><span class="n">input_dir</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="o">=</span><span class="s2">&quot;path/to/output/directory&quot;</span>
+<span class="p">)</span>
+</code></pre>
+</div>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code><span class="c1"># Option 3: Save to a specific CSV file (single consolidated file)</span>
+<span class="c1"># All features will be written to one specified file</span>
+<span class="n">features_df</span> <span class="o">=</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">run_pipeline</span><span class="p">(</span>
+    <span class="n">input_path</span><span class="o">=</span><span class="n">input_dir</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="o">=</span><span class="s2">&quot;path/to/consolidated_features.csv&quot;</span>
+<span class="p">)</span>
+</code></pre>
+</div>
+
+<p>Currently, <code><a href="">graphomotor</a></code> is available as an importable Python library. CLI functionality is planned for future releases.</p>
+
+<p>For detailed configuration options and additional parameters, refer to the <a href="https://childmindresearch.github.io/graphomotor/graphomotor/core/orchestrator.html#run_pipeline"><code>run_pipeline</code> documentation</a>.</p>
 
 <h2 id="development-progress">Development Progress</h2>
-
-<p>⚠️ <strong>This package is under active development.</strong> Currently, the focus is on the Spiral task. After finalizing feature extraction, the next steps will involve implementing both preprocessing and visualization for this task. Once these parts are in place, we plan to extend support to other tasks.</p>
 
 <table>
 <thead>
@@ -123,8 +261,6 @@ graphomotor    </h1>
 
 <h2 id="data-format-requirements">Data Format Requirements</h2>
 
-<p>⚠️ <strong>This implementation requires data to adhere to a specific format matching the standard output from <a href="https://mindlogger.atlassian.net/servicedesk/customer/portal/3/article/859242501">Curious drawing responses</a>.</strong></p>
-
 <p>When exporting drawing data from Curious, you typically receive the following files:</p>
 
 <ul>
@@ -170,65 +306,6 @@ graphomotor    </h1>
 </div>
 
 <p>This format represents the standard output from <a href="https://mindlogger.atlassian.net/servicedesk/customer/portal/3/article/596082739">Curious drawing responses data dictionary</a>.</p>
-
-<h2 id="feature-extraction-capabilities">Feature Extraction Capabilities</h2>
-
-<p>The toolkit extracts clinically relevant metrics from digitized drawing data. Currently implemented features include:</p>
-
-<ul>
-<li><strong>Temporal Features</strong>: Task completion duration.</li>
-<li><strong>Velocity Features</strong>: Velocity analysis including linear, radial, and angular velocity components with statistical measures (sum, median, variation, skewness, kurtosis).</li>
-<li><strong>Distance Features</strong>: Spatial accuracy measurements using Hausdorff distance metrics with temporal normalizations and segment-specific analysis.</li>
-<li><strong>Drawing Error Features</strong>: Area under the curve (AUC) calculations between drawn paths and ideal reference trajectories to quantify spatial accuracy.</li>
-</ul>
-
-<h2 id="installation">Installation</h2>
-
-<p>Install the graphomotor package from PyPI:</p>
-
-<div class="pdoc-code codehilite">
-<pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>graphomotor
-</code></pre>
-</div>
-
-<p>Or install the latest development version directly from GitHub:</p>
-
-<div class="pdoc-code codehilite">
-<pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/childmindresearch/graphomotor
-</code></pre>
-</div>
-
-<h2 id="quick-start">Quick Start</h2>
-
-<p>Currently, <code><a href="">graphomotor</a></code> is available as an importable Python library. CLI functionality is planned for future releases.</p>
-
-<h3 id="extracting-features-from-spiral-drawing-data">Extracting Features from Spiral Drawing Data</h3>
-
-<div class="pdoc-code codehilite">
-<pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn"><a href="graphomotor/core.html">graphomotor.core</a></span><span class="w"> </span><span class="kn">import</span> <span class="n">orchestrator</span>
-
-<span class="c1"># Path to your spiral drawing data file</span>
-<span class="n">input_file</span> <span class="o">=</span> <span class="s2">&quot;path/to/your/spiral_data.csv&quot;</span>
-
-<span class="c1"># Directory where extracted features will be saved</span>
-<span class="n">output_dir</span> <span class="o">=</span> <span class="s2">&quot;path/to/output/directory&quot;</span>
-
-<span class="c1"># Run the analysis pipeline</span>
-<span class="n">features</span> <span class="o">=</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">run_pipeline</span><span class="p">(</span>
-    <span class="n">input_path</span><span class="o">=</span><span class="n">input_file</span><span class="p">,</span>
-    <span class="n">output_path</span><span class="o">=</span><span class="n">output_dir</span>
-<span class="p">)</span>
-
-<span class="c1"># Features are returned as a dictionary and saved as CSV</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully extracted </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">features</span><span class="p">)</span><span class="si">}</span><span class="s2"> feature categories&quot;</span><span class="p">)</span>
-</code></pre>
-</div>
-
-<p>For detailed configuration options and additional parameters, refer to the <a href="https://childmindresearch.github.io/graphomotor/graphomotor/core/orchestrator.html#run_pipeline"><code>run_pipeline</code> documentation</a>.</p>
-
-<blockquote>
-  <p><strong>Note:</strong> Currently, only single file processing is supported, with batch processing planned for future releases.</p>
-</blockquote>
 
 <h2 id="future-directions">Future Directions</h2>
 
