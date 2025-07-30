@@ -227,22 +227,6 @@ def test_export_features_to_csv_permission_error(
     assert "Permission denied" in caplog.text
 
 
-def test_run_pipeline_single_file(sample_data: pathlib.Path) -> None:
-    """Test run_pipeline with a single file."""
-    feature_categories: list[orchestrator.FeatureCategories] = ["duration"]
-
-    features = orchestrator.run_pipeline(sample_data, None, feature_categories)
-
-    assert isinstance(features, pd.DataFrame)
-    assert len(features) == 1
-    assert "duration" in features.columns
-    assert "participant_id" in features.columns
-    assert "task" in features.columns
-    assert "hand" in features.columns
-    assert "start_time" in features.columns
-    assert "source_file" == features.index.name
-
-
 def test_run_pipeline_directory(sample_data: pathlib.Path) -> None:
     """Test run_pipeline with a directory containing multiple files."""
     feature_categories: list[orchestrator.FeatureCategories] = ["duration"]
@@ -259,33 +243,6 @@ def test_run_pipeline_directory(sample_data: pathlib.Path) -> None:
 
     assert all(isinstance(index, str) for index in features.index)
     assert all(isinstance(value, str) for value in features.values.flatten())
-
-
-def test_run_pipeline_directory_comprehensive(
-    tmp_path: pathlib.Path, sample_data: pathlib.Path
-) -> None:
-    """Test run_pipeline with directory processing and export functionality."""
-    input_dir = tmp_path / "input"
-    input_dir.mkdir()
-
-    for i in range(1, 4):
-        filename = f"[5123456]test-spiral_trace{i}_Dom.csv"
-        csv_file = input_dir / filename
-        csv_file.write_text(sample_data.read_text())
-
-    output_csv = tmp_path / "all_features.csv"
-    feature_categories: list[orchestrator.FeatureCategories] = ["duration"]
-
-    result = orchestrator.run_pipeline(input_dir, output_csv, feature_categories)
-    saved_df = pd.read_csv(output_csv, index_col=0)
-
-    assert isinstance(result, pd.DataFrame)
-    assert len(result) == 3
-    assert output_csv.exists()
-    assert len(saved_df) == 3
-    assert "participant_id" in saved_df.columns
-    assert "task" in saved_df.columns
-    assert "hand" in saved_df.columns
 
 
 def test_run_pipeline_directory_with_failed_files(
@@ -363,11 +320,18 @@ def test_run_pipeline_output_path_valid(
     result = orchestrator.run_pipeline(sample_data, output_path, feature_categories)
 
     assert isinstance(result, pd.DataFrame)
+    assert len(result) == 1
+    assert "duration" in result.columns
+    assert "participant_id" in result.columns
+    assert "task" in result.columns
+    assert "hand" in result.columns
+    assert "start_time" in result.columns
+    assert "source_file" == result.index.name
 
 
 @pytest.mark.parametrize(
     "invalid_extension",
-    [".txt", ".json", ".xlsx", ".xml", ".dat", ".log"],
+    [".txt", ".json", ".xlsx"],
 )
 def test_run_pipeline_output_path_invalid(
     sample_data: pathlib.Path, tmp_path: pathlib.Path, invalid_extension: str
@@ -378,30 +342,3 @@ def test_run_pipeline_output_path_invalid(
 
     with pytest.raises(ValueError, match="Output file must have a .csv extension"):
         orchestrator.run_pipeline(sample_data, output_path, feature_categories)
-
-
-def test_run_pipeline_invalid_output_extension_single_file(
-    tmp_path: pathlib.Path, sample_data: pathlib.Path
-) -> None:
-    """Test run_pipeline raises error for single file with invalid output extension."""
-    output_path = tmp_path / "output.txt"
-    feature_categories: list[orchestrator.FeatureCategories] = ["duration"]
-
-    with pytest.raises(ValueError, match="Output file must have a .csv extension"):
-        orchestrator.run_pipeline(sample_data, output_path, feature_categories)
-
-
-def test_run_pipeline_invalid_output_extension_directory(
-    tmp_path: pathlib.Path, sample_data: pathlib.Path
-) -> None:
-    """Test run_pipeline raises error for directory with invalid output extension."""
-    input_dir = tmp_path / "input"
-    input_dir.mkdir()
-    csv_file = input_dir / sample_data.name
-    csv_file.write_text(sample_data.read_text())
-
-    output_path = tmp_path / "output.txt"
-    feature_categories: list[orchestrator.FeatureCategories] = ["duration"]
-
-    with pytest.raises(ValueError, match="Output file must have a .csv extension"):
-        orchestrator.run_pipeline(input_dir, output_path, feature_categories)

@@ -11,7 +11,9 @@ A Python toolkit for analysis of graphomotor data collected via Curious.
 [![LGPL--2.1 License](https://img.shields.io/badge/license-LGPL--2.1-blue.svg)](https://github.com/childmindresearch/graphomotor/blob/main/LICENSE)
 [![Documentation](https://img.shields.io/badge/api-docs-blue)](https://childmindresearch.github.io/graphomotor)
 
-Welcome to `graphomotor`, a specialized Python library for analyzing graphomotor data collected via [Curious](https://www.gettingcurious.com/). This toolkit provides comprehensive tools for processing, analyzing, and visualizing data from various graphomotor assessment tasks including spiral drawing, trails making, alphabetic writing, digit symbol substitution, and the Rey-Osterrieth Complex Figure Test.
+Welcome to `graphomotor`, a specialized Python library for analyzing graphomotor data collected via [Curious](https://www.gettingcurious.com/). This toolkit aims to provide comprehensive tools for processing, analyzing, and visualizing data from various graphomotor assessment tasks, including spiral drawing, trails making, alphabetic writing, digit symbol substitution, and the Rey-Osterrieth Complex Figure Test.
+
+> ⚠️ **This package is under active development.** Currently, the focus is on the spiral drawing task. After finalizing feature extraction, the next steps will involve implementing both preprocessing and visualization for this task. Once these parts are in place, we plan to extend support to other tasks.
 
 ## Feature Extraction Capabilities
 
@@ -38,9 +40,7 @@ pip install git+https://github.com/childmindresearch/graphomotor
 
 ## Quick Start
 
-> **⚠️ This implementation requires data to adhere to a specific format matching the standard output from [Curious drawing responses](https://mindlogger.atlassian.net/servicedesk/customer/portal/3/article/859242501).**
-
-Currently, `graphomotor` is available as an importable Python library. CLI functionality is planned for future releases.
+> ⚠️ This library **requires input data to adhere to a specific format** matching the standard output from [Curious drawing responses](https://mindlogger.atlassian.net/servicedesk/customer/portal/3/article/859242501). See more details in the [Data Format Requirements](#data-format-requirements) section below.
 
 ### Extracting Features from Spiral Drawing Data
 
@@ -136,11 +136,11 @@ features_df = orchestrator.run_pipeline(
 )
 ```
 
+Currently, `graphomotor` is available as an importable Python library. CLI functionality is planned for future releases.
+
 For detailed configuration options and additional parameters, refer to the [`run_pipeline` documentation](https://childmindresearch.github.io/graphomotor/graphomotor/core/orchestrator.html#run_pipeline).
 
 ## Development Progress
-
-⚠️ **This package is under active development.** Currently, the focus is on the Spiral task. After finalizing feature extraction, the next steps will involve implementing both preprocessing and visualization for this task. Once these parts are in place, we plan to extend support to other tasks.
 
 | Task | Preprocessing | Feature Extraction | Visualization |
 | :--- | :---: | :---: | :---: |

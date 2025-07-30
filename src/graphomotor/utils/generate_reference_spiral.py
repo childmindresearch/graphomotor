@@ -65,7 +65,7 @@ def _find_theta_for_incremental_arc_length(
     return solution.root
 
 
-@functools.lru_cache(maxsize=48)
+@functools.lru_cache
 def generate_reference_spiral(spiral_config: config.SpiralConfig) -> np.ndarray:
     """Generate a reference spiral with equidistant points along its arc length.
 

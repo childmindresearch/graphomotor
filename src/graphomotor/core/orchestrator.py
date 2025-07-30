@@ -105,24 +105,24 @@ def extract_features(
 
 
 def export_features_to_csv(
-    results_df: pd.DataFrame,
+    features_df: pd.DataFrame,
     output_path: pathlib.Path,
 ) -> None:
     """Export extracted features to a CSV file.
 
     Args:
-        results_df: DataFrame containing all metadata and features.
+        features_df: DataFrame containing all metadata and features.
         output_path: Path to the output CSV file.
     """
     if not output_path.suffix:
         if not output_path.exists():
             logger.debug(f"Creating directory that doesn't exist: {output_path}")
             output_path.mkdir(parents=True)
-        if results_df.shape[0] == 1:
+        if features_df.shape[0] == 1:
             filename = (
-                f"{results_df['participant_id'].iloc[0]}_"
-                f"{results_df['task'].iloc[0]}_"
-                f"{results_df['hand'].iloc[0]}_features_"
+                f"{features_df['participant_id'].iloc[0]}_"
+                f"{features_df['task'].iloc[0]}_"
+                f"{features_df['hand'].iloc[0]}_features_"
             )
         else:
             filename = "batch_features_"
@@ -143,7 +143,7 @@ def export_features_to_csv(
         logger.debug(f"Overwriting existing file: {output_file}")
 
     try:
-        results_df.to_csv(output_file)
+        features_df.to_csv(output_file)
         logger.debug(f"Features saved successfully to {output_file}")
     except Exception as e:
         logger.warning(f"Failed to save features to {output_file}: {str(e)}")
@@ -273,9 +273,10 @@ def run_pipeline(
     Args:
         input_path: Path to a CSV file (single-file mode) or a directory containing CSV
             files (batch mode).
-        output_path: Path to save extracted features.
+        output_path: Path to save extracted features. If specifying a file, the path
+            must have a `.csv` extension.
             - If None, features are not saved.
-            - If path has a file extension, features are saved to that file.
+            - If path has a CSV file extension, features are saved to that file.
             - If path is a directory, features are saved to a CSV file with a custom
               name and timestamp.
         feature_categories: List of feature categories to extract. Defaults to all
@@ -352,15 +353,15 @@ def run_pipeline(
             f"Batch processing complete, successfully processed {len(features)} files"
         )
 
-    df = pd.DataFrame(features)
-    df = df.set_index("source_file")
+    features_df = pd.DataFrame(features)
+    features_df = features_df.set_index("source_file")
 
     if output_path:
-        export_features_to_csv(df, output_path)
+        export_features_to_csv(features_df, output_path)
 
     logger.info(
         "Graphomotor pipeline completed successfully in "
         f"{time.time() - start_time:.2f} seconds"
     )
 
-    return df
+    return features_df
