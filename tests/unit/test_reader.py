@@ -27,7 +27,7 @@ def test_parse_filename_valid(sample_data: pathlib.Path) -> None:
     "invalid_filename",
     [
         "asdf123-spiral_trace1_Dom.csv",  # missing ID
-        "[5123456]-spiral_trace1_Dom.csv",  # missing mindloggerID
+        "[5123456]-spiral_trace1_Dom.csv",  # missing Curious ID
         "[5123456]asdf123-Dom.csv",  # missing task
         "[5123456]asdf123-spiral_trace1.csv",  # missing hand
     ],
@@ -65,6 +65,7 @@ def test_load_spiral(sample_data: pathlib.Path) -> None:
     assert isinstance(spiral, models.Spiral)
     assert "epoch_time_in_seconds_start" not in spiral.data.columns
     assert "start_time" in spiral.metadata
+    assert "source_path" in spiral.metadata
 
 
 def test_load_spiral_invalid_extension(sample_data: pathlib.Path) -> None:

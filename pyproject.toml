@@ -13,7 +13,8 @@ dependencies = [
   "pandas>=2.2.3",
   "pydantic>=2.11.1",
   "scipy>=1.15.2",
-  "shapely>=2.1.0"
+  "shapely>=2.1.0",
+  "tqdm>=4.66.0"
 ]
 
 [dependency-groups]
