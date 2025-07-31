@@ -74,9 +74,10 @@ graphomotor    </h1>
 
 <p>Welcome to <code><a href="">graphomotor</a></code>, a specialized Python library for analyzing graphomotor data collected via <a href="https://www.gettingcurious.com/">Curious</a>. This toolkit aims to provide comprehensive tools for processing, analyzing, and visualizing data from various graphomotor assessment tasks, including spiral drawing, trails making, alphabetic writing, digit symbol substitution, and the Rey-Osterrieth Complex Figure Test.</p>
 
-<blockquote>
-  <p>⚠️ <strong>This package is under active development.</strong> Currently, the focus is on the spiral drawing task. After finalizing feature extraction, the next steps will involve implementing both preprocessing and visualization for this task. Once these parts are in place, we plan to extend support to other tasks.</p>
-</blockquote>
+<div class="alert important">
+<em>Important</em>
+<p>This package is under active development. Currently, the focus is on the spiral drawing task. After finalizing feature extraction, the next steps will involve implementing both preprocessing and visualization for this task. Once these parts are in place, we plan to extend support to other tasks.</p>
+</div>
 
 <h2 id="feature-extraction-capabilities">Feature Extraction Capabilities</h2>
 
@@ -107,9 +108,10 @@ graphomotor    </h1>
 
 <h2 id="quick-start">Quick Start</h2>
 
-<blockquote>
-  <p>⚠️ This library <strong>requires input data to adhere to a specific format</strong> matching the standard output from <a href="https://mindlogger.atlassian.net/servicedesk/customer/portal/3/article/859242501">Curious drawing responses</a>. See more details in the <a href="#data-format-requirements">Data Format Requirements</a> section below.</p>
-</blockquote>
+<div class="alert caution">
+<em>Caution</em>
+<p>This library requires input data to adhere to a specific format matching the standard output from <a href="https://mindlogger.atlassian.net/servicedesk/customer/portal/3/article/859242501">Curious drawing responses</a>. See more details in the <a href="#data-format-requirements">Data Format Requirements</a> section below.</p>
+</div>
 
 <h3 id="extracting-features-from-spiral-drawing-data">Extracting Features from Spiral Drawing Data</h3>
 
@@ -210,7 +212,10 @@ graphomotor    </h1>
 </code></pre>
 </div>
 
+<div class="alert note">
+<em>Note</em>
 <p>Currently, <code><a href="">graphomotor</a></code> is available as an importable Python library. CLI functionality is planned for future releases.</p>
+</div>
 
 <p>For detailed configuration options and additional parameters, refer to the <a href="https://childmindresearch.github.io/graphomotor/graphomotor/core/orchestrator.html#run_pipeline"><code>run_pipeline</code> documentation</a>.</p>
 
