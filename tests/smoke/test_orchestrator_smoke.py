@@ -20,6 +20,7 @@ def test_orchestrator_happy_path(
         output_path=output_path,
         feature_categories=["duration", "velocity", "hausdorff", "AUC"],
         config_params={"center_x": 0, "center_y": 0},
+        verbosity=2,
     )
 
     assert "Custom spiral configuration" in caplog.text
