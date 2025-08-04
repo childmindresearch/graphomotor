@@ -1,6 +1,7 @@
 """Test cases for cli.py functions."""
 
 import pathlib
+import re
 
 import pytest
 import typer
@@ -142,14 +143,17 @@ def test_cli_other_options_ignored_with_version_flag(
 def test_cli_help_flag(runner: testing.CliRunner) -> None:
     """Test --help flag displays expected information."""
     result = runner.invoke(cli.app, ["--help"])
+    clean_stdout = re.sub(r"\x1b\[[0-9;]*m", "", result.stdout)
+    clean_stdout = "".join(char for char in clean_stdout if char not in set("╰─╯╭╮│"))
+    clean_stdout = " ".join(clean_stdout.split())
 
     assert result.exit_code == 0
-    assert "Usage:" in result.stdout
-    assert "Graphomotor: A Python toolkit" in result.stdout
-    assert "--features" in result.stdout
-    assert "duration, velocity, hausdorff, AUC" in result.stdout
-    assert "--center-x" in result.stdout
-    assert "--growth-rate" in result.stdout
+    assert "Usage:" in clean_stdout
+    assert "Graphomotor: A Python toolkit" in clean_stdout
+    assert "--features" in clean_stdout
+    assert "duration, velocity, hausdorff, AUC" in clean_stdout
+    assert "--center-x" in clean_stdout
+    assert "--growth-rate" in clean_stdout
 
 
 def test_cli_missing_arguments(runner: testing.CliRunner) -> None:
@@ -248,7 +252,8 @@ def test_cli_invalid_option_types(
         cli.app,
         [str(sample_data), str(output_file), option, invalid_value],
     )
-    clean_stderr = "".join(char for char in result.stderr if char not in set("╰─╯╭╮│"))
+    clean_stderr = re.sub(r"\x1b\[[0-9;]*m", "", result.stderr)
+    clean_stderr = "".join(char for char in clean_stderr if char not in set("╰─╯╭╮│"))
     clean_stderr = " ".join(clean_stderr.split())
 
     assert result.exit_code != 0
