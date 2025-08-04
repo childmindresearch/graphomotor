@@ -18,11 +18,12 @@ def test_orchestrator_happy_path(
     features = orchestrator.run_pipeline(
         input_path=sample_data,
         output_path=output_path,
-        feature_categories=["duration", "velocity", "hausdorff", "AUC"],
+        feature_categories=None,
         config_params={"center_x": 0, "center_y": 0},
         verbosity=2,
     )
 
+    assert "Using default feature categories" in caplog.text
     assert "Custom spiral configuration" in caplog.text
     assert "Graphomotor pipeline completed successfully" in caplog.text
     assert "ERROR" not in caplog.text

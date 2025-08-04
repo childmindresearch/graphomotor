@@ -167,11 +167,11 @@ Spiral data CSV files must contain the following columns:
 line_number, x, y, UTC_Timestamp, seconds, epoch_time_in_seconds_start
 ```
 
-This format represents the standard output from [Curious drawing responses data dictionary](https://mindlogger.atlassian.net/servicedesk/customer/portal/3/article/596082739).
+These columns constitute the standard output from [Curious drawing responses data dictionary](https://mindlogger.atlassian.net/servicedesk/customer/portal/3/article/596082739).
 
 ## Future Directions
 
-The Graphomotor Study Toolkit is under active development. For more detailed information about upcoming features and development plans, please refer to our [GitHub Issues](https://github.com/childmindresearch/graphomotor/issues) page.
+The `graphomotor` is under active development. For more detailed information about upcoming features and development plans, please refer to our [GitHub Issues](https://github.com/childmindresearch/graphomotor/issues) page.
 
 ## Contributing
 

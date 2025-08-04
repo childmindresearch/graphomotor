@@ -168,7 +168,6 @@ def _run_file(
     Returns:
         Dictionary containing the extracted features with metadata.
     """
-    logger.debug(f"Processing file: {input_path}")
     spiral = reader.load_spiral(input_path)
     centered_spiral = center_spiral.center_spiral(spiral)
     reference_spiral = generate_reference_spiral.generate_reference_spiral(
@@ -200,8 +199,6 @@ def _run_directory(
     Raises:
         ValueError: If no CSV files are found in the directory.
     """
-    logger.debug(f"Processing directory: {input_path}")
-
     csv_files = list(input_path.rglob("*.csv"))
 
     if not csv_files:

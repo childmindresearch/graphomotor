@@ -8,16 +8,7 @@ import typer
 from graphomotor.core import config, orchestrator
 
 logger = config.get_logger()
-app = typer.Typer(
-    name="graphomotor",
-    help=(
-        "Graphomotor: A Python toolkit for analyzing graphomotor data "
-        "collected via Curious."
-    ),
-    epilog=(
-        "Please report issues at https://github.com/ChildMindInstitute/graphomotor/issues"
-    ),
-)
+app = typer.Typer()
 
 
 def version_callback(version: bool) -> None:
@@ -27,7 +18,18 @@ def version_callback(version: bool) -> None:
         raise typer.Exit()
 
 
-@app.command()
+@app.command(
+    name="graphomotor",
+    help=(
+        "Graphomotor: A Python toolkit for analyzing graphomotor data "
+        "collected via Curious. See the README for usage details."
+    ),
+    epilog=(
+        "Please report issues at "
+        "https://github.com/ChildMindInstitute/graphomotor/issues"
+    ),
+    no_args_is_help=True,
+)
 def main(
     input_path: typing.Annotated[
         pathlib.Path,
@@ -147,7 +149,7 @@ def main(
         ),
     ] = False,
 ) -> None:
-    """Extract features from spiral drawing data. See README for details."""
+    """Extract features from spiral drawing data."""
     if verbosity > 0:
         config.set_verbosity_level(verbosity)
 
@@ -173,9 +175,8 @@ def main(
             config_params=config_params,
         )
     except Exception as e:
-        logger.error(f"Pipeline failed: {str(e)}")
-        typer.echo(f"Error: {str(e)}", err=True)
-        raise typer.Exit(1)
+        typer.secho(f"Error: {e}", fg="red", err=True)
+        raise
 
 
 if __name__ == "__main__":
