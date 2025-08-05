@@ -16,6 +16,13 @@ def runner() -> testing.CliRunner:
     return testing.CliRunner()
 
 
+def _clean_output(output: str) -> str:
+    """Clean the output string by removing ANSI escape sequences and box characters."""
+    clean_output = re.sub(r"\x1b\[[0-9;]*m", "", output)
+    clean_output = "".join(char for char in clean_output if char not in set("╰─╯╭╮│"))
+    return " ".join(clean_output.split())
+
+
 def test_version_callback_displays_version() -> None:
     """Test that version callback displays version and exits."""
     with pytest.raises(typer.Exit):
@@ -76,6 +83,7 @@ def test_cli_with_directory_input(
     runner: testing.CliRunner,
     sample_data: pathlib.Path,
     tmp_path: pathlib.Path,
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test CLI with directory path containing CSV files."""
     output_file = tmp_path / "batch_output.csv"
@@ -86,11 +94,13 @@ def test_cli_with_directory_input(
         [str(input_dir), str(output_file)],
     )
     content = output_file.read_text()
+    warning_records = [r for r in caplog.records if r.levelname == "WARNING"]
 
     assert result.exit_code == 0
     assert output_file.exists()
     assert "5000000" in content
     assert "5123456" in content
+    assert len(warning_records) == 0
 
 
 @pytest.mark.parametrize(
@@ -118,6 +128,26 @@ def test_cli_with_verbosity(
     assert expected_log_level == caplog.get_records("call")[0].levelname
 
 
+def test_cli_verbosity_invalid_level(
+    runner: testing.CliRunner,
+    sample_data: pathlib.Path,
+    tmp_path: pathlib.Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test CLI with invalid verbosity level."""
+    output_file = tmp_path / "edge_case_output.csv"
+    verbosity_args = ["-" + "v" * 3]
+    result = runner.invoke(
+        cli.app,
+        [str(sample_data), str(output_file)] + verbosity_args,
+    )
+
+    assert result.exit_code == 0
+    assert output_file.exists()
+
+    assert "Invalid verbosity level" in caplog.text
+
+
 @pytest.mark.parametrize("flag", ["--version", "-V"])
 def test_cli_version_flags(runner: testing.CliRunner, flag: str) -> None:
     """Test that both --version and -V flags display version information."""
@@ -143,9 +173,7 @@ def test_cli_other_options_ignored_with_version_flag(
 def test_cli_help_flag(runner: testing.CliRunner) -> None:
     """Test --help flag displays expected information."""
     result = runner.invoke(cli.app, ["--help"])
-    clean_stdout = re.sub(r"\x1b\[[0-9;]*m", "", result.stdout)
-    clean_stdout = "".join(char for char in clean_stdout if char not in set("╰─╯╭╮│"))
-    clean_stdout = " ".join(clean_stdout.split())
+    clean_stdout = _clean_output(result.stdout)
 
     assert result.exit_code == 0
     assert "Usage:" in clean_stdout
@@ -252,9 +280,8 @@ def test_cli_invalid_option_types(
         cli.app,
         [str(sample_data), str(output_file), option, invalid_value],
     )
-    clean_stderr = re.sub(r"\x1b\[[0-9;]*m", "", result.stderr)
-    clean_stderr = "".join(char for char in clean_stderr if char not in set("╰─╯╭╮│"))
-    clean_stderr = " ".join(clean_stderr.split())
 
     assert result.exit_code != 0
-    assert f"'{invalid_value}' is not a valid {expected_type}" in clean_stderr
+    assert f"'{invalid_value}' is not a valid {expected_type}" in _clean_output(
+        result.stderr
+    )
