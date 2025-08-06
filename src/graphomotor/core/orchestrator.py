@@ -1,5 +1,6 @@
 """Runner for the Graphomotor pipeline."""
 
+import dataclasses
 import datetime
 import pathlib
 import time
@@ -16,6 +17,15 @@ from graphomotor.utils import center_spiral, generate_reference_spiral
 logger = config.get_logger()
 
 FeatureCategories = typing.Literal["duration", "velocity", "hausdorff", "AUC"]
+ConfigParams = typing.Literal[
+    "center_x",
+    "center_y",
+    "start_radius",
+    "growth_rate",
+    "start_angle",
+    "end_angle",
+    "num_points",
+]
 
 
 def _validate_feature_categories(
@@ -56,7 +66,7 @@ def _validate_feature_categories(
 
 def extract_features(
     spiral: models.Spiral,
-    feature_categories: list[FeatureCategories],
+    feature_categories: list[str],
     reference_spiral: np.ndarray,
 ) -> dict[str, str]:
     """Extract feature categories from spiral drawing data.
@@ -67,28 +77,22 @@ def extract_features(
 
     Args:
         spiral: Spiral object containing drawing data and metadata.
-        feature_categories: List of feature categories to extract. Valid options are:
-            - "duration": Extract task duration.
-            - "velocity": Extract velocity-based metrics.
-            - "hausdorff": Extract Hausdorff distance metrics.
-            - "AUC": Extract area under the curve metric.
+        feature_categories: List of feature categories to extract.
         reference_spiral: Reference spiral for comparison.
 
     Returns:
         Dictionary containing the extracted features with metadata.
     """
-    valid_categories = sorted(_validate_feature_categories(feature_categories))
-
     feature_extractors = models.FeatureCategories.get_extractors(
         spiral, reference_spiral
     )
 
     features: dict[str, float] = {}
-    for category in valid_categories:
+    for category in feature_categories:
         logger.debug(f"Extracting {category} features")
         category_features = feature_extractors[category]()
         features.update(category_features)
-        logger.debug(f"{category.capitalize()} features extracted")
+        logger.debug(f"{category} features extracted")
 
     formatted_features = {k: f"{v:.15f}" for k, v in features.items()}
 
@@ -144,14 +148,14 @@ def export_features_to_csv(
 
     try:
         features_df.to_csv(output_file)
-        logger.debug(f"Features saved successfully to {output_file}")
+        logger.info(f"Features saved successfully to {output_file}")
     except Exception as e:
         logger.warning(f"Failed to save features to {output_file}: {str(e)}")
 
 
 def _run_file(
     input_path: pathlib.Path,
-    feature_categories: list[FeatureCategories],
+    feature_categories: list[str],
     spiral_config: config.SpiralConfig,
 ) -> dict[str, str]:
     """Process a single file for feature extraction.
@@ -164,7 +168,6 @@ def _run_file(
     Returns:
         Dictionary containing the extracted features with metadata.
     """
-    logger.debug(f"Processing file: {input_path}")
     spiral = reader.load_spiral(input_path)
     centered_spiral = center_spiral.center_spiral(spiral)
     reference_spiral = generate_reference_spiral.generate_reference_spiral(
@@ -179,7 +182,7 @@ def _run_file(
 
 def _run_directory(
     input_path: pathlib.Path,
-    feature_categories: list[FeatureCategories],
+    feature_categories: list[str],
     spiral_config: config.SpiralConfig,
 ) -> list[dict[str, str]]:
     """Process all CSV files in a directory and its subdirectories.
@@ -196,8 +199,6 @@ def _run_directory(
     Raises:
         ValueError: If no CSV files are found in the directory.
     """
-    logger.debug(f"Processing directory: {input_path}")
-
     csv_files = list(input_path.rglob("*.csv"))
 
     if not csv_files:
@@ -246,25 +247,9 @@ def _run_directory(
 def run_pipeline(
     input_path: pathlib.Path | str,
     output_path: pathlib.Path | str | None = None,
-    feature_categories: list[FeatureCategories] = [
-        "duration",
-        "velocity",
-        "hausdorff",
-        "AUC",
-    ],
-    config_params: dict[
-        typing.Literal[
-            "center_x",
-            "center_y",
-            "start_radius",
-            "growth_rate",
-            "start_angle",
-            "end_angle",
-            "num_points",
-        ],
-        float | int,
-    ]
-    | None = None,
+    feature_categories: list[FeatureCategories] | None = None,
+    config_params: dict[ConfigParams, float | int] | None = None,
+    verbosity: int | None = None,
 ) -> pd.DataFrame:
     """Run the Graphomotor pipeline to extract features from spiral drawing data.
 
@@ -279,8 +264,8 @@ def run_pipeline(
             - If path has a CSV file extension, features are saved to that file.
             - If path is a directory, features are saved to a CSV file with a custom
               name and timestamp.
-        feature_categories: List of feature categories to extract. Defaults to all
-            available:
+        feature_categories: List of feature categories to extract. If None, defaults to
+            all available categories. Supported categories are:
             - "duration": Task duration.
             - "velocity": Velocity-based metrics.
             - "hausdorff": Hausdorff distance metrics.
@@ -295,6 +280,10 @@ def run_pipeline(
             - "start_angle" (float): Starting angle of the spiral. Default is 0.
             - "end_angle" (float): Ending angle of the spiral. Default is 8π.
             - "num_points" (int): Number of points in the spiral. Default is 10000.
+        verbosity: Logging verbosity level. If None, uses current logger level.
+            - 0: WARNING level (quiet - only warnings and errors)
+            - 1: INFO level (normal - includes info messages)
+            - 2: DEBUG level (verbose - includes debug messages)
 
     Returns:
         DataFrame containing the metadata and extracted features.
@@ -306,10 +295,10 @@ def run_pipeline(
     """
     start_time = time.time()
 
-    logger.info("Starting Graphomotor pipeline")
-    logger.info(f"Input path: {input_path}")
-    logger.info(f"Output path: {output_path}")
-    logger.info(f"Feature categories: {feature_categories}")
+    if verbosity:
+        config.set_verbosity_level(verbosity)
+
+    logger.debug("Starting Graphomotor pipeline")
 
     input_path = pathlib.Path(input_path)
 
@@ -321,6 +310,7 @@ def run_pipeline(
         )
         logger.error(error_msg)
         raise ValueError(error_msg)
+    logger.debug(f"Input path: {input_path}")
 
     if output_path:
         output_path = pathlib.Path(output_path)
@@ -330,26 +320,37 @@ def run_pipeline(
             )
             logger.error(error_msg)
             raise ValueError(error_msg)
+        logger.debug(f"Output path: {output_path}")
 
-    if config_params:
-        logger.info(f"Custom spiral configuration: {config_params}")
+    if feature_categories:
+        valid_categories = sorted(_validate_feature_categories(feature_categories))
+        logger.debug(f"Requested feature categories: {valid_categories}")
+    else:
+        valid_categories = [*models.FeatureCategories.all()]
+        logger.debug(f"Using default feature categories: {valid_categories}")
+
+    if config_params and config_params != dataclasses.asdict(config.SpiralConfig()):
+        logger.debug(f"Custom spiral configuration: {config_params}")
         spiral_config = config.SpiralConfig.add_custom_params(
             typing.cast(dict, config_params)
         )
     else:
         spiral_config = config.SpiralConfig()
+        logger.debug(
+            f"Using default spiral configuration: {dataclasses.asdict(spiral_config)}"
+        )
 
     if input_path.is_file():
-        logger.info("Processing single file")
-        features = [_run_file(input_path, feature_categories, spiral_config)]
-        logger.info(
+        logger.debug("Processing single file")
+        features = [_run_file(input_path, valid_categories, spiral_config)]
+        logger.debug(
             "Single file processing complete, "
             f"successfully extracted {len(features[0]) - 5} features"
         )
     else:
-        logger.info("Processing directory")
-        features = _run_directory(input_path, feature_categories, spiral_config)
-        logger.info(
+        logger.debug("Processing directory")
+        features = _run_directory(input_path, valid_categories, spiral_config)
+        logger.debug(
             f"Batch processing complete, successfully processed {len(features)} files"
         )
 

@@ -77,7 +77,7 @@ def test_validate_feature_categories_mixed(caplog: pytest.LogCaptureFixture) -> 
     ],
 )
 def test_extract_features_categories(
-    feature_categories: list[orchestrator.FeatureCategories],
+    feature_categories: list[str],
     expected_feature_number: int,
     valid_spiral: models.Spiral,
     ref_spiral: np.ndarray,
@@ -107,12 +107,7 @@ def test_extract_features_with_custom_spiral_config(
     spiral_config = config.SpiralConfig.add_custom_params(
         {"center_x": 0, "center_y": 0, "growth_rate": 0}
     )
-    feature_categories: list[orchestrator.FeatureCategories] = [
-        "duration",
-        "velocity",
-        "hausdorff",
-        "AUC",
-    ]
+    feature_categories = ["duration", "velocity", "hausdorff", "AUC"]
     reference_spiral = generate_reference_spiral.generate_reference_spiral(
         spiral_config=spiral_config
     )
@@ -262,7 +257,8 @@ def test_run_pipeline_directory_with_failed_files(
 
     feature_categories: list[orchestrator.FeatureCategories] = ["duration"]
 
-    result = orchestrator.run_pipeline(input_dir, None, feature_categories)
+    with caplog.at_level("DEBUG", logger="graphomotor"):
+        result = orchestrator.run_pipeline(input_dir, None, feature_categories)
 
     assert isinstance(result, pd.DataFrame)
     assert len(result) == 1

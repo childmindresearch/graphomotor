@@ -86,7 +86,7 @@ def test_spiral_config_add_custom_params_warnings(
 
 
 def test_get_logger(caplog: pytest.LogCaptureFixture) -> None:
-    """Test the graphomotor logger with level set to INFO (20)."""
+    """Test the graphomotor logger with level set to WARNING (30)."""
     if logging.getLogger("graphomotor").handlers:
         logging.getLogger("graphomotor").handlers.clear()
     logger = config.get_logger()
@@ -95,9 +95,9 @@ def test_get_logger(caplog: pytest.LogCaptureFixture) -> None:
     logger.info("Info message here.")
     logger.warning("Warning message here.")
 
-    assert logger.getEffectiveLevel() == logging.INFO
+    assert logger.getEffectiveLevel() == logging.WARNING
     assert "Debug message here" not in caplog.text
-    assert "Info message here." in caplog.text
+    assert "Info message here." not in caplog.text
     assert "Warning message here." in caplog.text
 
 

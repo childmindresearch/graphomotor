@@ -1,4 +1,4 @@
-# Graphomotor Study Toolkit
+# `graphomotor`
 
 A Python toolkit for analysis of graphomotor data collected via Curious.
 
@@ -14,7 +14,7 @@ A Python toolkit for analysis of graphomotor data collected via Curious.
 Welcome to `graphomotor`, a specialized Python library for analyzing graphomotor data collected via [Curious](https://www.gettingcurious.com/). This toolkit aims to provide comprehensive tools for processing, analyzing, and visualizing data from various graphomotor assessment tasks, including spiral drawing, trails making, alphabetic writing, digit symbol substitution, and the Rey-Osterrieth Complex Figure Test.
 
 > [!IMPORTANT]
-> This package is under active development. Currently, the focus is on the spiral drawing task. After finalizing feature extraction, the next steps will involve implementing both preprocessing and visualization for this task. Once these parts are in place, we plan to extend support to other tasks.
+> `graphomotor` is under active development. Currently, the focus is on the spiral drawing task. After finalizing feature extraction, the next steps will involve implementing both preprocessing and visualization for this task. Once these parts are in place, we plan to extend support to other tasks.
 
 ## Feature Extraction Capabilities
 
@@ -27,7 +27,7 @@ The toolkit extracts clinically relevant metrics from digitized drawing data. Cu
 
 ## Installation
 
-Install the graphomotor package from PyPI:
+Install `graphomotor` from PyPI:
 
 ```sh
 pip install graphomotor
@@ -41,107 +41,83 @@ pip install git+https://github.com/childmindresearch/graphomotor
 
 ## Quick Start
 
+`graphomotor` is available both as a **command-line interface** and as an importable **Python library** for easy integration into analysis workflows.
+
 > [!CAUTION]
-> This library requires input data to adhere to a specific format matching the standard output from [Curious drawing responses](https://mindlogger.atlassian.net/servicedesk/customer/portal/3/article/859242501). See more details in the [Data Format Requirements](#data-format-requirements) section below.
+> Input data must follow the [Curious drawing responses format](https://mindlogger.atlassian.net/servicedesk/customer/portal/3/article/859242501). See [Data Format Requirements](#data-format-requirements) below.
 
-### Extracting Features from Spiral Drawing Data
+### Command-Line Interface
 
-#### Single File Processing
+**Run a single file:**
+
+```bash
+graphomotor /path/to/data.csv /path/to/output/features.csv
+```
+
+**Run entire directories:**
+
+```bash
+graphomotor /path/to/data_directory/ /path/to/output/features.csv
+```
+
+**For a full list of arguments and options, run:**
+
+```bash
+graphomotor --help
+```
+
+### Python Library
+
+**Run a single file:**
 
 ```python
 from graphomotor.core import orchestrator
 
-# Path to your spiral drawing data file
-input_file = "path/to/your/spiral_data.csv"
+# Define input path
+input_path = "path/to/data.csv"
 
-# Option 1: Process file without saving any CSV file
-# Only return the DataFrame with extracted features
-features_df = orchestrator.run_pipeline(
-    input_path=input_file
-)
+# Define output path to save results to disk
+# If output path is a directory, file name will be auto-generated as
+# `{participant_id}_{task}_{hand}_features_{YYYYMMDD_HHMM}.csv`
+output_path = "path/to/output/features.csv"
 
-# Features are returned as a pandas DataFrame with source file as index
-print(f"Extracted features: {list(features_df.columns)}")
-
-# Access the single file's data (features_df has one row)
-file_path = features_df.index[0]
-print(f"File: {file_path}")
-print(f"Participant: {features_df.loc[file_path, 'participant_id']}")
-print(f"Task: {features_df.loc[file_path, 'task']}")
-print(f"Hand: {features_df.loc[file_path, 'hand']}")
-print(f"Duration: {features_df.loc[file_path, 'duration']}")
+# Run the pipeline
+results_df = orchestrator.run_pipeline(input_path=input_path, output_path=output_path)
 ```
 
-```python
-# Option 2: Save to a directory with auto-generated filename
-# Creates a CSV file with auto-generated name in the specified directory
-# Format: {participant_id}_{task}_{hand}_features_{YYYYMMDD_HHMM}.csv
-features_df = orchestrator.run_pipeline(
-    input_path=input_file,
-    output_path="path/to/output/directory"
-)
-```
-
-```python
-# Option 3: Save to a specific CSV file
-# Features will be saved to the specified file path
-features_df = orchestrator.run_pipeline(
-    input_path=input_file,
-    output_path="path/to/features.csv"
-)
-```
-
-#### Batch Processing
+**Run entire directories:**
 
 ```python
 from graphomotor.core import orchestrator
 
-# Path to directory containing multiple spiral drawing data files
-input_dir = "path/to/your/spiral_data_directory"
+# Define input directory
+input_dir = "path/to/data_directory/"
 
-# Option 1: Process files without saving any CSV files
-# Only return the DataFrame with extracted features
-features_df = orchestrator.run_pipeline(
-    input_path=input_dir,
-)
+# Define output path to save results to disk
+# If output path is a directory, file name will be auto-generated as
+# `batch_features_{YYYYMMDD_HHMM}.csv`
+output_dir = "path/to/output/"
 
-# Features are returned as a pandas DataFrame with source files as index
-# Columns include: participant_id, task, hand, start_time, and calculated features
-print(f"Successfully processed {len(features_df)} files")
-
-# Access metadata and features for a specific file
-for file_path in features_df.index:
-    print(f"File: {file_path}")
-    print(f"Participant: {features_df.loc[file_path, 'participant_id']}")
-    print(f"Task: {features_df.loc[file_path, 'task']}")
-    print(f"Hand: {features_df.loc[file_path, 'hand']}")
-    print(f"Duration: {features_df.loc[file_path, 'duration']}")
-
+# Run the pipeline
+results_df = orchestrator.run_pipeline(input_path=input_dir, output_path=output_dir)
 ```
 
-```python
-# Option 2: Save to a directory with auto-generated filename
-# Creates a single consolidated CSV file with auto-generated name
-# Format: batch_features_{YYYYMMDD_HHMM}.csv
-features_df = orchestrator.run_pipeline(
-    input_path=input_dir,
-    output_path="path/to/output/directory"
-)
-```
+**Access results:**
 
 ```python
-# Option 3: Save to a specific CSV file (single consolidated file)
-# All features will be written to one specified file
-features_df = orchestrator.run_pipeline(
-    input_path=input_dir,
-    output_path="path/to/consolidated_features.csv"
-)
+# Pipeline returns a DataFrame with extracted metadata and features
+print(f"Processed {len(results_df)} files")
+print(f"Extracted metadata and features: {results_df.columns.tolist()}")
+
+# Get data for first file
+file_path = results_df.index[0]
+participant = results_df.loc[file_path, 'participant_id']
+task = results_df.loc[file_path, 'task']
+duration = results_df.loc[file_path, 'duration']
 ```
 
 > [!NOTE]
-> Currently, `graphomotor` is available as an importable Python library. CLI functionality is planned for future releases.
-
-For detailed configuration options and additional parameters, refer to the [`run_pipeline` documentation](https://childmindresearch.github.io/graphomotor/graphomotor/core/orchestrator.html#run_pipeline).
+> For detailed configuration options and additional parameters, refer to the [`run_pipeline` documentation](https://childmindresearch.github.io/graphomotor/graphomotor/core/orchestrator.html#run_pipeline).
 
 ## Development Progress
 
@@ -155,7 +131,7 @@ For detailed configuration options and additional parameters, refer to the [`run
 
 ## Data Format Requirements
 
-When exporting drawing data from Curious, you typically receive the following files:
+When exporting drawing data from Curious, the export typically includes the following files:
 
 - **report.csv**: Contains the participants' actual responses.
 - **activity_user_journey.csv**: Logs the entire journey through the activity, including button actions like "Next", "Skip", "Back", and "Undo", regardless of whether a response was provided.
@@ -167,7 +143,7 @@ For Spiral tasks, the toolkit uses only the CSV files from the drawing responses
 
 ### File Naming Convention
 
-Your spiral data files must follow this naming convention:
+Spiral data files must follow this naming convention:
 
 ```text
 [5123456]a7f3b2e9-d4c8-f1a6-e5b9-c2d7f8a3e6b4-spiral_trace1_Dom.csv
@@ -185,21 +161,21 @@ Where:
 
 ### Data Format
 
-Your spiral data CSV file must contain the following columns:
+Spiral data CSV files must contain the following columns:
 
 ```text
 line_number, x, y, UTC_Timestamp, seconds, epoch_time_in_seconds_start
 ```
 
-This format represents the standard output from [Curious drawing responses data dictionary](https://mindlogger.atlassian.net/servicedesk/customer/portal/3/article/596082739).
+These columns constitute the standard output from [Curious drawing responses data dictionary](https://mindlogger.atlassian.net/servicedesk/customer/portal/3/article/596082739).
 
 ## Future Directions
 
-The Graphomotor Study Toolkit is under active development. For more detailed information about upcoming features and development plans, please refer to our [GitHub Issues](https://github.com/childmindresearch/graphomotor/issues) page.
+The `graphomotor` is under active development. For more detailed information about upcoming features and development plans, please refer to our [GitHub Issues](https://github.com/childmindresearch/graphomotor/issues) page.
 
 ## Contributing
 
-We welcome contributions from the community! If you're interested in contributing, please review our [Contributing Guidelines](CONTRIBUTING.md) for information on how to get started, coding standards, and the pull request process.
+Contributions from the community are welcome! Please review the [Contributing Guidelines](CONTRIBUTING.md) for information on how to get started, coding standards, and the pull request process.
 
 ## References
 
