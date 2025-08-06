@@ -1,5 +1,6 @@
 """Command-line interface for the Graphomotor."""
 
+import enum
 import pathlib
 import typing
 
@@ -9,6 +10,15 @@ from graphomotor.core import config, orchestrator
 
 logger = config.get_logger()
 app = typer.Typer()
+
+
+class ValidFeatureCategories(str, enum.Enum):
+    """Valid feature categories for extraction."""
+
+    DURATION = "duration"
+    VELOCITY = "velocity"
+    HAUSDORFF = "hausdorff"
+    AUC = "AUC"
 
 
 def version_callback(version: bool) -> None:
@@ -50,14 +60,13 @@ def main(
         ),
     ],
     features: typing.Annotated[
-        typing.Optional[list[str]],
+        typing.Optional[list[ValidFeatureCategories]],
         typer.Option(
             "--features",
             "-f",
             help=(
                 "Feature categories to extract. Can be specified multiple times. "
-                "If omitted, all available features are extracted: "
-                "duration, velocity, hausdorff, AUC."
+                "If omitted, all available features are extracted."
             ),
         ),
     ] = None,

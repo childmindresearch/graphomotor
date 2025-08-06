@@ -179,7 +179,7 @@ def test_cli_help_flag(runner: testing.CliRunner) -> None:
     assert "Usage:" in clean_stdout
     assert "Graphomotor: A Python toolkit" in clean_stdout
     assert "--features" in clean_stdout
-    assert "duration, velocity, hausdorff, AUC" in clean_stdout
+    assert "duration|velocity" in clean_stdout
     assert "--center-x" in clean_stdout
     assert "--growth-rate" in clean_stdout
 
@@ -233,7 +233,10 @@ def test_cli_invalid_features(
     )
 
     assert result.exit_code != 0
-    assert "Error: No valid feature categories provided" in result.stderr
+    assert (
+        "'invalid_feature' is not one of 'duration', 'velocity', 'hausdorff', 'AUC'."
+        in _clean_output(result.stderr)
+    )
 
 
 def test_cli_invalid_output_extension(
