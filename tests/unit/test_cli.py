@@ -4,7 +4,6 @@ import pathlib
 import re
 
 import pytest
-import typer
 from typer import testing
 
 from graphomotor.core import cli
@@ -23,18 +22,27 @@ def _clean_output(output: str) -> str:
     return " ".join(clean_output.split())
 
 
-def test_version_callback_displays_version() -> None:
-    """Test that version callback displays version and exits."""
-    with pytest.raises(typer.Exit):
-        cli.version_callback(True)
+def test_cli_root_no_command(runner: testing.CliRunner) -> None:
+    """Test CLI root shows help when no command is provided."""
+    result = runner.invoke(cli.app, [])
+    assert result.exit_code == 0
+    assert "Usage:" in result.stdout
+    assert "Graphomotor: A Python toolkit" in result.stdout
+    assert "extract" in result.stdout
+    assert "--verbosity" in result.stdout
+    assert "--version" in result.stdout
 
 
-def test_version_callback_no_action_when_false() -> None:
-    """Test that version callback does nothing when False."""
-    cli.version_callback(False)
+@pytest.mark.parametrize("flag", ["--version", "-V"])
+def test_cli_version_flags(runner: testing.CliRunner, flag: str) -> None:
+    """Test that both --version and -V flags display version information."""
+    result = runner.invoke(cli.app, [flag])
+
+    assert result.exit_code == 0
+    assert "Graphomotor version:" in result.stdout
 
 
-def test_cli_with_single_input_all_parameters(
+def test_cli_extract_with_single_input_all_parameters(
     runner: testing.CliRunner,
     sample_data: pathlib.Path,
     tmp_path: pathlib.Path,
@@ -45,6 +53,8 @@ def test_cli_with_single_input_all_parameters(
     result = runner.invoke(
         cli.app,
         [
+            "-v",
+            "extract",
             str(sample_data),
             str(output_file),
             "--features",
@@ -65,7 +75,6 @@ def test_cli_with_single_input_all_parameters(
             "20.0",
             "--num-points",
             "5000",
-            "-v",
         ],
     )
     content = output_file.read_text()
@@ -79,7 +88,7 @@ def test_cli_with_single_input_all_parameters(
     assert "velocity" not in content
 
 
-def test_cli_with_directory_input(
+def test_cli_extract_with_directory_input(
     runner: testing.CliRunner,
     sample_data: pathlib.Path,
     tmp_path: pathlib.Path,
@@ -91,7 +100,7 @@ def test_cli_with_directory_input(
 
     result = runner.invoke(
         cli.app,
-        [str(input_dir), str(output_file)],
+        ["extract", str(input_dir), str(output_file)],
     )
     content = output_file.read_text()
     warning_records = [r for r in caplog.records if r.levelname == "WARNING"]
@@ -106,7 +115,7 @@ def test_cli_with_directory_input(
 @pytest.mark.parametrize(
     "verbosity_level, expected_log_level", [(1, "INFO"), (2, "DEBUG")]
 )
-def test_cli_with_verbosity(
+def test_cli_extract_with_verbosity(
     runner: testing.CliRunner,
     sample_data: pathlib.Path,
     tmp_path: pathlib.Path,
@@ -120,7 +129,7 @@ def test_cli_with_verbosity(
 
     result = runner.invoke(
         cli.app,
-        [str(sample_data), str(output_file)] + verbosity_args,
+        verbosity_args + ["extract", str(sample_data), str(output_file)],
     )
 
     assert result.exit_code == 0
@@ -128,7 +137,7 @@ def test_cli_with_verbosity(
     assert expected_log_level == caplog.get_records("call")[0].levelname
 
 
-def test_cli_verbosity_invalid_level(
+def test_cli_extract_verbosity_invalid_level(
     runner: testing.CliRunner,
     sample_data: pathlib.Path,
     tmp_path: pathlib.Path,
@@ -139,7 +148,7 @@ def test_cli_verbosity_invalid_level(
     verbosity_args = ["-" + "v" * 3]
     result = runner.invoke(
         cli.app,
-        [str(sample_data), str(output_file)] + verbosity_args,
+        verbosity_args + ["extract", str(sample_data), str(output_file)],
     )
 
     assert result.exit_code == 0
@@ -148,57 +157,39 @@ def test_cli_verbosity_invalid_level(
     assert "Invalid verbosity level" in caplog.text
 
 
-@pytest.mark.parametrize("flag", ["--version", "-V"])
-def test_cli_version_flags(runner: testing.CliRunner, flag: str) -> None:
-    """Test that both --version and -V flags display version information."""
-    result = runner.invoke(cli.app, [flag])
-
-    assert result.exit_code == 0
-    assert "Graphomotor version:" in result.stdout
-
-
-def test_cli_other_options_ignored_with_version_flag(
-    runner: testing.CliRunner, sample_data: pathlib.Path
-) -> None:
-    """Test --version flag ignores other options."""
-    result = runner.invoke(
-        cli.app, ["--version", str(sample_data), "--center-x", "100"]
-    )
-
-    assert result.exit_code == 0
-    assert "Graphomotor version:" in result.stdout
-    assert "--center-x" not in result.stdout
-
-
-def test_cli_help_flag(runner: testing.CliRunner) -> None:
+def test_cli_extract_help_flag(runner: testing.CliRunner) -> None:
     """Test --help flag displays expected information."""
-    result = runner.invoke(cli.app, ["--help"])
+    result = runner.invoke(cli.app, ["extract", "--help"])
     clean_stdout = _clean_output(result.stdout)
 
     assert result.exit_code == 0
     assert "Usage:" in clean_stdout
-    assert "Graphomotor: A Python toolkit" in clean_stdout
+    assert "Extract features from spiral drawing data" in clean_stdout
     assert "--features" in clean_stdout
     assert "duration|velocity" in clean_stdout
     assert "--center-x" in clean_stdout
     assert "--growth-rate" in clean_stdout
 
 
-def test_cli_missing_arguments(runner: testing.CliRunner) -> None:
+def test_cli_extract_missing_arguments(runner: testing.CliRunner) -> None:
     """Test CLI fails with missing required arguments."""
-    result = runner.invoke(cli.app, [])
+    result = runner.invoke(cli.app, ["extract"])
     assert result.exit_code != 0
+    assert "Missing argument" in result.stderr
+    assert "INPUT_PATH" in result.stderr
 
 
-def test_cli_missing_output_path(
+def test_cli_extract_missing_output_path(
     runner: testing.CliRunner, sample_data: pathlib.Path
 ) -> None:
     """Test CLI fails with missing output path."""
-    result = runner.invoke(cli.app, [str(sample_data)])
+    result = runner.invoke(cli.app, ["extract", str(sample_data)])
     assert result.exit_code != 0
+    assert "Missing argument" in result.stderr
+    assert "OUTPUT_PATH" in result.stderr
 
 
-def test_cli_nonexistent_input_path(
+def test_cli_extract_nonexistent_input_path(
     runner: testing.CliRunner, tmp_path: pathlib.Path
 ) -> None:
     """Test CLI handles nonexistent input path."""
@@ -207,14 +198,14 @@ def test_cli_nonexistent_input_path(
 
     result = runner.invoke(
         cli.app,
-        [str(nonexistent_path), str(output_file)],
+        ["extract", str(nonexistent_path), str(output_file)],
     )
 
     assert result.exit_code != 0
     assert "Error: Input path does not exist" in result.stderr
 
 
-def test_cli_invalid_features(
+def test_cli_extract_invalid_features(
     runner: testing.CliRunner,
     sample_data: pathlib.Path,
     tmp_path: pathlib.Path,
@@ -225,6 +216,7 @@ def test_cli_invalid_features(
     result = runner.invoke(
         cli.app,
         [
+            "extract",
             str(sample_data),
             str(output_file),
             "--features",
@@ -239,7 +231,7 @@ def test_cli_invalid_features(
     )
 
 
-def test_cli_invalid_output_extension(
+def test_cli_extract_invalid_output_extension(
     runner: testing.CliRunner,
     sample_data: pathlib.Path,
     tmp_path: pathlib.Path,
@@ -249,7 +241,7 @@ def test_cli_invalid_output_extension(
 
     result = runner.invoke(
         cli.app,
-        [str(sample_data), str(output_file)],
+        ["extract", str(sample_data), str(output_file)],
     )
 
     assert result.exit_code != 0
@@ -268,7 +260,7 @@ def test_cli_invalid_output_extension(
         ("--num-points", "?", "integer"),
     ],
 )
-def test_cli_invalid_option_types(
+def test_cli_extract_invalid_option_types(
     runner: testing.CliRunner,
     sample_data: pathlib.Path,
     tmp_path: pathlib.Path,
@@ -281,7 +273,7 @@ def test_cli_invalid_option_types(
 
     result = runner.invoke(
         cli.app,
-        [str(sample_data), str(output_file), option, invalid_value],
+        ["extract", str(sample_data), str(output_file), option, invalid_value],
     )
 
     assert result.exit_code != 0
