@@ -31,10 +31,16 @@
             <h2>API Documentation</h2>
                 <ul class="memberlist">
             <li>
+                    <a class="function" href="#get_version">get_version</a>
+            </li>
+            <li>
                     <a class="function" href="#get_logger">get_logger</a>
             </li>
             <li>
                     <a class="variable" href="#logger">logger</a>
+            </li>
+            <li>
+                    <a class="function" href="#set_verbosity_level">set_verbosity_level</a>
             </li>
             <li>
                     <a class="class" href="#SpiralConfig">SpiralConfig</a>
@@ -96,70 +102,126 @@
 </span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a>
 </span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">dataclasses</span>
 </span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a>
-</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>
+</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">typing</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">importlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">metadata</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a>
+</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 </span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a>
-</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a><span class="k">def</span><span class="w"> </span><span class="nf">get_logger</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="p">:</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the Graphomotor logger.&quot;&quot;&quot;</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;graphomotor&quot;</span><span class="p">)</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>    <span class="k">if</span> <span class="n">logger</span><span class="o">.</span><span class="n">handlers</span><span class="p">:</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>        <span class="k">return</span> <span class="n">logger</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>    <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>    <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>        <span class="s2">&quot;</span><span class="si">%(asctime)s</span><span class="s2"> - </span><span class="si">%(name)s</span><span class="s2"> - </span><span class="si">%(levelname)s</span><span class="s2"> - &quot;</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>        <span class="s2">&quot;</span><span class="si">%(filename)s</span><span class="s2">:</span><span class="si">%(lineno)s</span><span class="s2"> - </span><span class="si">%(funcName)s</span><span class="s2"> - </span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">,</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>    <span class="p">)</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>    <span class="n">handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>    <span class="n">handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>    <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>    <span class="k">return</span> <span class="n">logger</span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>
-</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>
-</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a><span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
-</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a>
-</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>
-</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a><span class="k">class</span><span class="w"> </span><span class="nc">SpiralConfig</span><span class="p">:</span>
-</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for the parameters of anticipated spiral drawing.&quot;&quot;&quot;</span>
-</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>
-</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a>    <span class="n">center_x</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">50</span>
-</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>    <span class="n">center_y</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">50</span>
-</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a>    <span class="n">start_radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a>    <span class="n">growth_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.075</span>
-</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>    <span class="n">start_angle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a>    <span class="n">end_angle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">8</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
-</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a>    <span class="n">num_points</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10000</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a>
+</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a><span class="k">def</span><span class="w"> </span><span class="nf">get_version</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return graphomotor version.&quot;&quot;&quot;</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>    <span class="k">try</span><span class="p">:</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>        <span class="k">return</span> <span class="n">metadata</span><span class="o">.</span><span class="n">version</span><span class="p">(</span><span class="s2">&quot;graphomotor&quot;</span><span class="p">)</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>    <span class="k">except</span> <span class="n">metadata</span><span class="o">.</span><span class="n">PackageNotFoundError</span><span class="p">:</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>        <span class="k">return</span> <span class="s2">&quot;Version unknown&quot;</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>
+</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>
+</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a><span class="k">def</span><span class="w"> </span><span class="nf">get_logger</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="p">:</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the Graphomotor logger.&quot;&quot;&quot;</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;graphomotor&quot;</span><span class="p">)</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>    <span class="k">if</span> <span class="n">logger</span><span class="o">.</span><span class="n">handlers</span><span class="p">:</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>        <span class="k">return</span> <span class="n">logger</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>    <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>    <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>        <span class="s2">&quot;</span><span class="si">%(asctime)s</span><span class="s2"> - </span><span class="si">%(name)s</span><span class="s2"> - </span><span class="si">%(levelname)s</span><span class="s2"> - &quot;</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a>        <span class="s2">&quot;</span><span class="si">%(filename)s</span><span class="s2">:</span><span class="si">%(lineno)s</span><span class="s2"> - </span><span class="si">%(funcName)s</span><span class="s2"> - </span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">,</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a>    <span class="p">)</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a>    <span class="n">handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>    <span class="n">handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a>    <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>    <span class="k">return</span> <span class="n">logger</span>
+</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a>
+</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>
+</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a><span class="n">logger</span> <span class="o">=</span> <span class="n">get_logger</span><span class="p">()</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a>
+</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>
+</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a><span class="k">def</span><span class="w"> </span><span class="nf">set_verbosity_level</span><span class="p">(</span><span class="n">verbosity_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Set the logging level based on verbosity count.</span>
 </span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a>
-</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>    <span class="nd">@classmethod</span>
-</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_custom_params</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;SpiralConfig&quot;</span><span class="p">:</span>
-</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the SpiralConfig instance with custom parameters.</span>
-</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a>
-</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a><span class="sd">        Args:</span>
-</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a><span class="sd">            config_dict: Dictionary with configuration parameters.</span>
-</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a>
-</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a><span class="sd">        Returns:</span>
-</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a><span class="sd">            SpiralConfig instance with updated parameters.</span>
-</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a>        <span class="n">valid_params</span> <span class="o">=</span> <span class="p">{</span><span class="n">f</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__dataclass_fields__</span><span class="o">.</span><span class="n">values</span><span class="p">()}</span>
-</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a>        <span class="n">filtered_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-</span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a>
-</span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a>        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-</span><span id="L-55"><a href="#L-55"><span class="linenos">55</span></a>            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">valid_params</span><span class="p">:</span>
-</span><span id="L-56"><a href="#L-56"><span class="linenos">56</span></a>                <span class="n">filtered_params</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-</span><span id="L-57"><a href="#L-57"><span class="linenos">57</span></a>            <span class="k">else</span><span class="p">:</span>
-</span><span id="L-58"><a href="#L-58"><span class="linenos">58</span></a>                <span class="n">valid_param_names</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">valid_params</span><span class="p">)</span>
-</span><span id="L-59"><a href="#L-59"><span class="linenos">59</span></a>                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-</span><span id="L-60"><a href="#L-60"><span class="linenos">60</span></a>                    <span class="sa">f</span><span class="s2">&quot;Unknown configuration parameters will be ignored: </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">. &quot;</span>
-</span><span id="L-61"><a href="#L-61"><span class="linenos">61</span></a>                    <span class="sa">f</span><span class="s2">&quot;Valid parameters are: </span><span class="si">{</span><span class="n">valid_param_names</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="L-62"><a href="#L-62"><span class="linenos">62</span></a>                <span class="p">)</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a><span class="sd">    Args:</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a><span class="sd">        verbosity_count: Number of times -v was specified.</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a><span class="sd">            - 0: WARNING level (quiet - only warnings and errors)</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a><span class="sd">            - 1: INFO level (normal - includes info messages)</span>
+</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a><span class="sd">            - 2: DEBUG level (verbose - includes debug messages)</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a>    <span class="k">if</span> <span class="n">verbosity_count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a>    <span class="k">elif</span> <span class="n">verbosity_count</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a>    <span class="k">elif</span> <span class="n">verbosity_count</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+</span><span id="L-55"><a href="#L-55"><span class="linenos">55</span></a>            <span class="sa">f</span><span class="s2">&quot;Invalid verbosity level </span><span class="si">{</span><span class="n">verbosity_count</span><span class="si">}</span><span class="s2">. Defaulting to WARNING level.&quot;</span>
+</span><span id="L-56"><a href="#L-56"><span class="linenos">56</span></a>        <span class="p">)</span>
+</span><span id="L-57"><a href="#L-57"><span class="linenos">57</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>
+</span><span id="L-58"><a href="#L-58"><span class="linenos">58</span></a>
+</span><span id="L-59"><a href="#L-59"><span class="linenos">59</span></a>
+</span><span id="L-60"><a href="#L-60"><span class="linenos">60</span></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="L-61"><a href="#L-61"><span class="linenos">61</span></a><span class="k">class</span><span class="w"> </span><span class="nc">SpiralConfig</span><span class="p">:</span>
+</span><span id="L-62"><a href="#L-62"><span class="linenos">62</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for the parameters of anticipated spiral drawing.&quot;&quot;&quot;</span>
 </span><span id="L-63"><a href="#L-63"><span class="linenos">63</span></a>
-</span><span id="L-64"><a href="#L-64"><span class="linenos">64</span></a>        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">filtered_params</span><span class="p">)</span>
+</span><span id="L-64"><a href="#L-64"><span class="linenos">64</span></a>    <span class="n">center_x</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">50</span>
+</span><span id="L-65"><a href="#L-65"><span class="linenos">65</span></a>    <span class="n">center_y</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">50</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos">66</span></a>    <span class="n">start_radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos">67</span></a>    <span class="n">growth_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.075</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos">68</span></a>    <span class="n">start_angle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos">69</span></a>    <span class="n">end_angle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">8</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+</span><span id="L-70"><a href="#L-70"><span class="linenos">70</span></a>    <span class="n">num_points</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10000</span>
+</span><span id="L-71"><a href="#L-71"><span class="linenos">71</span></a>
+</span><span id="L-72"><a href="#L-72"><span class="linenos">72</span></a>    <span class="nd">@classmethod</span>
+</span><span id="L-73"><a href="#L-73"><span class="linenos">73</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_custom_params</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;SpiralConfig&quot;</span><span class="p">:</span>
+</span><span id="L-74"><a href="#L-74"><span class="linenos">74</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the SpiralConfig instance with custom parameters.</span>
+</span><span id="L-75"><a href="#L-75"><span class="linenos">75</span></a>
+</span><span id="L-76"><a href="#L-76"><span class="linenos">76</span></a><span class="sd">        Args:</span>
+</span><span id="L-77"><a href="#L-77"><span class="linenos">77</span></a><span class="sd">            config_dict: Dictionary with configuration parameters.</span>
+</span><span id="L-78"><a href="#L-78"><span class="linenos">78</span></a>
+</span><span id="L-79"><a href="#L-79"><span class="linenos">79</span></a><span class="sd">        Returns:</span>
+</span><span id="L-80"><a href="#L-80"><span class="linenos">80</span></a><span class="sd">            SpiralConfig instance with updated parameters.</span>
+</span><span id="L-81"><a href="#L-81"><span class="linenos">81</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-82"><a href="#L-82"><span class="linenos">82</span></a>        <span class="n">valid_params</span> <span class="o">=</span> <span class="p">{</span><span class="n">f</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__dataclass_fields__</span><span class="o">.</span><span class="n">values</span><span class="p">()}</span>
+</span><span id="L-83"><a href="#L-83"><span class="linenos">83</span></a>        <span class="n">filtered_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span id="L-84"><a href="#L-84"><span class="linenos">84</span></a>
+</span><span id="L-85"><a href="#L-85"><span class="linenos">85</span></a>        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+</span><span id="L-86"><a href="#L-86"><span class="linenos">86</span></a>            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">valid_params</span><span class="p">:</span>
+</span><span id="L-87"><a href="#L-87"><span class="linenos">87</span></a>                <span class="n">filtered_params</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+</span><span id="L-88"><a href="#L-88"><span class="linenos">88</span></a>            <span class="k">else</span><span class="p">:</span>
+</span><span id="L-89"><a href="#L-89"><span class="linenos">89</span></a>                <span class="n">valid_param_names</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">valid_params</span><span class="p">)</span>
+</span><span id="L-90"><a href="#L-90"><span class="linenos">90</span></a>                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+</span><span id="L-91"><a href="#L-91"><span class="linenos">91</span></a>                    <span class="sa">f</span><span class="s2">&quot;Unknown configuration parameters will be ignored: </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">. &quot;</span>
+</span><span id="L-92"><a href="#L-92"><span class="linenos">92</span></a>                    <span class="sa">f</span><span class="s2">&quot;Valid parameters are: </span><span class="si">{</span><span class="n">valid_param_names</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="L-93"><a href="#L-93"><span class="linenos">93</span></a>                <span class="p">)</span>
+</span><span id="L-94"><a href="#L-94"><span class="linenos">94</span></a>
+</span><span id="L-95"><a href="#L-95"><span class="linenos">95</span></a>        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">filtered_params</span><span class="p">)</span>
 </span></pre></div>
 
 
             </section>
+                <section id="get_version">
+                            <input id="get_version-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">get_version</span><span class="signature pdoc-code condensed">(<span class="return-annotation">) -> <span class="nb">str</span>:</span></span>
+
+                <label class="view-source-button" for="get_version-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#get_version"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="get_version-12"><a href="#get_version-12"><span class="linenos">12</span></a><span class="k">def</span><span class="w"> </span><span class="nf">get_version</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="get_version-13"><a href="#get_version-13"><span class="linenos">13</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Return graphomotor version.&quot;&quot;&quot;</span>
+</span><span id="get_version-14"><a href="#get_version-14"><span class="linenos">14</span></a>    <span class="k">try</span><span class="p">:</span>
+</span><span id="get_version-15"><a href="#get_version-15"><span class="linenos">15</span></a>        <span class="k">return</span> <span class="n">metadata</span><span class="o">.</span><span class="n">version</span><span class="p">(</span><span class="s2">&quot;graphomotor&quot;</span><span class="p">)</span>
+</span><span id="get_version-16"><a href="#get_version-16"><span class="linenos">16</span></a>    <span class="k">except</span> <span class="n">metadata</span><span class="o">.</span><span class="n">PackageNotFoundError</span><span class="p">:</span>
+</span><span id="get_version-17"><a href="#get_version-17"><span class="linenos">17</span></a>        <span class="k">return</span> <span class="s2">&quot;Version unknown&quot;</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Return graphomotor version.</p>
+</div>
+
+
+                </section>
                 <section id="get_logger">
                             <input id="get_logger-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
@@ -171,20 +233,20 @@
 
     </div>
     <a class="headerlink" href="#get_logger"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="get_logger-11"><a href="#get_logger-11"><span class="linenos">11</span></a><span class="k">def</span><span class="w"> </span><span class="nf">get_logger</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="p">:</span>
-</span><span id="get_logger-12"><a href="#get_logger-12"><span class="linenos">12</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the Graphomotor logger.&quot;&quot;&quot;</span>
-</span><span id="get_logger-13"><a href="#get_logger-13"><span class="linenos">13</span></a>    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;graphomotor&quot;</span><span class="p">)</span>
-</span><span id="get_logger-14"><a href="#get_logger-14"><span class="linenos">14</span></a>    <span class="k">if</span> <span class="n">logger</span><span class="o">.</span><span class="n">handlers</span><span class="p">:</span>
-</span><span id="get_logger-15"><a href="#get_logger-15"><span class="linenos">15</span></a>        <span class="k">return</span> <span class="n">logger</span>
-</span><span id="get_logger-16"><a href="#get_logger-16"><span class="linenos">16</span></a>    <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
-</span><span id="get_logger-17"><a href="#get_logger-17"><span class="linenos">17</span></a>    <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span>
-</span><span id="get_logger-18"><a href="#get_logger-18"><span class="linenos">18</span></a>        <span class="s2">&quot;</span><span class="si">%(asctime)s</span><span class="s2"> - </span><span class="si">%(name)s</span><span class="s2"> - </span><span class="si">%(levelname)s</span><span class="s2"> - &quot;</span>
-</span><span id="get_logger-19"><a href="#get_logger-19"><span class="linenos">19</span></a>        <span class="s2">&quot;</span><span class="si">%(filename)s</span><span class="s2">:</span><span class="si">%(lineno)s</span><span class="s2"> - </span><span class="si">%(funcName)s</span><span class="s2"> - </span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">,</span>
-</span><span id="get_logger-20"><a href="#get_logger-20"><span class="linenos">20</span></a>    <span class="p">)</span>
-</span><span id="get_logger-21"><a href="#get_logger-21"><span class="linenos">21</span></a>    <span class="n">handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
-</span><span id="get_logger-22"><a href="#get_logger-22"><span class="linenos">22</span></a>    <span class="n">handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
-</span><span id="get_logger-23"><a href="#get_logger-23"><span class="linenos">23</span></a>    <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
-</span><span id="get_logger-24"><a href="#get_logger-24"><span class="linenos">24</span></a>    <span class="k">return</span> <span class="n">logger</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="get_logger-20"><a href="#get_logger-20"><span class="linenos">20</span></a><span class="k">def</span><span class="w"> </span><span class="nf">get_logger</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="p">:</span>
+</span><span id="get_logger-21"><a href="#get_logger-21"><span class="linenos">21</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the Graphomotor logger.&quot;&quot;&quot;</span>
+</span><span id="get_logger-22"><a href="#get_logger-22"><span class="linenos">22</span></a>    <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;graphomotor&quot;</span><span class="p">)</span>
+</span><span id="get_logger-23"><a href="#get_logger-23"><span class="linenos">23</span></a>    <span class="k">if</span> <span class="n">logger</span><span class="o">.</span><span class="n">handlers</span><span class="p">:</span>
+</span><span id="get_logger-24"><a href="#get_logger-24"><span class="linenos">24</span></a>        <span class="k">return</span> <span class="n">logger</span>
+</span><span id="get_logger-25"><a href="#get_logger-25"><span class="linenos">25</span></a>    <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>
+</span><span id="get_logger-26"><a href="#get_logger-26"><span class="linenos">26</span></a>    <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span>
+</span><span id="get_logger-27"><a href="#get_logger-27"><span class="linenos">27</span></a>        <span class="s2">&quot;</span><span class="si">%(asctime)s</span><span class="s2"> - </span><span class="si">%(name)s</span><span class="s2"> - </span><span class="si">%(levelname)s</span><span class="s2"> - &quot;</span>
+</span><span id="get_logger-28"><a href="#get_logger-28"><span class="linenos">28</span></a>        <span class="s2">&quot;</span><span class="si">%(filename)s</span><span class="s2">:</span><span class="si">%(lineno)s</span><span class="s2"> - </span><span class="si">%(funcName)s</span><span class="s2"> - </span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">,</span>
+</span><span id="get_logger-29"><a href="#get_logger-29"><span class="linenos">29</span></a>    <span class="p">)</span>
+</span><span id="get_logger-30"><a href="#get_logger-30"><span class="linenos">30</span></a>    <span class="n">handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
+</span><span id="get_logger-31"><a href="#get_logger-31"><span class="linenos">31</span></a>    <span class="n">handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
+</span><span id="get_logger-32"><a href="#get_logger-32"><span class="linenos">32</span></a>    <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">handler</span><span class="p">)</span>
+</span><span id="get_logger-33"><a href="#get_logger-33"><span class="linenos">33</span></a>    <span class="k">return</span> <span class="n">logger</span>
 </span></pre></div>
 
 
@@ -196,13 +258,63 @@
                 <section id="logger">
                     <div class="attr variable">
             <span class="name">logger</span>        =
-<span class="default_value">&lt;Logger graphomotor (INFO)&gt;</span>
+<span class="default_value">&lt;Logger graphomotor (WARNING)&gt;</span>
 
         
     </div>
     <a class="headerlink" href="#logger"></a>
     
     
+
+                </section>
+                <section id="set_verbosity_level">
+                            <input id="set_verbosity_level-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">set_verbosity_level</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">verbosity_count</span><span class="p">:</span> <span class="nb">int</span></span><span class="return-annotation">) -> <span class="kc">None</span>:</span></span>
+
+                <label class="view-source-button" for="set_verbosity_level-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#set_verbosity_level"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="set_verbosity_level-39"><a href="#set_verbosity_level-39"><span class="linenos">39</span></a><span class="k">def</span><span class="w"> </span><span class="nf">set_verbosity_level</span><span class="p">(</span><span class="n">verbosity_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="set_verbosity_level-40"><a href="#set_verbosity_level-40"><span class="linenos">40</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Set the logging level based on verbosity count.</span>
+</span><span id="set_verbosity_level-41"><a href="#set_verbosity_level-41"><span class="linenos">41</span></a>
+</span><span id="set_verbosity_level-42"><a href="#set_verbosity_level-42"><span class="linenos">42</span></a><span class="sd">    Args:</span>
+</span><span id="set_verbosity_level-43"><a href="#set_verbosity_level-43"><span class="linenos">43</span></a><span class="sd">        verbosity_count: Number of times -v was specified.</span>
+</span><span id="set_verbosity_level-44"><a href="#set_verbosity_level-44"><span class="linenos">44</span></a><span class="sd">            - 0: WARNING level (quiet - only warnings and errors)</span>
+</span><span id="set_verbosity_level-45"><a href="#set_verbosity_level-45"><span class="linenos">45</span></a><span class="sd">            - 1: INFO level (normal - includes info messages)</span>
+</span><span id="set_verbosity_level-46"><a href="#set_verbosity_level-46"><span class="linenos">46</span></a><span class="sd">            - 2: DEBUG level (verbose - includes debug messages)</span>
+</span><span id="set_verbosity_level-47"><a href="#set_verbosity_level-47"><span class="linenos">47</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="set_verbosity_level-48"><a href="#set_verbosity_level-48"><span class="linenos">48</span></a>    <span class="k">if</span> <span class="n">verbosity_count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+</span><span id="set_verbosity_level-49"><a href="#set_verbosity_level-49"><span class="linenos">49</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>
+</span><span id="set_verbosity_level-50"><a href="#set_verbosity_level-50"><span class="linenos">50</span></a>    <span class="k">elif</span> <span class="n">verbosity_count</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="set_verbosity_level-51"><a href="#set_verbosity_level-51"><span class="linenos">51</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+</span><span id="set_verbosity_level-52"><a href="#set_verbosity_level-52"><span class="linenos">52</span></a>    <span class="k">elif</span> <span class="n">verbosity_count</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+</span><span id="set_verbosity_level-53"><a href="#set_verbosity_level-53"><span class="linenos">53</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+</span><span id="set_verbosity_level-54"><a href="#set_verbosity_level-54"><span class="linenos">54</span></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="set_verbosity_level-55"><a href="#set_verbosity_level-55"><span class="linenos">55</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+</span><span id="set_verbosity_level-56"><a href="#set_verbosity_level-56"><span class="linenos">56</span></a>            <span class="sa">f</span><span class="s2">&quot;Invalid verbosity level </span><span class="si">{</span><span class="n">verbosity_count</span><span class="si">}</span><span class="s2">. Defaulting to WARNING level.&quot;</span>
+</span><span id="set_verbosity_level-57"><a href="#set_verbosity_level-57"><span class="linenos">57</span></a>        <span class="p">)</span>
+</span><span id="set_verbosity_level-58"><a href="#set_verbosity_level-58"><span class="linenos">58</span></a>        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">WARNING</span><span class="p">)</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Set the logging level based on verbosity count.</p>
+
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>verbosity_count:</strong>  Number of times -v was specified.
+<ul>
+<li>0: WARNING level (quiet - only warnings and errors)</li>
+<li>1: INFO level (normal - includes info messages)</li>
+<li>2: DEBUG level (verbose - includes debug messages)</li>
+</ul></li>
+</ul>
+</div>
+
 
                 </section>
                 <section id="SpiralConfig">
@@ -217,42 +329,42 @@
 
     </div>
     <a class="headerlink" href="#SpiralConfig"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="SpiralConfig-30"><a href="#SpiralConfig-30"><span class="linenos">30</span></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</span><span id="SpiralConfig-31"><a href="#SpiralConfig-31"><span class="linenos">31</span></a><span class="k">class</span><span class="w"> </span><span class="nc">SpiralConfig</span><span class="p">:</span>
-</span><span id="SpiralConfig-32"><a href="#SpiralConfig-32"><span class="linenos">32</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for the parameters of anticipated spiral drawing.&quot;&quot;&quot;</span>
-</span><span id="SpiralConfig-33"><a href="#SpiralConfig-33"><span class="linenos">33</span></a>
-</span><span id="SpiralConfig-34"><a href="#SpiralConfig-34"><span class="linenos">34</span></a>    <span class="n">center_x</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">50</span>
-</span><span id="SpiralConfig-35"><a href="#SpiralConfig-35"><span class="linenos">35</span></a>    <span class="n">center_y</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">50</span>
-</span><span id="SpiralConfig-36"><a href="#SpiralConfig-36"><span class="linenos">36</span></a>    <span class="n">start_radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="SpiralConfig-37"><a href="#SpiralConfig-37"><span class="linenos">37</span></a>    <span class="n">growth_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.075</span>
-</span><span id="SpiralConfig-38"><a href="#SpiralConfig-38"><span class="linenos">38</span></a>    <span class="n">start_angle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="SpiralConfig-39"><a href="#SpiralConfig-39"><span class="linenos">39</span></a>    <span class="n">end_angle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">8</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
-</span><span id="SpiralConfig-40"><a href="#SpiralConfig-40"><span class="linenos">40</span></a>    <span class="n">num_points</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10000</span>
-</span><span id="SpiralConfig-41"><a href="#SpiralConfig-41"><span class="linenos">41</span></a>
-</span><span id="SpiralConfig-42"><a href="#SpiralConfig-42"><span class="linenos">42</span></a>    <span class="nd">@classmethod</span>
-</span><span id="SpiralConfig-43"><a href="#SpiralConfig-43"><span class="linenos">43</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_custom_params</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;SpiralConfig&quot;</span><span class="p">:</span>
-</span><span id="SpiralConfig-44"><a href="#SpiralConfig-44"><span class="linenos">44</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the SpiralConfig instance with custom parameters.</span>
-</span><span id="SpiralConfig-45"><a href="#SpiralConfig-45"><span class="linenos">45</span></a>
-</span><span id="SpiralConfig-46"><a href="#SpiralConfig-46"><span class="linenos">46</span></a><span class="sd">        Args:</span>
-</span><span id="SpiralConfig-47"><a href="#SpiralConfig-47"><span class="linenos">47</span></a><span class="sd">            config_dict: Dictionary with configuration parameters.</span>
-</span><span id="SpiralConfig-48"><a href="#SpiralConfig-48"><span class="linenos">48</span></a>
-</span><span id="SpiralConfig-49"><a href="#SpiralConfig-49"><span class="linenos">49</span></a><span class="sd">        Returns:</span>
-</span><span id="SpiralConfig-50"><a href="#SpiralConfig-50"><span class="linenos">50</span></a><span class="sd">            SpiralConfig instance with updated parameters.</span>
-</span><span id="SpiralConfig-51"><a href="#SpiralConfig-51"><span class="linenos">51</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="SpiralConfig-52"><a href="#SpiralConfig-52"><span class="linenos">52</span></a>        <span class="n">valid_params</span> <span class="o">=</span> <span class="p">{</span><span class="n">f</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__dataclass_fields__</span><span class="o">.</span><span class="n">values</span><span class="p">()}</span>
-</span><span id="SpiralConfig-53"><a href="#SpiralConfig-53"><span class="linenos">53</span></a>        <span class="n">filtered_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-</span><span id="SpiralConfig-54"><a href="#SpiralConfig-54"><span class="linenos">54</span></a>
-</span><span id="SpiralConfig-55"><a href="#SpiralConfig-55"><span class="linenos">55</span></a>        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-</span><span id="SpiralConfig-56"><a href="#SpiralConfig-56"><span class="linenos">56</span></a>            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">valid_params</span><span class="p">:</span>
-</span><span id="SpiralConfig-57"><a href="#SpiralConfig-57"><span class="linenos">57</span></a>                <span class="n">filtered_params</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-</span><span id="SpiralConfig-58"><a href="#SpiralConfig-58"><span class="linenos">58</span></a>            <span class="k">else</span><span class="p">:</span>
-</span><span id="SpiralConfig-59"><a href="#SpiralConfig-59"><span class="linenos">59</span></a>                <span class="n">valid_param_names</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">valid_params</span><span class="p">)</span>
-</span><span id="SpiralConfig-60"><a href="#SpiralConfig-60"><span class="linenos">60</span></a>                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-</span><span id="SpiralConfig-61"><a href="#SpiralConfig-61"><span class="linenos">61</span></a>                    <span class="sa">f</span><span class="s2">&quot;Unknown configuration parameters will be ignored: </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">. &quot;</span>
-</span><span id="SpiralConfig-62"><a href="#SpiralConfig-62"><span class="linenos">62</span></a>                    <span class="sa">f</span><span class="s2">&quot;Valid parameters are: </span><span class="si">{</span><span class="n">valid_param_names</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="SpiralConfig-63"><a href="#SpiralConfig-63"><span class="linenos">63</span></a>                <span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="SpiralConfig-61"><a href="#SpiralConfig-61"><span class="linenos">61</span></a><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="SpiralConfig-62"><a href="#SpiralConfig-62"><span class="linenos">62</span></a><span class="k">class</span><span class="w"> </span><span class="nc">SpiralConfig</span><span class="p">:</span>
+</span><span id="SpiralConfig-63"><a href="#SpiralConfig-63"><span class="linenos">63</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Class for the parameters of anticipated spiral drawing.&quot;&quot;&quot;</span>
 </span><span id="SpiralConfig-64"><a href="#SpiralConfig-64"><span class="linenos">64</span></a>
-</span><span id="SpiralConfig-65"><a href="#SpiralConfig-65"><span class="linenos">65</span></a>        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">filtered_params</span><span class="p">)</span>
+</span><span id="SpiralConfig-65"><a href="#SpiralConfig-65"><span class="linenos">65</span></a>    <span class="n">center_x</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">50</span>
+</span><span id="SpiralConfig-66"><a href="#SpiralConfig-66"><span class="linenos">66</span></a>    <span class="n">center_y</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">50</span>
+</span><span id="SpiralConfig-67"><a href="#SpiralConfig-67"><span class="linenos">67</span></a>    <span class="n">start_radius</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="SpiralConfig-68"><a href="#SpiralConfig-68"><span class="linenos">68</span></a>    <span class="n">growth_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.075</span>
+</span><span id="SpiralConfig-69"><a href="#SpiralConfig-69"><span class="linenos">69</span></a>    <span class="n">start_angle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="SpiralConfig-70"><a href="#SpiralConfig-70"><span class="linenos">70</span></a>    <span class="n">end_angle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">8</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+</span><span id="SpiralConfig-71"><a href="#SpiralConfig-71"><span class="linenos">71</span></a>    <span class="n">num_points</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10000</span>
+</span><span id="SpiralConfig-72"><a href="#SpiralConfig-72"><span class="linenos">72</span></a>
+</span><span id="SpiralConfig-73"><a href="#SpiralConfig-73"><span class="linenos">73</span></a>    <span class="nd">@classmethod</span>
+</span><span id="SpiralConfig-74"><a href="#SpiralConfig-74"><span class="linenos">74</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_custom_params</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;SpiralConfig&quot;</span><span class="p">:</span>
+</span><span id="SpiralConfig-75"><a href="#SpiralConfig-75"><span class="linenos">75</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the SpiralConfig instance with custom parameters.</span>
+</span><span id="SpiralConfig-76"><a href="#SpiralConfig-76"><span class="linenos">76</span></a>
+</span><span id="SpiralConfig-77"><a href="#SpiralConfig-77"><span class="linenos">77</span></a><span class="sd">        Args:</span>
+</span><span id="SpiralConfig-78"><a href="#SpiralConfig-78"><span class="linenos">78</span></a><span class="sd">            config_dict: Dictionary with configuration parameters.</span>
+</span><span id="SpiralConfig-79"><a href="#SpiralConfig-79"><span class="linenos">79</span></a>
+</span><span id="SpiralConfig-80"><a href="#SpiralConfig-80"><span class="linenos">80</span></a><span class="sd">        Returns:</span>
+</span><span id="SpiralConfig-81"><a href="#SpiralConfig-81"><span class="linenos">81</span></a><span class="sd">            SpiralConfig instance with updated parameters.</span>
+</span><span id="SpiralConfig-82"><a href="#SpiralConfig-82"><span class="linenos">82</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="SpiralConfig-83"><a href="#SpiralConfig-83"><span class="linenos">83</span></a>        <span class="n">valid_params</span> <span class="o">=</span> <span class="p">{</span><span class="n">f</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__dataclass_fields__</span><span class="o">.</span><span class="n">values</span><span class="p">()}</span>
+</span><span id="SpiralConfig-84"><a href="#SpiralConfig-84"><span class="linenos">84</span></a>        <span class="n">filtered_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span id="SpiralConfig-85"><a href="#SpiralConfig-85"><span class="linenos">85</span></a>
+</span><span id="SpiralConfig-86"><a href="#SpiralConfig-86"><span class="linenos">86</span></a>        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+</span><span id="SpiralConfig-87"><a href="#SpiralConfig-87"><span class="linenos">87</span></a>            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">valid_params</span><span class="p">:</span>
+</span><span id="SpiralConfig-88"><a href="#SpiralConfig-88"><span class="linenos">88</span></a>                <span class="n">filtered_params</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+</span><span id="SpiralConfig-89"><a href="#SpiralConfig-89"><span class="linenos">89</span></a>            <span class="k">else</span><span class="p">:</span>
+</span><span id="SpiralConfig-90"><a href="#SpiralConfig-90"><span class="linenos">90</span></a>                <span class="n">valid_param_names</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">valid_params</span><span class="p">)</span>
+</span><span id="SpiralConfig-91"><a href="#SpiralConfig-91"><span class="linenos">91</span></a>                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+</span><span id="SpiralConfig-92"><a href="#SpiralConfig-92"><span class="linenos">92</span></a>                    <span class="sa">f</span><span class="s2">&quot;Unknown configuration parameters will be ignored: </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">. &quot;</span>
+</span><span id="SpiralConfig-93"><a href="#SpiralConfig-93"><span class="linenos">93</span></a>                    <span class="sa">f</span><span class="s2">&quot;Valid parameters are: </span><span class="si">{</span><span class="n">valid_param_names</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="SpiralConfig-94"><a href="#SpiralConfig-94"><span class="linenos">94</span></a>                <span class="p">)</span>
+</span><span id="SpiralConfig-95"><a href="#SpiralConfig-95"><span class="linenos">95</span></a>
+</span><span id="SpiralConfig-96"><a href="#SpiralConfig-96"><span class="linenos">96</span></a>        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">filtered_params</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -368,30 +480,30 @@
 
     </div>
     <a class="headerlink" href="#SpiralConfig.add_custom_params"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="SpiralConfig.add_custom_params-42"><a href="#SpiralConfig.add_custom_params-42"><span class="linenos">42</span></a>    <span class="nd">@classmethod</span>
-</span><span id="SpiralConfig.add_custom_params-43"><a href="#SpiralConfig.add_custom_params-43"><span class="linenos">43</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_custom_params</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;SpiralConfig&quot;</span><span class="p">:</span>
-</span><span id="SpiralConfig.add_custom_params-44"><a href="#SpiralConfig.add_custom_params-44"><span class="linenos">44</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the SpiralConfig instance with custom parameters.</span>
-</span><span id="SpiralConfig.add_custom_params-45"><a href="#SpiralConfig.add_custom_params-45"><span class="linenos">45</span></a>
-</span><span id="SpiralConfig.add_custom_params-46"><a href="#SpiralConfig.add_custom_params-46"><span class="linenos">46</span></a><span class="sd">        Args:</span>
-</span><span id="SpiralConfig.add_custom_params-47"><a href="#SpiralConfig.add_custom_params-47"><span class="linenos">47</span></a><span class="sd">            config_dict: Dictionary with configuration parameters.</span>
-</span><span id="SpiralConfig.add_custom_params-48"><a href="#SpiralConfig.add_custom_params-48"><span class="linenos">48</span></a>
-</span><span id="SpiralConfig.add_custom_params-49"><a href="#SpiralConfig.add_custom_params-49"><span class="linenos">49</span></a><span class="sd">        Returns:</span>
-</span><span id="SpiralConfig.add_custom_params-50"><a href="#SpiralConfig.add_custom_params-50"><span class="linenos">50</span></a><span class="sd">            SpiralConfig instance with updated parameters.</span>
-</span><span id="SpiralConfig.add_custom_params-51"><a href="#SpiralConfig.add_custom_params-51"><span class="linenos">51</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="SpiralConfig.add_custom_params-52"><a href="#SpiralConfig.add_custom_params-52"><span class="linenos">52</span></a>        <span class="n">valid_params</span> <span class="o">=</span> <span class="p">{</span><span class="n">f</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__dataclass_fields__</span><span class="o">.</span><span class="n">values</span><span class="p">()}</span>
-</span><span id="SpiralConfig.add_custom_params-53"><a href="#SpiralConfig.add_custom_params-53"><span class="linenos">53</span></a>        <span class="n">filtered_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-</span><span id="SpiralConfig.add_custom_params-54"><a href="#SpiralConfig.add_custom_params-54"><span class="linenos">54</span></a>
-</span><span id="SpiralConfig.add_custom_params-55"><a href="#SpiralConfig.add_custom_params-55"><span class="linenos">55</span></a>        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-</span><span id="SpiralConfig.add_custom_params-56"><a href="#SpiralConfig.add_custom_params-56"><span class="linenos">56</span></a>            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">valid_params</span><span class="p">:</span>
-</span><span id="SpiralConfig.add_custom_params-57"><a href="#SpiralConfig.add_custom_params-57"><span class="linenos">57</span></a>                <span class="n">filtered_params</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-</span><span id="SpiralConfig.add_custom_params-58"><a href="#SpiralConfig.add_custom_params-58"><span class="linenos">58</span></a>            <span class="k">else</span><span class="p">:</span>
-</span><span id="SpiralConfig.add_custom_params-59"><a href="#SpiralConfig.add_custom_params-59"><span class="linenos">59</span></a>                <span class="n">valid_param_names</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">valid_params</span><span class="p">)</span>
-</span><span id="SpiralConfig.add_custom_params-60"><a href="#SpiralConfig.add_custom_params-60"><span class="linenos">60</span></a>                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-</span><span id="SpiralConfig.add_custom_params-61"><a href="#SpiralConfig.add_custom_params-61"><span class="linenos">61</span></a>                    <span class="sa">f</span><span class="s2">&quot;Unknown configuration parameters will be ignored: </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">. &quot;</span>
-</span><span id="SpiralConfig.add_custom_params-62"><a href="#SpiralConfig.add_custom_params-62"><span class="linenos">62</span></a>                    <span class="sa">f</span><span class="s2">&quot;Valid parameters are: </span><span class="si">{</span><span class="n">valid_param_names</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="SpiralConfig.add_custom_params-63"><a href="#SpiralConfig.add_custom_params-63"><span class="linenos">63</span></a>                <span class="p">)</span>
-</span><span id="SpiralConfig.add_custom_params-64"><a href="#SpiralConfig.add_custom_params-64"><span class="linenos">64</span></a>
-</span><span id="SpiralConfig.add_custom_params-65"><a href="#SpiralConfig.add_custom_params-65"><span class="linenos">65</span></a>        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">filtered_params</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="SpiralConfig.add_custom_params-73"><a href="#SpiralConfig.add_custom_params-73"><span class="linenos">73</span></a>    <span class="nd">@classmethod</span>
+</span><span id="SpiralConfig.add_custom_params-74"><a href="#SpiralConfig.add_custom_params-74"><span class="linenos">74</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">add_custom_params</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;SpiralConfig&quot;</span><span class="p">:</span>
+</span><span id="SpiralConfig.add_custom_params-75"><a href="#SpiralConfig.add_custom_params-75"><span class="linenos">75</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the SpiralConfig instance with custom parameters.</span>
+</span><span id="SpiralConfig.add_custom_params-76"><a href="#SpiralConfig.add_custom_params-76"><span class="linenos">76</span></a>
+</span><span id="SpiralConfig.add_custom_params-77"><a href="#SpiralConfig.add_custom_params-77"><span class="linenos">77</span></a><span class="sd">        Args:</span>
+</span><span id="SpiralConfig.add_custom_params-78"><a href="#SpiralConfig.add_custom_params-78"><span class="linenos">78</span></a><span class="sd">            config_dict: Dictionary with configuration parameters.</span>
+</span><span id="SpiralConfig.add_custom_params-79"><a href="#SpiralConfig.add_custom_params-79"><span class="linenos">79</span></a>
+</span><span id="SpiralConfig.add_custom_params-80"><a href="#SpiralConfig.add_custom_params-80"><span class="linenos">80</span></a><span class="sd">        Returns:</span>
+</span><span id="SpiralConfig.add_custom_params-81"><a href="#SpiralConfig.add_custom_params-81"><span class="linenos">81</span></a><span class="sd">            SpiralConfig instance with updated parameters.</span>
+</span><span id="SpiralConfig.add_custom_params-82"><a href="#SpiralConfig.add_custom_params-82"><span class="linenos">82</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="SpiralConfig.add_custom_params-83"><a href="#SpiralConfig.add_custom_params-83"><span class="linenos">83</span></a>        <span class="n">valid_params</span> <span class="o">=</span> <span class="p">{</span><span class="n">f</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__dataclass_fields__</span><span class="o">.</span><span class="n">values</span><span class="p">()}</span>
+</span><span id="SpiralConfig.add_custom_params-84"><a href="#SpiralConfig.add_custom_params-84"><span class="linenos">84</span></a>        <span class="n">filtered_params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span id="SpiralConfig.add_custom_params-85"><a href="#SpiralConfig.add_custom_params-85"><span class="linenos">85</span></a>
+</span><span id="SpiralConfig.add_custom_params-86"><a href="#SpiralConfig.add_custom_params-86"><span class="linenos">86</span></a>        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">config_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+</span><span id="SpiralConfig.add_custom_params-87"><a href="#SpiralConfig.add_custom_params-87"><span class="linenos">87</span></a>            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">valid_params</span><span class="p">:</span>
+</span><span id="SpiralConfig.add_custom_params-88"><a href="#SpiralConfig.add_custom_params-88"><span class="linenos">88</span></a>                <span class="n">filtered_params</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+</span><span id="SpiralConfig.add_custom_params-89"><a href="#SpiralConfig.add_custom_params-89"><span class="linenos">89</span></a>            <span class="k">else</span><span class="p">:</span>
+</span><span id="SpiralConfig.add_custom_params-90"><a href="#SpiralConfig.add_custom_params-90"><span class="linenos">90</span></a>                <span class="n">valid_param_names</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">valid_params</span><span class="p">)</span>
+</span><span id="SpiralConfig.add_custom_params-91"><a href="#SpiralConfig.add_custom_params-91"><span class="linenos">91</span></a>                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+</span><span id="SpiralConfig.add_custom_params-92"><a href="#SpiralConfig.add_custom_params-92"><span class="linenos">92</span></a>                    <span class="sa">f</span><span class="s2">&quot;Unknown configuration parameters will be ignored: </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">. &quot;</span>
+</span><span id="SpiralConfig.add_custom_params-93"><a href="#SpiralConfig.add_custom_params-93"><span class="linenos">93</span></a>                    <span class="sa">f</span><span class="s2">&quot;Valid parameters are: </span><span class="si">{</span><span class="n">valid_param_names</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="SpiralConfig.add_custom_params-94"><a href="#SpiralConfig.add_custom_params-94"><span class="linenos">94</span></a>                <span class="p">)</span>
+</span><span id="SpiralConfig.add_custom_params-95"><a href="#SpiralConfig.add_custom_params-95"><span class="linenos">95</span></a>
+</span><span id="SpiralConfig.add_custom_params-96"><a href="#SpiralConfig.add_custom_params-96"><span class="linenos">96</span></a>        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">filtered_params</span><span class="p">)</span>
 </span></pre></div>
 
 

@@ -23,7 +23,7 @@
 
             <h2>Contents</h2>
             <ul>
-  <li><a href="#graphomotor-study-toolkit">Graphomotor Study Toolkit</a>
+  <li><a href="#graphomotor"><code>graphomotor</code></a>
   <ul>
     <li><a href="#feature-extraction-capabilities">Feature Extraction Capabilities</a></li>
     <li><a href="#installation">Installation</a></li>
@@ -59,7 +59,7 @@
                     <h1 class="modulename">
 graphomotor    </h1>
 
-                        <div class="docstring"><h1 id="graphomotor-study-toolkit">Graphomotor Study Toolkit</h1>
+                        <div class="docstring"><h1 id="graphomotor"><code><a href="">graphomotor</a></code></h1>
 
 <p>A Python toolkit for analysis of graphomotor data collected via Curious.</p>
 
@@ -76,7 +76,7 @@ graphomotor    </h1>
 
 <div class="alert important">
 <em>Important</em>
-<p>This package is under active development. Currently, the focus is on the spiral drawing task. After finalizing feature extraction, the next steps will involve implementing both preprocessing and visualization for this task. Once these parts are in place, we plan to extend support to other tasks.</p>
+<p><code><a href="">graphomotor</a></code> is under active development. Currently, the focus is on the spiral drawing task. After finalizing feature extraction, the next steps will involve implementing both preprocessing and visualization for this task. Once these parts are in place, we plan to extend support to other tasks.</p>
 </div>
 
 <h2 id="feature-extraction-capabilities">Feature Extraction Capabilities</h2>
@@ -92,7 +92,7 @@ graphomotor    </h1>
 
 <h2 id="installation">Installation</h2>
 
-<p>Install the graphomotor package from PyPI:</p>
+<p>Install <code><a href="">graphomotor</a></code> from PyPI:</p>
 
 <div class="pdoc-code codehilite">
 <pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>graphomotor
@@ -108,116 +108,93 @@ graphomotor    </h1>
 
 <h2 id="quick-start">Quick Start</h2>
 
+<p><code><a href="">graphomotor</a></code> is available both as a <strong>command-line interface</strong> and as an importable <strong>Python library</strong> for easy integration into analysis workflows.</p>
+
 <div class="alert caution">
 <em>Caution</em>
-<p>This library requires input data to adhere to a specific format matching the standard output from <a href="https://mindlogger.atlassian.net/servicedesk/customer/portal/3/article/859242501">Curious drawing responses</a>. See more details in the <a href="#data-format-requirements">Data Format Requirements</a> section below.</p>
+<p>Input data must follow the <a href="https://mindlogger.atlassian.net/servicedesk/customer/portal/3/article/859242501">Curious drawing responses format</a>. See <a href="#data-format-requirements">Data Format Requirements</a> below.</p>
 </div>
 
-<h3 id="extracting-features-from-spiral-drawing-data">Extracting Features from Spiral Drawing Data</h3>
+<h3 id="command-line-interface">Command-Line Interface</h3>
 
-<h4 id="single-file-processing">Single File Processing</h4>
+<p><strong>Run a single file:</strong></p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>graphomotor<span class="w"> </span>/path/to/data.csv<span class="w"> </span>/path/to/output/features.csv
+</code></pre>
+</div>
+
+<p><strong>Run entire directories:</strong></p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>graphomotor<span class="w"> </span>/path/to/data_directory/<span class="w"> </span>/path/to/output/features.csv
+</code></pre>
+</div>
+
+<p><strong>For a full list of arguments and options, run:</strong></p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>graphomotor<span class="w"> </span>--help
+</code></pre>
+</div>
+
+<h3 id="python-library">Python Library</h3>
+
+<p><strong>Run a single file:</strong></p>
 
 <div class="pdoc-code codehilite">
 <pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn"><a href="graphomotor/core.html">graphomotor.core</a></span><span class="w"> </span><span class="kn">import</span> <span class="n">orchestrator</span>
 
-<span class="c1"># Path to your spiral drawing data file</span>
-<span class="n">input_file</span> <span class="o">=</span> <span class="s2">&quot;path/to/your/spiral_data.csv&quot;</span>
+<span class="c1"># Define input path</span>
+<span class="n">input_path</span> <span class="o">=</span> <span class="s2">&quot;path/to/data.csv&quot;</span>
 
-<span class="c1"># Option 1: Process file without saving any CSV file</span>
-<span class="c1"># Only return the DataFrame with extracted features</span>
-<span class="n">features_df</span> <span class="o">=</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">run_pipeline</span><span class="p">(</span>
-    <span class="n">input_path</span><span class="o">=</span><span class="n">input_file</span>
-<span class="p">)</span>
+<span class="c1"># Define output path to save results to disk</span>
+<span class="c1"># If output path is a directory, file name will be auto-generated as</span>
+<span class="c1"># `{participant_id}_{task}_{hand}_features_{YYYYMMDD_HHMM}.csv`</span>
+<span class="n">output_path</span> <span class="o">=</span> <span class="s2">&quot;path/to/output/features.csv&quot;</span>
 
-<span class="c1"># Features are returned as a pandas DataFrame with source file as index</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Extracted features: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">features_df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-<span class="c1"># Access the single file&#39;s data (features_df has one row)</span>
-<span class="n">file_path</span> <span class="o">=</span> <span class="n">features_df</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File: </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Participant: </span><span class="si">{</span><span class="n">features_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">file_path</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;participant_id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Task: </span><span class="si">{</span><span class="n">features_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">file_path</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;task&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Hand: </span><span class="si">{</span><span class="n">features_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">file_path</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;hand&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Duration: </span><span class="si">{</span><span class="n">features_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">file_path</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;duration&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="c1"># Run the pipeline</span>
+<span class="n">results_df</span> <span class="o">=</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">run_pipeline</span><span class="p">(</span><span class="n">input_path</span><span class="o">=</span><span class="n">input_path</span><span class="p">,</span> <span class="n">output_path</span><span class="o">=</span><span class="n">output_path</span><span class="p">)</span>
 </code></pre>
 </div>
 
-<div class="pdoc-code codehilite">
-<pre><span></span><code><span class="c1"># Option 2: Save to a directory with auto-generated filename</span>
-<span class="c1"># Creates a CSV file with auto-generated name in the specified directory</span>
-<span class="c1"># Format: {participant_id}_{task}_{hand}_features_{YYYYMMDD_HHMM}.csv</span>
-<span class="n">features_df</span> <span class="o">=</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">run_pipeline</span><span class="p">(</span>
-    <span class="n">input_path</span><span class="o">=</span><span class="n">input_file</span><span class="p">,</span>
-    <span class="n">output_path</span><span class="o">=</span><span class="s2">&quot;path/to/output/directory&quot;</span>
-<span class="p">)</span>
-</code></pre>
-</div>
-
-<div class="pdoc-code codehilite">
-<pre><span></span><code><span class="c1"># Option 3: Save to a specific CSV file</span>
-<span class="c1"># Features will be saved to the specified file path</span>
-<span class="n">features_df</span> <span class="o">=</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">run_pipeline</span><span class="p">(</span>
-    <span class="n">input_path</span><span class="o">=</span><span class="n">input_file</span><span class="p">,</span>
-    <span class="n">output_path</span><span class="o">=</span><span class="s2">&quot;path/to/features.csv&quot;</span>
-<span class="p">)</span>
-</code></pre>
-</div>
-
-<h4 id="batch-processing">Batch Processing</h4>
+<p><strong>Run entire directories:</strong></p>
 
 <div class="pdoc-code codehilite">
 <pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn"><a href="graphomotor/core.html">graphomotor.core</a></span><span class="w"> </span><span class="kn">import</span> <span class="n">orchestrator</span>
 
-<span class="c1"># Path to directory containing multiple spiral drawing data files</span>
-<span class="n">input_dir</span> <span class="o">=</span> <span class="s2">&quot;path/to/your/spiral_data_directory&quot;</span>
+<span class="c1"># Define input directory</span>
+<span class="n">input_dir</span> <span class="o">=</span> <span class="s2">&quot;path/to/data_directory/&quot;</span>
 
-<span class="c1"># Option 1: Process files without saving any CSV files</span>
-<span class="c1"># Only return the DataFrame with extracted features</span>
-<span class="n">features_df</span> <span class="o">=</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">run_pipeline</span><span class="p">(</span>
-    <span class="n">input_path</span><span class="o">=</span><span class="n">input_dir</span><span class="p">,</span>
-<span class="p">)</span>
+<span class="c1"># Define output path to save results to disk</span>
+<span class="c1"># If output path is a directory, file name will be auto-generated as</span>
+<span class="c1"># `batch_features_{YYYYMMDD_HHMM}.csv`</span>
+<span class="n">output_dir</span> <span class="o">=</span> <span class="s2">&quot;path/to/output/&quot;</span>
 
-<span class="c1"># Features are returned as a pandas DataFrame with source files as index</span>
-<span class="c1"># Columns include: participant_id, task, hand, start_time, and calculated features</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully processed </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">features_df</span><span class="p">)</span><span class="si">}</span><span class="s2"> files&quot;</span><span class="p">)</span>
-
-<span class="c1"># Access metadata and features for a specific file</span>
-<span class="k">for</span> <span class="n">file_path</span> <span class="ow">in</span> <span class="n">features_df</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File: </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Participant: </span><span class="si">{</span><span class="n">features_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">file_path</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;participant_id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Task: </span><span class="si">{</span><span class="n">features_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">file_path</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;task&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Hand: </span><span class="si">{</span><span class="n">features_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">file_path</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;hand&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Duration: </span><span class="si">{</span><span class="n">features_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">file_path</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;duration&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="c1"># Run the pipeline</span>
+<span class="n">results_df</span> <span class="o">=</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">run_pipeline</span><span class="p">(</span><span class="n">input_path</span><span class="o">=</span><span class="n">input_dir</span><span class="p">,</span> <span class="n">output_path</span><span class="o">=</span><span class="n">output_dir</span><span class="p">)</span>
 </code></pre>
 </div>
 
-<div class="pdoc-code codehilite">
-<pre><span></span><code><span class="c1"># Option 2: Save to a directory with auto-generated filename</span>
-<span class="c1"># Creates a single consolidated CSV file with auto-generated name</span>
-<span class="c1"># Format: batch_features_{YYYYMMDD_HHMM}.csv</span>
-<span class="n">features_df</span> <span class="o">=</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">run_pipeline</span><span class="p">(</span>
-    <span class="n">input_path</span><span class="o">=</span><span class="n">input_dir</span><span class="p">,</span>
-    <span class="n">output_path</span><span class="o">=</span><span class="s2">&quot;path/to/output/directory&quot;</span>
-<span class="p">)</span>
-</code></pre>
-</div>
+<p><strong>Access results:</strong></p>
 
 <div class="pdoc-code codehilite">
-<pre><span></span><code><span class="c1"># Option 3: Save to a specific CSV file (single consolidated file)</span>
-<span class="c1"># All features will be written to one specified file</span>
-<span class="n">features_df</span> <span class="o">=</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">run_pipeline</span><span class="p">(</span>
-    <span class="n">input_path</span><span class="o">=</span><span class="n">input_dir</span><span class="p">,</span>
-    <span class="n">output_path</span><span class="o">=</span><span class="s2">&quot;path/to/consolidated_features.csv&quot;</span>
-<span class="p">)</span>
+<pre><span></span><code><span class="c1"># Pipeline returns a DataFrame with extracted metadata and features</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processed </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">results_df</span><span class="p">)</span><span class="si">}</span><span class="s2"> files&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Extracted metadata and features: </span><span class="si">{</span><span class="n">results_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Get data for first file</span>
+<span class="n">file_path</span> <span class="o">=</span> <span class="n">results_df</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">participant</span> <span class="o">=</span> <span class="n">results_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">file_path</span><span class="p">,</span> <span class="s1">&#39;participant_id&#39;</span><span class="p">]</span>
+<span class="n">task</span> <span class="o">=</span> <span class="n">results_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">file_path</span><span class="p">,</span> <span class="s1">&#39;task&#39;</span><span class="p">]</span>
+<span class="n">duration</span> <span class="o">=</span> <span class="n">results_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">file_path</span><span class="p">,</span> <span class="s1">&#39;duration&#39;</span><span class="p">]</span>
 </code></pre>
 </div>
 
 <div class="alert note">
 <em>Note</em>
-<p>Currently, <code><a href="">graphomotor</a></code> is available as an importable Python library. CLI functionality is planned for future releases.</p>
-</div>
-
 <p>For detailed configuration options and additional parameters, refer to the <a href="https://childmindresearch.github.io/graphomotor/graphomotor/core/orchestrator.html#run_pipeline"><code>run_pipeline</code> documentation</a>.</p>
+</div>
 
 <h2 id="development-progress">Development Progress</h2>
 
@@ -266,7 +243,7 @@ graphomotor    </h1>
 
 <h2 id="data-format-requirements">Data Format Requirements</h2>
 
-<p>When exporting drawing data from Curious, you typically receive the following files:</p>
+<p>When exporting drawing data from Curious, the export typically includes the following files:</p>
 
 <ul>
 <li><strong>report.csv</strong>: Contains the participants' actual responses.</li>
@@ -280,7 +257,7 @@ graphomotor    </h1>
 
 <h3 id="file-naming-convention">File Naming Convention</h3>
 
-<p>Your spiral data files must follow this naming convention:</p>
+<p>Spiral data files must follow this naming convention:</p>
 
 <div class="pdoc-code codehilite">
 <pre><span></span><code>[5123456]a7f3b2e9-d4c8-f1a6-e5b9-c2d7f8a3e6b4-spiral_trace1_Dom.csv
@@ -303,22 +280,22 @@ graphomotor    </h1>
 
 <h3 id="data-format">Data Format</h3>
 
-<p>Your spiral data CSV file must contain the following columns:</p>
+<p>Spiral data CSV files must contain the following columns:</p>
 
 <div class="pdoc-code codehilite">
 <pre><span></span><code>line_number, x, y, UTC_Timestamp, seconds, epoch_time_in_seconds_start
 </code></pre>
 </div>
 
-<p>This format represents the standard output from <a href="https://mindlogger.atlassian.net/servicedesk/customer/portal/3/article/596082739">Curious drawing responses data dictionary</a>.</p>
+<p>These columns constitute the standard output from <a href="https://mindlogger.atlassian.net/servicedesk/customer/portal/3/article/596082739">Curious drawing responses data dictionary</a>.</p>
 
 <h2 id="future-directions">Future Directions</h2>
 
-<p>The Graphomotor Study Toolkit is under active development. For more detailed information about upcoming features and development plans, please refer to our <a href="https://github.com/childmindresearch/graphomotor/issues">GitHub Issues</a> page.</p>
+<p>The <code><a href="">graphomotor</a></code> is under active development. For more detailed information about upcoming features and development plans, please refer to our <a href="https://github.com/childmindresearch/graphomotor/issues">GitHub Issues</a> page.</p>
 
 <h2 id="contributing">Contributing</h2>
 
-<p>We welcome contributions from the community! If you're interested in contributing, please review our <a href="CONTRIBUTING.md">Contributing Guidelines</a> for information on how to get started, coding standards, and the pull request process.</p>
+<p>Contributions from the community are welcome! Please review the <a href="CONTRIBUTING.md">Contributing Guidelines</a> for information on how to get started, coding standards, and the pull request process.</p>
 
 <h2 id="references">References</h2>
 
