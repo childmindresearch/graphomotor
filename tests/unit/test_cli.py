@@ -25,12 +25,14 @@ def _clean_output(output: str) -> str:
 def test_cli_root_no_command(runner: testing.CliRunner) -> None:
     """Test CLI root shows help when no command is provided."""
     result = runner.invoke(cli.app, [])
+    clean_stdout = _clean_output(result.stdout)
+
     assert result.exit_code == 0
-    assert "Usage:" in result.stdout
-    assert "Graphomotor: A Python toolkit" in result.stdout
-    assert "extract" in result.stdout
-    assert "--verbosity" in result.stdout
-    assert "--version" in result.stdout
+    assert "Usage:" in clean_stdout
+    assert "Graphomotor: A Python toolkit" in clean_stdout
+    assert "extract" in clean_stdout
+    assert "--verbosity" in clean_stdout
+    assert "--version" in clean_stdout
 
 
 @pytest.mark.parametrize("flag", ["--version", "-V"])
