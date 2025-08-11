@@ -1,4 +1,4 @@
-"""Command-line interface for the Graphomotor."""
+"""Command-line interface for graphomotor."""
 
 import enum
 import pathlib
@@ -7,7 +7,7 @@ import typing
 import typer
 
 from graphomotor.core import config, orchestrator
-from graphomotor.plot import feature_plots as fp
+from graphomotor.plot import feature_plots
 
 logger = config.get_logger()
 app = typer.Typer(
@@ -18,7 +18,7 @@ app = typer.Typer(
     ),
     epilog=(
         "Please report issues at "
-        "https://github.com/childmindresearch/graphomotor/issues"
+        "https://github.com/childmindresearch/graphomotor/issues."
     ),
 )
 
@@ -91,7 +91,7 @@ def main(
     ),
     epilog=(
         "For more information on data format requirements, see the README at "
-        "https://github.com/childmindresearch/graphomotor/blob/main/README.md"
+        "https://github.com/childmindresearch/graphomotor/blob/main/README.md."
     ),
 )
 def extract(
@@ -227,7 +227,7 @@ def extract(
     ),
     epilog=(
         "For more information, see the README at "
-        "https://github.com/childmindresearch/graphomotor/blob/main/README.md"
+        "https://github.com/childmindresearch/graphomotor/blob/main/README.md."
     ),
 )
 def plot_features(
@@ -299,16 +299,17 @@ def plot_features(
 
     try:
         plot_functions = {
-            ValidFeaturePlotTypes.DIST: fp.plot_feature_distributions,
-            ValidFeaturePlotTypes.TRENDS: fp.plot_feature_trends,
-            ValidFeaturePlotTypes.BOXPLOT: fp.plot_feature_boxplots,
-            ValidFeaturePlotTypes.CLUSTER: fp.plot_feature_clusters,
+            ValidFeaturePlotTypes.DIST: feature_plots.plot_feature_distributions,
+            ValidFeaturePlotTypes.TRENDS: feature_plots.plot_feature_trends,
+            ValidFeaturePlotTypes.BOXPLOT: feature_plots.plot_feature_boxplots,
+            ValidFeaturePlotTypes.CLUSTER: feature_plots.plot_feature_clusters,
         }
 
         for plot_type in plot_types:
             plot_functions[plot_type](
                 data=input_path, output_path=output_path, features=features
             )
+            typer.secho(f"Generated {plot_type.value} plot successfully", fg="green")
 
         typer.secho(f"All plots saved to: {output_path}", fg="green")
 

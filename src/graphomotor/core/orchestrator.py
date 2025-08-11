@@ -1,4 +1,4 @@
-"""Runner for the Graphomotor pipeline."""
+"""Runner for graphomotor."""
 
 import dataclasses
 import datetime

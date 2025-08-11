@@ -308,12 +308,12 @@ def test_cli_plot_features_missing_arguments(runner: testing.CliRunner) -> None:
 
 def test_cli_plot_features_missing_output_path(
     runner: testing.CliRunner,
-    sample_batch_features: pd.DataFrame,
+    sample_batch_features_df: pd.DataFrame,
     tmp_path: pathlib.Path,
 ) -> None:
     """Test CLI fails with missing output path for plot-features command."""
     input_file = tmp_path / "features.csv"
-    sample_batch_features.to_csv(input_file, index=False)
+    sample_batch_features_df.to_csv(input_file, index=False)
 
     result = runner.invoke(cli.app, ["plot-features", str(input_file)])
     assert result.exit_code != 0
@@ -358,12 +358,11 @@ def test_cli_plot_features_invalid_input_extension(
 
 
 def test_cli_plot_features_mkdir_permission_error(
+    sample_batch_features: pathlib.Path,
     runner: testing.CliRunner,
     tmp_path: pathlib.Path,
 ) -> None:
     """Test CLI handles permission error when creating output directory."""
-    input_file = tmp_path / "features.csv"
-    input_file.write_text("some text")
     output_parent_dir = tmp_path / "no_permission"
     output_dir = output_parent_dir / "plots"
     output_parent_dir.mkdir()
@@ -372,7 +371,7 @@ def test_cli_plot_features_mkdir_permission_error(
     try:
         result = runner.invoke(
             cli.app,
-            ["plot-features", str(input_file), str(output_dir)],
+            ["plot-features", str(sample_batch_features), str(output_dir)],
         )
 
         assert result.exit_code != 0
@@ -382,18 +381,17 @@ def test_cli_plot_features_mkdir_permission_error(
 
 
 def test_cli_plot_features_output_path_is_file(
+    sample_batch_features: pathlib.Path,
     runner: testing.CliRunner,
     tmp_path: pathlib.Path,
 ) -> None:
     """Test CLI handles output path that is a file instead of directory."""
-    input_file = tmp_path / "features.csv"
-    input_file.write_text("some text")
     output_file = tmp_path / "output.txt"
     output_file.write_text("existing file")
 
     result = runner.invoke(
         cli.app,
-        ["plot-features", str(input_file), str(output_file)],
+        ["plot-features", str(sample_batch_features), str(output_file)],
     )
 
     assert result.exit_code != 0
@@ -401,12 +399,11 @@ def test_cli_plot_features_output_path_is_file(
 
 
 def test_cli_plot_features_invalid_plot_types(
+    sample_batch_features: pathlib.Path,
     runner: testing.CliRunner,
     tmp_path: pathlib.Path,
 ) -> None:
     """Test CLI handles invalid plot types for plot-features command."""
-    input_file = tmp_path / "features.csv"
-    input_file.write_text("some text")
     output_dir = tmp_path / "plots"
     output_dir.mkdir()
 
@@ -414,7 +411,7 @@ def test_cli_plot_features_invalid_plot_types(
         cli.app,
         [
             "plot-features",
-            str(input_file),
+            str(sample_batch_features),
             str(output_dir),
             "--plot-types",
             "invalid_plot_type",
@@ -429,12 +426,11 @@ def test_cli_plot_features_invalid_plot_types(
 
 
 def test_cli_plot_features_invalid_features(
+    sample_batch_features: pathlib.Path,
     runner: testing.CliRunner,
     tmp_path: pathlib.Path,
 ) -> None:
     """Test CLI handles invalid features for plot-features command."""
-    input_file = tmp_path / "features.csv"
-    input_file.write_text("some text")
     output_dir = tmp_path / "plots"
     output_dir.mkdir()
 
@@ -442,7 +438,7 @@ def test_cli_plot_features_invalid_features(
         cli.app,
         [
             "plot-features",
-            str(input_file),
+            str(sample_batch_features),
             str(output_dir),
             "--features",
             "invalid_feature",
@@ -455,20 +451,25 @@ def test_cli_plot_features_invalid_features(
 
 def test_cli_plot_features_with_specific_parameters(
     runner: testing.CliRunner,
-    sample_batch_features: pd.DataFrame,
+    sample_batch_features: pathlib.Path,
     tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Test CLI generates specified plots with specific features."""
-    input_file = tmp_path / "features.csv"
-    sample_batch_features.to_csv(input_file, index=False)
+    """Test CLI calls specified plot function with specific features."""
     output_dir = tmp_path / "plots"
     output_dir.mkdir()
+
+    calls = []
+    monkeypatch.setattr(
+        "graphomotor.plot.feature_plots.plot_feature_distributions",
+        lambda **kwargs: calls.append(("plot_feature_distributions", kwargs)),
+    )
 
     result = runner.invoke(
         cli.app,
         [
             "plot-features",
-            str(input_file),
+            str(sample_batch_features),
             str(output_dir),
             "--plot-types",
             "dist",
@@ -479,23 +480,55 @@ def test_cli_plot_features_with_specific_parameters(
 
     assert result.exit_code == 0
     assert f"All plots saved to: {output_dir}" in result.stdout
+    assert len(calls) == 1
+    assert calls[0][0] == "plot_feature_distributions"
+    assert calls[0][1] == {
+        "data": sample_batch_features,
+        "output_path": output_dir,
+        "features": ["duration"],
+    }
 
 
 def test_cli_plot_features_all_plot_types_default(
     runner: testing.CliRunner,
-    sample_batch_features: pd.DataFrame,
+    sample_batch_features: pathlib.Path,
     tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Test CLI generates all plot types when none specified."""
-    input_file = tmp_path / "features.csv"
-    sample_batch_features.to_csv(input_file, index=False)
+    """Test CLI calls all plot functions when none specified."""
     output_dir = tmp_path / "plots"
     output_dir.mkdir()
 
+    plot_functions = [
+        "plot_feature_distributions",
+        "plot_feature_trends",
+        "plot_feature_boxplots",
+        "plot_feature_clusters",
+    ]
+
+    calls = []
+    mock_functions = {
+        func_name: (lambda fn: lambda **kwargs: calls.append((fn, kwargs)))(func_name)
+        for func_name in plot_functions
+    }
+
+    for func_name, mock_func in mock_functions.items():
+        monkeypatch.setattr(f"graphomotor.plot.feature_plots.{func_name}", mock_func)
+
+    expected_args = {
+        "data": sample_batch_features,
+        "output_path": output_dir,
+        "features": None,
+    }
+    expected_calls = [(func_name, expected_args) for func_name in plot_functions]
+
     result = runner.invoke(
         cli.app,
-        ["plot-features", str(input_file), str(output_dir)],
+        ["plot-features", str(sample_batch_features), str(output_dir)],
     )
 
     assert result.exit_code == 0
     assert f"All plots saved to: {output_dir}" in result.stdout
+    assert len(calls) == 4
+    for expected_call in expected_calls:
+        assert expected_call in calls
