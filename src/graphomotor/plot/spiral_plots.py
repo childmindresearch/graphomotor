@@ -224,7 +224,9 @@ def _plot_grouped_spirals(
     # Group spirals by the specified attribute
     groups: Dict[str, List[models.Spiral]] = {}
     for spiral in spirals:
-        key = str(spiral.metadata[group_by])  # Convert to string for consistency
+        # Map 'participant' to 'id' for consistency with metadata
+        metadata_key = 'id' if group_by == 'participant' else group_by
+        key = str(spiral.metadata[metadata_key])  # Convert to string for consistency
         if key not in groups:
             groups[key] = []
         groups[key].append(spiral)
