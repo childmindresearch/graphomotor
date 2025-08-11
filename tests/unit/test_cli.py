@@ -361,23 +361,25 @@ def test_cli_plot_features_mkdir_permission_error(
     sample_batch_features: pathlib.Path,
     runner: testing.CliRunner,
     tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Test CLI handles permission error when creating output directory."""
-    output_parent_dir = tmp_path / "no_permission"
-    output_dir = output_parent_dir / "plots"
-    output_parent_dir.mkdir()
-    output_parent_dir.chmod(0o400)
+    output_dir = tmp_path / "plots"
 
-    try:
-        result = runner.invoke(
-            cli.app,
-            ["plot-features", str(sample_batch_features), str(output_dir)],
-        )
+    monkeypatch.setattr(
+        "pathlib.Path.mkdir",
+        lambda *args, **kwargs: (_ for _ in ()).throw(
+            PermissionError("Permission denied")
+        ),
+    )
 
-        assert result.exit_code != 0
-        assert "Error creating output directory" in result.stderr
-    finally:
-        output_parent_dir.chmod(0o755)
+    result = runner.invoke(
+        cli.app,
+        ["plot-features", str(sample_batch_features), str(output_dir)],
+    )
+
+    assert result.exit_code != 0
+    assert "Error creating output directory" in result.stderr
 
 
 def test_cli_plot_features_output_path_is_file(
