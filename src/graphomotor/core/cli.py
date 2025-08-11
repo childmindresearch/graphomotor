@@ -7,6 +7,7 @@ import typing
 import typer
 
 from graphomotor.core import config, orchestrator
+from graphomotor.plot import feature_plots as fp
 
 logger = config.get_logger()
 app = typer.Typer(
@@ -29,6 +30,15 @@ class ValidFeatureCategories(str, enum.Enum):
     VELOCITY = "velocity"
     HAUSDORFF = "hausdorff"
     AUC = "AUC"
+
+
+class ValidFeaturePlotTypes(str, enum.Enum):
+    """Valid plot types for feature visualization."""
+
+    DIST = "dist"
+    TRENDS = "trends"
+    BOXPLOT = "boxplot"
+    CLUSTER = "cluster"
 
 
 @app.callback(invoke_without_command=True)
@@ -104,7 +114,7 @@ def extract(
         ),
     ],
     features: typing.Annotated[
-        typing.Optional[list[ValidFeatureCategories]],
+        list[ValidFeatureCategories] | None,
         typer.Option(
             "--features",
             "-f",
@@ -183,7 +193,7 @@ def extract(
     ] = config.SpiralConfig.num_points,
 ) -> None:
     """Extract features from spiral drawing data."""
-    logger.debug("Running Graphomotor pipeline with these arguments: %s", locals())
+    logger.debug(f"Running Graphomotor pipeline with these arguments: {locals()}")
 
     config_params: dict[orchestrator.ConfigParams, float | int] = {
         "center_x": center_x,
@@ -209,10 +219,102 @@ def extract(
         raise
 
 
-@app.command()
-def plot() -> None:
-    """Placeholder for future plotting functionality."""
-    typer.echo("Plotting functionality is not yet implemented.")
+@app.command(
+    name="plot-features",
+    help=(
+        "Generate plots from extracted features. Supports distribution, trend, box, "
+        "and cluster plots."
+    ),
+    epilog=(
+        "For more information, see the README at "
+        "https://github.com/childmindresearch/graphomotor/blob/main/README.md"
+    ),
+)
+def plot_features(
+    input_path: typing.Annotated[
+        pathlib.Path,
+        typer.Argument(
+            help="Path to a CSV file containing extracted features.",
+        ),
+    ],
+    output_path: typing.Annotated[
+        pathlib.Path,
+        typer.Argument(
+            help="Output path to a directory where plots will be saved.",
+        ),
+    ],
+    plot_types: typing.Annotated[
+        list[ValidFeaturePlotTypes] | None,
+        typer.Option(
+            "--plot-types",
+            "-p",
+            help=(
+                "Types of plots to generate. If omitted, all plot types are generated. "
+                "To specify multiple types, use this option multiple times."
+            ),
+            show_default=False,
+        ),
+    ] = None,
+    features: typing.Annotated[
+        list[str] | None,
+        typer.Option(
+            "--features",
+            "-f",
+            help=(
+                "Specific features to plot. If omitted, all features are plotted. "
+                "To specify multiple features, use this option multiple times."
+            ),
+            show_default=False,
+        ),
+    ] = None,
+) -> None:
+    """Generate plots from extracted features."""
+    logger.debug(f"Generating feature plots with arguments: {locals()}")
+
+    if not input_path.is_file() or input_path.suffix.lower() != ".csv":
+        typer.secho(
+            f"Error: Input path {input_path} must be an existing CSV file",
+            fg="red",
+            err=True,
+        )
+        raise typer.Exit(1)
+
+    try:
+        output_path.mkdir(parents=True, exist_ok=True)
+    except Exception as e:
+        typer.secho(
+            f"Error creating output directory {output_path}: {e}",
+            fg="red",
+            err=True,
+        )
+        raise
+
+    if plot_types is None:
+        plot_types = [
+            ValidFeaturePlotTypes.DIST,
+            ValidFeaturePlotTypes.TRENDS,
+            ValidFeaturePlotTypes.BOXPLOT,
+            ValidFeaturePlotTypes.CLUSTER,
+        ]
+
+    try:
+        plot_functions = {
+            ValidFeaturePlotTypes.DIST: fp.plot_feature_distributions,
+            ValidFeaturePlotTypes.TRENDS: fp.plot_feature_trends,
+            ValidFeaturePlotTypes.BOXPLOT: fp.plot_feature_boxplots,
+            ValidFeaturePlotTypes.CLUSTER: fp.plot_feature_clusters,
+        }
+
+        for plot_type in plot_types:
+            plot_functions[plot_type](
+                data=input_path, output_path=output_path, features=features
+            )
+
+        typer.secho(f"All plots saved to: {output_path}", fg="green")
+
+    except Exception as e:
+        typer.secho(f"Error generating plots: {e}", fg="red", err=True)
+        raise
 
 
 if __name__ == "__main__":

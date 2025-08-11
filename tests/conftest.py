@@ -86,3 +86,11 @@ def sample_features() -> pd.DataFrame:
             "test_feature": [1.0],
         }
     )
+
+
+@pytest.fixture
+def sample_batch_features() -> pd.DataFrame:
+    """Create a sample batch features DataFrame for testing."""
+    return pd.read_csv(
+        pathlib.Path(__file__).parent / "sample_data" / "sample_batch_features.csv"
+    )

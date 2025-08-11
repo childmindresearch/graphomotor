@@ -3,6 +3,7 @@
 import pathlib
 import re
 
+import pandas as pd
 import pytest
 from typer import testing
 
@@ -111,7 +112,7 @@ def test_cli_extract_with_directory_input(
     assert output_file.exists()
     assert "5000000" in content
     assert "5123456" in content
-    assert len(warning_records) == 0
+    assert len(warning_records) == 2  # Warnings for sample_batch_features.csv
 
 
 @pytest.mark.parametrize(
@@ -282,3 +283,219 @@ def test_cli_extract_invalid_option_types(
     assert f"'{invalid_value}' is not a valid {expected_type}" in _clean_output(
         result.stderr
     )
+
+
+def test_cli_plot_features_help_flag(runner: testing.CliRunner) -> None:
+    """Test --help flag displays expected information for plot-features command."""
+    result = runner.invoke(cli.app, ["plot-features", "--help"])
+    clean_stdout = _clean_output(result.stdout)
+
+    assert result.exit_code == 0
+    assert "Usage:" in clean_stdout
+    assert "Generate plots from extracted features" in clean_stdout
+    assert "--plot-types" in clean_stdout
+    assert "dist|trends|boxplot" in clean_stdout
+    assert "--features" in clean_stdout
+
+
+def test_cli_plot_features_missing_arguments(runner: testing.CliRunner) -> None:
+    """Test CLI fails with missing required arguments for plot-features command."""
+    result = runner.invoke(cli.app, ["plot-features"])
+    assert result.exit_code != 0
+    assert "Missing argument" in result.stderr
+    assert "INPUT_PATH" in result.stderr
+
+
+def test_cli_plot_features_missing_output_path(
+    runner: testing.CliRunner,
+    sample_batch_features: pd.DataFrame,
+    tmp_path: pathlib.Path,
+) -> None:
+    """Test CLI fails with missing output path for plot-features command."""
+    input_file = tmp_path / "features.csv"
+    sample_batch_features.to_csv(input_file, index=False)
+
+    result = runner.invoke(cli.app, ["plot-features", str(input_file)])
+    assert result.exit_code != 0
+    assert "Missing argument" in result.stderr
+    assert "OUTPUT_PATH" in result.stderr
+
+
+def test_cli_plot_features_nonexistent_input_file(
+    runner: testing.CliRunner, tmp_path: pathlib.Path
+) -> None:
+    """Test CLI handles nonexistent input file for plot-features command."""
+    nonexistent_file = tmp_path / "nonexistent.csv"
+    output_dir = tmp_path / "plots"
+
+    result = runner.invoke(
+        cli.app,
+        ["plot-features", str(nonexistent_file), str(output_dir)],
+    )
+
+    assert result.exit_code == 1
+    assert (
+        f"Error: Input path {nonexistent_file} must be an existing CSV file"
+        in result.stderr
+    )
+
+
+def test_cli_plot_features_invalid_input_extension(
+    runner: testing.CliRunner, tmp_path: pathlib.Path
+) -> None:
+    """Test CLI handles invalid input file extension for plot-features command."""
+    input_file = tmp_path / "features.txt"
+    input_file.write_text("some text")
+    output_dir = tmp_path / "plots"
+
+    result = runner.invoke(
+        cli.app,
+        ["plot-features", str(input_file), str(output_dir)],
+    )
+
+    assert result.exit_code == 1
+    assert "must be an existing CSV file" in result.stderr
+
+
+def test_cli_plot_features_mkdir_permission_error(
+    runner: testing.CliRunner,
+    tmp_path: pathlib.Path,
+) -> None:
+    """Test CLI handles permission error when creating output directory."""
+    input_file = tmp_path / "features.csv"
+    input_file.write_text("some text")
+    output_parent_dir = tmp_path / "no_permission"
+    output_dir = output_parent_dir / "plots"
+    output_parent_dir.mkdir()
+    output_parent_dir.chmod(0o400)
+
+    try:
+        result = runner.invoke(
+            cli.app,
+            ["plot-features", str(input_file), str(output_dir)],
+        )
+
+        assert result.exit_code != 0
+        assert "Error creating output directory" in result.stderr
+    finally:
+        output_parent_dir.chmod(0o755)
+
+
+def test_cli_plot_features_output_path_is_file(
+    runner: testing.CliRunner,
+    tmp_path: pathlib.Path,
+) -> None:
+    """Test CLI handles output path that is a file instead of directory."""
+    input_file = tmp_path / "features.csv"
+    input_file.write_text("some text")
+    output_file = tmp_path / "output.txt"
+    output_file.write_text("existing file")
+
+    result = runner.invoke(
+        cli.app,
+        ["plot-features", str(input_file), str(output_file)],
+    )
+
+    assert result.exit_code != 0
+    assert "Error creating output directory" in result.stderr
+
+
+def test_cli_plot_features_invalid_plot_types(
+    runner: testing.CliRunner,
+    tmp_path: pathlib.Path,
+) -> None:
+    """Test CLI handles invalid plot types for plot-features command."""
+    input_file = tmp_path / "features.csv"
+    input_file.write_text("some text")
+    output_dir = tmp_path / "plots"
+    output_dir.mkdir()
+
+    result = runner.invoke(
+        cli.app,
+        [
+            "plot-features",
+            str(input_file),
+            str(output_dir),
+            "--plot-types",
+            "invalid_plot_type",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert (
+        "'invalid_plot_type' is not one of 'dist', 'trends', 'boxplot', 'cluster'."
+        in _clean_output(result.stderr)
+    )
+
+
+def test_cli_plot_features_invalid_features(
+    runner: testing.CliRunner,
+    tmp_path: pathlib.Path,
+) -> None:
+    """Test CLI handles invalid features for plot-features command."""
+    input_file = tmp_path / "features.csv"
+    input_file.write_text("some text")
+    output_dir = tmp_path / "plots"
+    output_dir.mkdir()
+
+    result = runner.invoke(
+        cli.app,
+        [
+            "plot-features",
+            str(input_file),
+            str(output_dir),
+            "--features",
+            "invalid_feature",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "Error generating plots" in result.stderr
+
+
+def test_cli_plot_features_with_specific_parameters(
+    runner: testing.CliRunner,
+    sample_batch_features: pd.DataFrame,
+    tmp_path: pathlib.Path,
+) -> None:
+    """Test CLI generates specified plots with specific features."""
+    input_file = tmp_path / "features.csv"
+    sample_batch_features.to_csv(input_file, index=False)
+    output_dir = tmp_path / "plots"
+    output_dir.mkdir()
+
+    result = runner.invoke(
+        cli.app,
+        [
+            "plot-features",
+            str(input_file),
+            str(output_dir),
+            "--plot-types",
+            "dist",
+            "--features",
+            "duration",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert f"All plots saved to: {output_dir}" in result.stdout
+
+
+def test_cli_plot_features_all_plot_types_default(
+    runner: testing.CliRunner,
+    sample_batch_features: pd.DataFrame,
+    tmp_path: pathlib.Path,
+) -> None:
+    """Test CLI generates all plot types when none specified."""
+    input_file = tmp_path / "features.csv"
+    sample_batch_features.to_csv(input_file, index=False)
+    output_dir = tmp_path / "plots"
+    output_dir.mkdir()
+
+    result = runner.invoke(
+        cli.app,
+        ["plot-features", str(input_file), str(output_dir)],
+    )
+
+    assert result.exit_code == 0
+    assert f"All plots saved to: {output_dir}" in result.stdout
