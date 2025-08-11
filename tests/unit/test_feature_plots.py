@@ -24,7 +24,10 @@ def test_plot_feature_distributions_all_saved(
             data=sample_batch_features_df, output_path=output_dir
         )
     output_files = list(output_dir.glob("*.png"))
-    legend_labels = [t.get_text() for t in fig.axes[0].legend_.get_texts()]
+    legend_labels = []
+    legend = fig.axes[0].legend_
+    if legend is not None:
+        legend_labels = [t.get_text() for t in legend.get_texts()]
 
     assert "Starting feature distributions plot generation" in caplog.text
     assert "Created subplot grid for 25 features" in caplog.text
@@ -40,9 +43,12 @@ def test_plot_feature_distributions_all_saved(
     for ax in fig.axes:
         assert ax.has_data()
         assert ax.get_ylabel() == "Density"
-        assert ax.get_legend().get_title().get_text() == "Hand - Task Type"
+        legend = ax.get_legend()
+        assert (
+            legend is not None and legend.get_title().get_text() == "Hand - Task Type"
+        )
         assert ax.get_title().find("\n") < 21
-        assert ax.grid
+        assert len(ax.get_xgridlines()) > 0 or len(ax.get_ygridlines()) > 0
     assert len(legend_labels) == 4
 
     plt.close(fig)
@@ -102,9 +108,10 @@ def test_plot_feature_trends_all_saved(
     for ax in fig.axes:
         assert ax.has_data()
         assert ax.get_xlabel() == "Task"
-        assert ax.get_legend().get_title().get_text() == "Hand"
+        legend = ax.get_legend()
+        assert legend is not None and legend.get_title().get_text() == "Hand"
         assert ax.get_title().find("\n") < 21
-        assert ax.grid
+        assert len(ax.get_xgridlines()) > 0 or len(ax.get_ygridlines()) > 0
 
     plt.close(fig)
 
@@ -162,9 +169,10 @@ def test_plot_feature_boxplots_all_saved(
     for ax in fig.axes:
         assert ax.has_data()
         assert ax.get_xlabel() == "Task"
-        assert ax.get_legend().get_title().get_text() == "Hand"
+        legend = ax.get_legend()
+        assert legend is not None and legend.get_title().get_text() == "Hand"
         assert ax.get_title().find("\n") < 21
-        assert ax.grid
+        assert len(ax.get_xgridlines()) > 0 or len(ax.get_ygridlines()) > 0
 
     plt.close(fig)
 
