@@ -14,16 +14,25 @@ A Python toolkit for analysis of graphomotor data collected via Curious.
 Welcome to `graphomotor`, a specialized Python library for analyzing graphomotor data collected via [Curious](https://www.gettingcurious.com/). This toolkit aims to provide comprehensive tools for processing, analyzing, and visualizing data from various graphomotor assessment tasks, including spiral drawing, trails making, alphabetic writing, digit symbol substitution, and the Rey-Osterrieth Complex Figure Test.
 
 > [!IMPORTANT]
-> `graphomotor` is under active development. Currently, the focus is on the spiral drawing task. After finalizing feature extraction, the next steps will involve implementing both preprocessing and visualization for this task. Once these parts are in place, we plan to extend support to other tasks.
+> `graphomotor` is under [active development](#development-progress). So far, the feature extraction and visualization components for the spiral drawing task are complete. The next steps involve implementing preprocessing for this task and extending support to other tasks.
 
 ## Feature Extraction Capabilities
 
-The toolkit extracts clinically relevant metrics from digitized drawing data. Currently implemented features include:
+The toolkit extracts 25 clinically relevant metrics from digitized drawing data. Currently implemented feature categories include:
 
-- **Temporal Features**: Task completion duration.
-- **Velocity Features**: Velocity analysis including linear, radial, and angular velocity components with statistical measures (sum, median, variation, skewness, kurtosis).
-- **Distance Features**: Spatial accuracy measurements using Hausdorff distance metrics with temporal normalizations and segment-specific analysis.
-- **Drawing Error Features**: Area under the curve (AUC) calculations between drawn paths and ideal reference trajectories to quantify spatial accuracy.
+- **Velocity Features (15)**: Velocity analysis including linear, radial, and angular velocity components with statistical measures (sum, median, variation, skewness, kurtosis).
+- **Distance Features (8)**: Spatial accuracy measurements using Hausdorff distance metrics with temporal normalizations and segment-specific analysis.
+- **Drawing Error Features (1)**: Area under the curve (AUC) calculations between drawn paths and ideal reference trajectories to quantify spatial accuracy.
+- **Temporal Features (1)**: Task completion duration.
+
+## Feature Visualization Capabilities
+
+The toolkit provides several plotting functions to visualize extracted features:
+
+- **Distribution Plots**: Kernel density estimation plots showing feature distributions grouped by task type and hand.
+- **Trend Plots**: Line plots displaying feature progression across task sequences with individual participant trajectories and group means.
+- **Box Plots**: Box-and-whisker plots comparing feature distributions across different tasks and hand conditions.
+- **Cluster Heatmaps**: Hierarchically clustered heatmaps of z-score standardized features to identify patterns across conditions.
 
 ## Installation
 
@@ -41,89 +50,188 @@ pip install git+https://github.com/childmindresearch/graphomotor
 
 ## Quick Start
 
-`graphomotor` is available both as a **command-line interface** and as an importable **Python library** for easy integration into analysis workflows.
+`graphomotor` provides two main functionalities: [feature extraction](#feature-extraction) from raw drawing data and [visualization](#feature-visualization) of extracted features. Both are available as a **command-line interface** (CLI) and an **importable Python library**.
 
 > [!CAUTION]
 > Input data must follow the [Curious drawing responses format](https://mindlogger.atlassian.net/servicedesk/customer/portal/3/article/859242501). See [Data Format Requirements](#data-format-requirements) below.
 
-### Command-Line Interface
-
-**Run a single file:**
-
-```bash
-graphomotor /path/to/data.csv /path/to/output/features.csv
-```
-
-**Run entire directories:**
-
-```bash
-graphomotor /path/to/data_directory/ /path/to/output/features.csv
-```
-
-**For a full list of arguments and options, run:**
+**To see all available commands and global options in the CLI:**
 
 ```bash
 graphomotor --help
 ```
 
-### Python Library
+### Feature Extraction
 
-**Run a single file:**
+The feature extraction functionality computes a set of clinically relevant metrics from digitized graphomotor drawing data. It processes raw CSV files exported from Curious, extracts participant metadata, and [calculates features](#feature-extraction-capabilities) such as velocity, distance, drawing error, and temporal measures for each drawing. The resulting structured dataset can be used for further analysis or visualization, supporting both single-file and batch processing workflows.
+
+#### CLI Usage for Feature Extraction
+
+**To extract features from a single file:**
+
+```bash
+graphomotor extract /path/to/data.csv /path/to/output/features.csv
+```
+
+**To extract features from entire directories:**
+
+```bash
+graphomotor extract /path/to/data_directory/ /path/to/output/features.csv
+```
+
+**To see all available options for `extract`:**
+
+```bash
+graphomotor extract --help
+```
+
+#### Python Library Usage for Feature Extraction
+
+**To extract features from a single file:**
 
 ```python
 from graphomotor.core import orchestrator
 
 # Define input path
-input_path = "path/to/data.csv"
+input_path = "/path/to/data.csv"
 
 # Define output path to save results to disk
 # If output path is a directory, file name will be auto-generated as
 # `{participant_id}_{task}_{hand}_features_{YYYYMMDD_HHMM}.csv`
-output_path = "path/to/output/features.csv"
+output_path = "/path/to/output/features.csv"
 
 # Run the pipeline
 results_df = orchestrator.run_pipeline(input_path=input_path, output_path=output_path)
 ```
 
-**Run entire directories:**
+**To extract features from entire directories:**
 
 ```python
 from graphomotor.core import orchestrator
 
 # Define input directory
-input_dir = "path/to/data_directory/"
+input_dir = "/path/to/data_directory/"
 
 # Define output path to save results to disk
 # If output path is a directory, file name will be auto-generated as
 # `batch_features_{YYYYMMDD_HHMM}.csv`
-output_dir = "path/to/output/"
+output_dir = "/path/to/output/"
 
 # Run the pipeline
 results_df = orchestrator.run_pipeline(input_path=input_dir, output_path=output_dir)
 ```
 
-**Access results:**
+**To access the results:**
 
 ```python
-# Pipeline returns a DataFrame with extracted metadata and features
+# run_pipeline() returns a DataFrame with extracted metadata and features
 print(f"Processed {len(results_df)} files")
 print(f"Extracted metadata and features: {results_df.columns.tolist()}")
 
 # Get data for first file
+# DataFrame is indexed by file path
 file_path = results_df.index[0]
-participant = results_df.loc[file_path, 'participant_id']
-task = results_df.loc[file_path, 'task']
-duration = results_df.loc[file_path, 'duration']
+participant = results_df.loc[file_path, "participant_id"]
+task = results_df.loc[file_path, "task"]
+duration = results_df.loc[file_path, "duration"]
 ```
 
 > [!NOTE]
-> For detailed configuration options and additional parameters, refer to the [`run_pipeline` documentation](https://childmindresearch.github.io/graphomotor/graphomotor/core/orchestrator.html#run_pipeline).
+> For detailed configuration options and additional parameters for feature extraction, refer to the [`run_pipeline` documentation](https://childmindresearch.github.io/graphomotor/graphomotor/core/orchestrator.html#run_pipeline).
+
+### Feature Visualization
+
+The feature visualization module enables users to generate [a variety of plots](#feature-visualization-capabilities) from batch feature output files produced by the [feature extraction](#feature-extraction) process. These output CSV files are expected to contain data from multiple participants, with the first five columns reserved for metadata (`source_file`, `participant_id`, `task`, `hand`, `start_time`), followed by columns representing numerical features. The visualization tools offer flexible selection of features and plot types, accessible via both the CLI and Python library. All plots return `matplotlib.figure` objects, facilitating further customization and integration into analysis workflows. This functionality streamlines exploratory data analysis and supports the identification of trends and outliers in graphomotor datasets.
+
+> [!TIP]
+> **Custom Features**: You can add custom feature columns to your output CSV files alongside the standard graphomotor features. The plotting functions will automatically detect and include any additional columns after the first 5 metadata columns.
+
+#### CLI Usage for Feature Visualization
+
+**To generate all available plot types with all features in the input file:**
+
+```bash
+graphomotor plot-features /path/to/batch_features.csv /path/to/plots/
+```
+
+**To generate only selected plot types for specific features:**
+
+```bash
+graphomotor plot-features /path/to/batch_features.csv /path/to/plots/ -p dist -p trend -f area_under_curve -f duration
+```
+
+**To see all available options for `plot-features`:**
+
+```bash
+graphomotor plot-features --help
+```
+
+#### Python Library Usage for Feature Visualization
+
+**To generate a distribution plot for specific features and save it:**
+
+```python
+from graphomotor.plot import feature_plots
+
+# Define paths to data, output directory and features to plot
+data = "/path/to/batch_features.csv"
+output_dir = "/path/to/plots/"
+features = ["linear_velocity_median", "hausdorff_distance_maximum"]
+
+# Generate and save distribution plots for selected features
+feature_plots.plot_feature_distributions(
+  data=data,
+  output_path=output_dir,
+  features=features
+)
+```
+
+**To generate boxplots for all available features in a notebook:**
+
+```python
+from graphomotor.plot import feature_plots
+
+# Use magic command for inline plotting in notebooks
+%matplotlib inline
+
+# Define the path to data
+data = "/path/to/batch_features.csv"
+
+# Generate boxplots for all available features and return the figure object
+fig = feature_plots.plot_feature_boxplots(data=data)
+
+# It is possible to customize the figure object further before displaying or saving it:
+# Change the figure title
+fig.suptitle("Custom Title", fontsize=24)
+
+# Adjust the layout so that figure title does not overlap with subplots
+fig.subplots_adjust(top=0.94)
+
+# Customize each subplot
+for ax in fig.get_axes():
+    # Change the degree of rotation for x-tick labels:
+    ax.tick_params(axis="x", rotation=30)
+    # Hide gridlines
+    ax.grid(False)
+    # Highlight outliers by changing their color and size
+    for line in ax.get_lines():
+        if line.get_marker() == "o":
+            line.set_markerfacecolor("red")
+            line.set_markeredgecolor("red")
+            line.set_markersize(4)
+
+# Save the figure after the changes
+fig.savefig(f"path/to/customized_boxplots.png", dpi=300)
+```
+
+> [!NOTE]
+> For all available feature plotting options and the list of all 25 features extracted by the toolkit, refer to the [`feature_plots` documentation](https://childmindresearch.github.io/graphomotor/graphomotor/plot/feature-plots.html).
 
 ## Development Progress
 
 | Task | Preprocessing | Feature Extraction | Visualization |
 | :--- | :---: | :---: | :---: |
-| Spiral | ![Spiral: Preprocessing Pending](https://img.shields.io/badge/pending-red) | ![Spiral: Feature Extraction In Progress](https://img.shields.io/badge/in_progress-yellow) | ![Spiral: Visualization Pending](https://img.shields.io/badge/pending-red) |
+| Spiral | ![Spiral: Preprocessing Pending](https://img.shields.io/badge/pending-red) | ![Spiral: Feature Extraction Complete](https://img.shields.io/badge/complete-green) | ![Spiral: Visualization Complete](https://img.shields.io/badge/complete-green) |
 | Rey-Osterrieth Complex Figure | ![Rey-Osterrieth: Preprocessing Pending](https://img.shields.io/badge/pending-red) | ![Rey-Osterrieth: Feature Extraction Pending](https://img.shields.io/badge/pending-red) | ![Rey-Osterrieth: Visualization Pending](https://img.shields.io/badge/pending-red) |
 | Alphabetic Writing | ![Alphabetic Writing: Preprocessing Pending](https://img.shields.io/badge/pending-red) | ![Alphabetic Writing: Feature Extraction Pending](https://img.shields.io/badge/pending-red) | ![Alphabetic Writing: Visualization Pending](https://img.shields.io/badge/pending-red) |
 | Digit Symbol Substitution | ![Digit Symbol Substitution: Preprocessing Pending](https://img.shields.io/badge/pending-red) | ![Digit Symbol Substitution: Feature Extraction Pending](https://img.shields.io/badge/pending-red) | ![Digit Symbol Substitution: Visualization Pending](https://img.shields.io/badge/pending-red) |

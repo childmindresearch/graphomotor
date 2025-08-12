@@ -1,4 +1,4 @@
-"""Configuration module for Graphomotor."""
+"""Configuration module for graphomotor."""
 
 import dataclasses
 import logging

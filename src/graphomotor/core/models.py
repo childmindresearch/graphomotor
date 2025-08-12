@@ -30,7 +30,7 @@ class Spiral(pydantic.BaseModel):
     @pydantic.field_validator("data")
     @classmethod
     def validate_dataframe(cls, v: pd.DataFrame) -> pd.DataFrame:
-        """Validate that DataFrame contains required columns and correct data types.
+        """Validate that DataFrame is not empty.
 
         Args:
             cls: The class.
