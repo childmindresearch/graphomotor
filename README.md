@@ -18,12 +18,12 @@ Welcome to `graphomotor`, a specialized Python library for analyzing graphomotor
 
 ## Feature Extraction Capabilities
 
-The toolkit extracts clinically relevant metrics from digitized drawing data. Currently implemented features include:
+The toolkit extracts 25 clinically relevant metrics from digitized drawing data. Currently implemented feature categories include:
 
-- **Temporal Features**: Task completion duration.
-- **Velocity Features**: Velocity analysis including linear, radial, and angular velocity components with statistical measures (sum, median, variation, skewness, kurtosis).
-- **Distance Features**: Spatial accuracy measurements using Hausdorff distance metrics with temporal normalizations and segment-specific analysis.
-- **Drawing Error Features**: Area under the curve (AUC) calculations between drawn paths and ideal reference trajectories to quantify spatial accuracy.
+- **Velocity Features (15)**: Velocity analysis including linear, radial, and angular velocity components with statistical measures (sum, median, variation, skewness, kurtosis).
+- **Distance Features (8)**: Spatial accuracy measurements using Hausdorff distance metrics with temporal normalizations and segment-specific analysis.
+- **Drawing Error Features (1)**: Area under the curve (AUC) calculations between drawn paths and ideal reference trajectories to quantify spatial accuracy.
+- **Temporal Features (1)**: Task completion duration.
 
 ## Feature Visualization Capabilities
 
@@ -50,83 +50,78 @@ pip install git+https://github.com/childmindresearch/graphomotor
 
 ## Quick Start
 
-`graphomotor` is available both as a [command-line interface](#command-line-interface) and as an importable [Python library](#python-library) for easy integration into analysis workflows.
+`graphomotor` provides two main functionalities: [feature extraction](#feature-extraction) from raw drawing data and [visualization](#feature-visualization) of extracted features. Both are available as a **command-line interface** (CLI) and an **importable Python library**.
 
 > [!CAUTION]
 > Input data must follow the [Curious drawing responses format](https://mindlogger.atlassian.net/servicedesk/customer/portal/3/article/859242501). See [Data Format Requirements](#data-format-requirements) below.
 
-### Command-Line Interface
-
-The CLI provides two main commands: `extract` for feature extraction and `plot-features` for feature visualization.
-
-**Extract features from a single file:**
-
-```bash
-graphomotor extract /path/to/data.csv /path/to/output/features.csv
-```
-
-**Extract features from entire directories:**
-
-```bash
-graphomotor extract /path/to/data_directory/ /path/to/output/features.csv
-```
-
-**Generate plots from extracted features:**
-
-```bash
-graphomotor plot-features /path/to/output/features.csv /path/to/output/plots/
-```
-
-**To see all available commands:**
+**To see all available commands and global options in the CLI:**
 
 ```bash
 graphomotor --help
 ```
 
-**To see all available options for specific commands:**
+### Feature Extraction
+
+The `extract` command computes clinically relevant features from spiral drawing data. It processes drawing CSV files exported from Curious and outputs a structured dataset containing participant metadata and [extracted features for each drawing.
+
+#### CLI Usage for Feature Extraction
+
+**To extract features from a single file:**
+
+```bash
+graphomotor extract /path/to/data.csv /path/to/output/features.csv
+```
+
+**To extract features from entire directories:**
+
+```bash
+graphomotor extract /path/to/data_directory/ /path/to/output/features.csv
+```
+
+**To see all available options for `extract`:**
 
 ```bash
 graphomotor extract --help
-graphomotor plot-features --help
 ```
 
-### Python Library
+#### Python Library Usage for Feature Extraction
 
-**Run a single file:**
+**To extract features from a single file:**
 
 ```python
 from graphomotor.core import orchestrator
 
 # Define input path
-input_path = "path/to/data.csv"
+input_path = "/path/to/data.csv"
 
 # Define output path to save results to disk
 # If output path is a directory, file name will be auto-generated as
 # `{participant_id}_{task}_{hand}_features_{YYYYMMDD_HHMM}.csv`
-output_path = "path/to/output/features.csv"
+output_path = "/path/to/output/features.csv"
 
 # Run the pipeline
 results_df = orchestrator.run_pipeline(input_path=input_path, output_path=output_path)
 ```
 
-**Run entire directories:**
+**To extract features from entire directories:**
 
 ```python
 from graphomotor.core import orchestrator
 
 # Define input directory
-input_dir = "path/to/data_directory/"
+input_dir = "/path/to/data_directory/"
 
 # Define output path to save results to disk
 # If output path is a directory, file name will be auto-generated as
 # `batch_features_{YYYYMMDD_HHMM}.csv`
-output_dir = "path/to/output/"
+output_dir = "/path/to/output/"
 
 # Run the pipeline
 results_df = orchestrator.run_pipeline(input_path=input_dir, output_path=output_dir)
 ```
 
-**Access results:**
+**To access the results:**
 
 ```python
 # run_pipeline() returns a DataFrame with extracted metadata and features
@@ -141,17 +136,86 @@ task = results_df.loc[file_path, 'task']
 duration = results_df.loc[file_path, 'duration']
 ```
 
-**Generate plots from extracted features:**
+### Feature Visualization
+
+Generate plots directly from the feature output produced by the `extract` functionality. The plotting functions expect CSV files in the same format as those generated by `graphomotor extract`, with the first five columns reserved for metadata (`source_file`, `participant_id`, `task`, `hand`, `start_time`) and all subsequent columns treated as numerical features. Output plots will be saved to the specified output directory.
+
+> [!TIP]
+> **Custom Features**: You can add custom feature columns to your output CSV files alongside the standard graphomotor features. The plotting functions will automatically detect and include any additional columns after the first 5 metadata columns.
+
+#### CLI Usage for Feature Visualization
+
+**To generate all available plot types with all features in the input file:**
+
+```bash
+graphomotor plot-features /path/to/feature_output.csv /path/to/plots/
+```
+
+**To generate only selected plot types for specific features:**
+
+```bash
+graphomotor plot-features /path/to/feature_output.csv /path/to/plots/ -p dist -p trend -f area_under_curve -f duration
+```
+
+**To see all available options for `plot-features`:**
+
+```bash
+graphomotor plot-features --help
+```
+
+#### Python Library Usage for Feature Visualization
+
+**To generate a distribution plot for specific features and save it:**
 
 ```python
 import matplotlib.pyplot as plt
 from graphomotor.plot import feature_plots
 
-# Generate feature trends plot to visualize feature progression across tasks
-feature_plots.plot_feature_trends(
-    data=results_df,
-    features=["duration", "linear_velocity_median", "hausdorff_distance_maximum"]
+# Define paths to data, output directory and features to plot
+data = '/path/to/batch_features.csv'
+output_dir = '/path/to/plots/'
+features = ['linear_velocity_median', 'hausdorff_distance_maximum']
+
+# Generate and save distribution plots for selected features
+feature_plots.plot_feature_distributions(
+  data=data,
+  output_path=output_dir,
+  features=features
 )
+```
+
+**To generate boxplots for all available features:**
+
+```python
+import matplotlib.pyplot as plt
+from graphomotor.plot import feature_plots
+
+# Define paths to data and output directory
+data = '/path/to/batch_features.csv'
+output_dir = '/path/to/plots/'
+
+# Generate boxplots for all available features and return the figure object
+fig = feature_plots.plot_feature_boxplots(
+  data=data,
+  output_path=output_dir
+)
+
+# It is possible to customize the figure object further before displaying or saving it.
+# Set a global title
+fig.suptitle('Boxplots of All Extracted Features', fontsize=18, fontweight='bold')
+
+# Customize axes: rotate x-tick labels, set grid, highlight outliers
+for ax in fig.get_axes():
+    ax.tick_params(axis='x', rotation=45)
+    ax.grid(True, linestyle='--', alpha=0.6)
+    for line in ax.get_lines():
+        if line.get_label() == 'fliers':
+            line.set_markerfacecolor('red')
+            line.set_markeredgecolor('red')
+
+# Save the figure after the changes
+fig.savefig(f"{output_dir}/customized_boxplots.png", dpi=300)
+
 plt.show()
 ```
 

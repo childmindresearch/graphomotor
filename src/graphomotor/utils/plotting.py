@@ -138,6 +138,7 @@ def _add_task_metadata(features_df: pd.DataFrame) -> tuple[pd.DataFrame, list[st
     Returns:
         A tuple containing the modified DataFrame and a list of task names.
     """
+    # This is the standard order of tasks in the graphomotor protocol
     task_order = {
         "spiral_trace1": 1,
         "spiral_trace2": 2,

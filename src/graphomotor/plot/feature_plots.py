@@ -1,4 +1,66 @@
-"""Feature visualization functions for Graphomotor."""
+"""Feature visualization functions for Graphomotor.
+
+This module provides plotting functions for visualizing extracted features from spiral
+drawing data. The plotting functions expect CSV files with the first 5 columns reserved
+for metadata (source_file, participant_id, task, hand, start_time), and treat all
+subsequent columns as numerical features.
+
+Available Standard Features
+---------------------------
+The following 25 features are extracted by the standard graphomotor pipeline:
+
+**Distance-based Features (8 features):**
+- hausdorff_distance_maximum
+- hausdorff_distance_sum
+- hausdorff_distance_sum_per_second
+- hausdorff_distance_interquartile_range
+- hausdorff_distance_start_segment_maximum_normalized
+- hausdorff_distance_end_segment_maximum_normalized
+- hausdorff_distance_middle_segment_maximum
+- hausdorff_distance_middle_segment_maximum_per_second
+
+**Velocity-based Features (15 features):**
+*Linear velocity (5 features):*
+- linear_velocity_sum
+- linear_velocity_median
+- linear_velocity_coefficient_of_variation
+- linear_velocity_skewness
+- linear_velocity_kurtosis
+
+*Radial velocity (5 features):*
+- radial_velocity_sum
+- radial_velocity_median
+- radial_velocity_coefficient_of_variation
+- radial_velocity_skewness
+- radial_velocity_kurtosis
+
+*Angular velocity (5 features):*
+- angular_velocity_sum
+- angular_velocity_median
+- angular_velocity_coefficient_of_variation
+- angular_velocity_skewness
+- angular_velocity_kurtosis
+
+**Time-based Features (1 feature):**
+- duration
+
+**Drawing Error Features (1 feature):**
+- area_under_curve
+
+Custom Features
+---------------
+Users can add custom feature columns to their CSV files alongside the standard
+graphomotor features. Any additional columns after the first 5 metadata columns
+will be automatically detected and available for plotting.
+
+Plot Types
+----------
+- **Distribution plots**: Kernel density estimation plots showing feature distributions
+  grouped by task type and hand
+- **Trend plots**: Line plots displaying feature progression across task sequences
+- **Box plots**: Box-and-whisker plots comparing distributions across conditions
+- **Cluster heatmaps**: Hierarchically clustered heatmaps of standardized features
+"""
 
 import pathlib
 import warnings
@@ -23,11 +85,25 @@ def plot_feature_distributions(
 ) -> figure.Figure:
     """Plot histograms for each feature grouped by task type and hand.
 
+    This function creates kernel density estimation plots showing feature distributions
+    grouped by task type (trace/recall) and hand (Dom/NonDom). The input data should
+    be a CSV file with the first 5 columns reserved for metadata (source_file,
+    participant_id, task, hand, start_time), with all subsequent columns treated as
+    numerical features.
+
+    Both standard graphomotor features and custom feature columns added by users
+    are supported. See the module-level docstring for a complete list of the 25
+    standard features available from the graphomotor extraction pipeline.
+
     Args:
-        data: Path to CSV file containing features or pandas DataFrame.
+        data: Path to CSV file containing features or pandas DataFrame. Input data
+            should have the first 5 columns as metadata (source_file, participant_id,
+            task, hand, start_time) followed by numerical feature columns.
         output_path: Optional directory where the figure will be saved. If None,
             the function only returns the figure without saving.
         features: List of specific features to plot, if None plots all features.
+            Can include any of the 25 standard graphomotor features (see module
+            docstring) or custom feature columns added to the CSV file.
 
     Returns:
         The matplotlib Figure.
@@ -97,11 +173,25 @@ def plot_feature_trends(
 ) -> figure.Figure:
     """Plot lineplots to compare feature values across conditions per participant.
 
+    This function creates line plots displaying feature progression across task
+    sequences with individual participant trajectories and group means. The input
+    data should be a CSV file with the first 5 columns reserved for metadata
+    (source_file, participant_id, task, hand, start_time), with all subsequent
+    columns treated as numerical features.
+
+    Both standard graphomotor features and custom feature columns added by users
+    are supported. See the module-level docstring for a complete list of the 25
+    standard features available from the graphomotor extraction pipeline.
+
     Args:
-        data: Path to CSV file containing features or pandas DataFrame.
+        data: Path to CSV file containing features or pandas DataFrame. Input data
+            should have the first 5 columns as metadata (source_file, participant_id,
+            task, hand, start_time) followed by numerical feature columns.
         output_path: Optional directory where the figure will be saved. If None,
             the function only returns the figure without saving.
         features: List of specific features to plot, if None plots all features.
+            Can include any of the 25 standard graphomotor features (see module
+            docstring) or custom feature columns added to the CSV file.
 
     Returns:
         The matplotlib Figure.
@@ -169,11 +259,25 @@ def plot_feature_boxplots(
 ) -> figure.Figure:
     """Plot boxplots to compare feature distributions across conditions.
 
+    This function creates box-and-whisker plots comparing feature distributions
+    across different tasks and hand conditions. The input data should be a CSV
+    file with the first 5 columns reserved for metadata (source_file,
+    participant_id, task, hand, start_time), with all subsequent columns treated
+    as numerical features.
+
+    Both standard graphomotor features and custom feature columns added by users
+    are supported. See the module-level docstring for a complete list of the 25
+    standard features available from the graphomotor extraction pipeline.
+
     Args:
-        data: Path to CSV file containing features or pandas DataFrame.
+        data: Path to CSV file containing features or pandas DataFrame. Input data
+            should have the first 5 columns as metadata (source_file, participant_id,
+            task, hand, start_time) followed by numerical feature columns.
         output_path: Optional directory where the figure will be saved. If None,
             the function only returns the figure without saving.
         features: List of specific features to plot, if None plots all features.
+            Can include any of the 25 standard graphomotor features (see module
+            docstring) or custom feature columns added to the CSV file.
 
     Returns:
         The matplotlib Figure.
@@ -240,11 +344,22 @@ def plot_feature_clusters(
     conditions are hierarchically clustered to highlight groups of similar feature
     response patterns and conditions that elicit similar profiles.
 
+    The input data should be a CSV file with the first 5 columns reserved for metadata
+    (source_file, participant_id, task, hand, start_time), with all subsequent columns
+    treated as numerical features. Both standard graphomotor features and custom
+    feature columns added by users are supported. See the module-level docstring for
+    a complete list of the 25 standard features available from the graphomotor
+    extraction pipeline.
+
     Args:
-        data: Path to CSV file containing features or pandas DataFrame.
+        data: Path to CSV file containing features or pandas DataFrame. Input data
+            should have the first 5 columns as metadata (source_file, participant_id,
+            task, hand, start_time) followed by numerical feature columns.
         output_path: Optional directory where the figure will be saved. If None,
             the function only returns the figure without saving.
         features: List of specific features to plot, if None plots all features.
+            Can include any of the 25 standard graphomotor features (see module
+            docstring) or custom feature columns added to the CSV file.
 
     Returns:
         The matplotlib Figure.

@@ -12,6 +12,7 @@ from graphomotor.plot import feature_plots
 logger = config.get_logger()
 app = typer.Typer(
     name="graphomotor",
+    rich_markup_mode="rich",
     help=(
         "Graphomotor: A Python toolkit for analyzing graphomotor data "
         "collected via Curious. See the README for usage details."
@@ -91,7 +92,7 @@ def main(
     ),
     epilog=(
         "For more information on data format requirements, see the README at "
-        "https://github.com/childmindresearch/graphomotor/blob/main/README.md."
+        "https://github.com/childmindresearch/graphomotor?tab=readme-ov-file#feature-extraction."
     ),
 )
 def extract(
@@ -223,11 +224,15 @@ def extract(
     name="plot-features",
     help=(
         "Generate plots from extracted features. Supports distribution, trend, box, "
-        "and cluster plots."
+        "and cluster plots. The plotting functions expect CSV files with the first 5 "
+        "columns reserved for metadata (source_file, participant_id, task, hand, "
+        "start_time), and treat all subsequent columns as numerical features. This "
+        "allows users to add custom feature columns to the CSV file alongside the "
+        "standard graphomotor features, and they will be plotted automatically."
     ),
     epilog=(
         "For more information, see the README at "
-        "https://github.com/childmindresearch/graphomotor/blob/main/README.md."
+        "https://github.com/childmindresearch/graphomotor?tab=readme-ov-file#feature-visualization."
     ),
 )
 def plot_features(
@@ -262,7 +267,12 @@ def plot_features(
             "-f",
             help=(
                 "Specific features to plot. If omitted, all features are plotted. "
-                "To specify multiple features, use this option multiple times."
+                "To specify multiple features, use this option multiple times. "
+                "Features include standard extracted metrics (e.g., duration, "
+                "velocity statistics, distance, or drawing error measures) and any "
+                "custom columns added to the CSV file. See [bold cyan]feature_plots"
+                "[/bold cyan] module documentation for complete list of available "
+                "features."
             ),
             show_default=False,
         ),
