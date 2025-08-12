@@ -131,10 +131,13 @@ print(f"Extracted metadata and features: {results_df.columns.tolist()}")
 # Get data for first file
 # DataFrame is indexed by file path
 file_path = results_df.index[0]
-participant = results_df.loc[file_path, 'participant_id']
-task = results_df.loc[file_path, 'task']
-duration = results_df.loc[file_path, 'duration']
+participant = results_df.loc[file_path, "participant_id"]
+task = results_df.loc[file_path, "task"]
+duration = results_df.loc[file_path, "duration"]
 ```
+
+> [!NOTE]
+> For detailed configuration options and additional parameters for feature extraction, refer to the [`run_pipeline` documentation](https://childmindresearch.github.io/graphomotor/graphomotor/core/orchestrator.html#run_pipeline).
 
 ### Feature Visualization
 
@@ -168,13 +171,12 @@ graphomotor plot-features --help
 **To generate a distribution plot for specific features and save it:**
 
 ```python
-import matplotlib.pyplot as plt
 from graphomotor.plot import feature_plots
 
 # Define paths to data, output directory and features to plot
-data = '/path/to/batch_features.csv'
-output_dir = '/path/to/plots/'
-features = ['linear_velocity_median', 'hausdorff_distance_maximum']
+data = "/path/to/batch_features.csv"
+output_dir = "/path/to/plots/"
+features = ["linear_velocity_median", "hausdorff_distance_maximum"]
 
 # Generate and save distribution plots for selected features
 feature_plots.plot_feature_distributions(
@@ -184,45 +186,46 @@ feature_plots.plot_feature_distributions(
 )
 ```
 
-**To generate boxplots for all available features:**
+**To generate boxplots for all available features in a notebook:**
 
 ```python
-import matplotlib.pyplot as plt
 from graphomotor.plot import feature_plots
 
-# Define paths to data and output directory
-data = '/path/to/batch_features.csv'
-output_dir = '/path/to/plots/'
+# Use magic command for inline plotting in notebooks
+%matplotlib inline
+
+# Define the path to data
+data = "/path/to/batch_features.csv"
 
 # Generate boxplots for all available features and return the figure object
-fig = feature_plots.plot_feature_boxplots(
-  data=data,
-  output_path=output_dir
-)
+fig = feature_plots.plot_feature_boxplots(data=data)
 
-# It is possible to customize the figure object further before displaying or saving it.
-# Set a global title
-fig.suptitle('Boxplots of All Extracted Features', fontsize=18, fontweight='bold')
+# It is possible to customize the figure object further before displaying or saving it:
+# Change the figure title
+fig.suptitle("Custom Title", fontsize=24)
 
-# Customize axes: rotate x-tick labels, set grid, highlight outliers
+# Adjust the layout so that figure title does not overlap with subplots
+fig.subplots_adjust(top=0.94)
+
+# Customize each subplot
 for ax in fig.get_axes():
-    ax.tick_params(axis='x', rotation=45)
-    ax.grid(True, linestyle='--', alpha=0.6)
+    # Change the degree of rotation for x-tick labels:
+    ax.tick_params(axis="x", rotation=30)
+    # Hide gridlines
+    ax.grid(False)
+    # Highlight outliers by changing their color and size
     for line in ax.get_lines():
-        if line.get_label() == 'fliers':
-            line.set_markerfacecolor('red')
-            line.set_markeredgecolor('red')
+        if line.get_marker() == "o":
+            line.set_markerfacecolor("red")
+            line.set_markeredgecolor("red")
+            line.set_markersize(4)
 
 # Save the figure after the changes
-fig.savefig(f"{output_dir}/customized_boxplots.png", dpi=300)
-
-plt.show()
+fig.savefig(f"path/to/customized_boxplots.png", dpi=300)
 ```
 
 > [!NOTE]
-> For detailed configuration options and additional parameters for feature extraction, refer to the [`run_pipeline` documentation](https://childmindresearch.github.io/graphomotor/graphomotor/core/orchestrator.html#run_pipeline).
->
-> For all available feature plotting options, refer to the [`feature_plots` documentation](https://childmindresearch.github.io/graphomotor/graphomotor/plot/feature-plots.html).
+> For all available feature plotting options and the list of all 25 features extracted by the toolkit, refer to the [`feature_plots` documentation](https://childmindresearch.github.io/graphomotor/graphomotor/plot/feature-plots.html).
 
 ## Development Progress
 
