@@ -18,25 +18,25 @@ Welcome to `graphomotor`, a specialized Python library for analyzing graphomotor
 
 ## Feature Extraction Capabilities
 
-The toolkit extracts 25 clinically relevant metrics from digitized drawing data. Currently implemented feature categories include:
+The toolkit extracts [25 clinically relevant metrics](https://childmindresearch.github.io/graphomotor/graphomotor/features.html) from digitized drawing data. Currently implemented feature categories include:
 
-- **Velocity Features (15)**: Velocity analysis including linear, radial, and angular velocity components with statistical measures (sum, median, variation, skewness, kurtosis).
-- **Distance Features (8)**: Spatial accuracy measurements using Hausdorff distance metrics with temporal normalizations and segment-specific analysis.
-- **Drawing Error Features (1)**: Area under the curve (AUC) calculations between drawn paths and ideal reference trajectories to quantify spatial accuracy.
-- **Temporal Features (1)**: Task completion duration.
+- **[Velocity Features](https://childmindresearch.github.io/graphomotor/graphomotor/features/velocity.html) (15)**: Velocity analysis including linear, radial, and angular velocity components with statistical measures (sum, median, variation, skewness, kurtosis).
+- **[Distance Features](https://childmindresearch.github.io/graphomotor/graphomotor/features/distance.html) (8)**: Spatial accuracy measurements using Hausdorff distance metrics with temporal normalizations and segment-specific analysis.
+- **[Drawing Error Features](https://childmindresearch.github.io/graphomotor/graphomotor/features/drawing_error.html) (1)**: Area under the curve (AUC) calculations between drawn paths and ideal reference trajectories to quantify spatial accuracy.
+- **[Temporal Features](https://childmindresearch.github.io/graphomotor/graphomotor/features/time.html) (1)**: Task completion duration.
 
 ## Feature Visualization Capabilities
 
 The toolkit provides several plotting functions to visualize extracted features:
 
-- **Distribution Plots**: Kernel density estimation plots showing feature distributions grouped by task type and hand.
-- **Trend Plots**: Line plots displaying feature progression across task sequences with individual participant trajectories and group means.
-- **Box Plots**: Box-and-whisker plots comparing feature distributions across different tasks and hand conditions.
-- **Cluster Heatmaps**: Hierarchically clustered heatmaps of z-score standardized features to identify patterns across conditions.
+- **[Distribution Plots](https://childmindresearch.github.io/graphomotor/graphomotor/plot/feature_plots.html#plot_feature_distributions)**: Kernel density estimation plots showing feature distributions grouped by task type and hand.
+- **[Trend Plots](https://childmindresearch.github.io/graphomotor/graphomotor/plot/feature_plots.html#plot_feature_trends)**: Line plots displaying feature progression across task sequences with individual participant trajectories and group means.
+- **[Box Plots](https://childmindresearch.github.io/graphomotor/graphomotor/plot/feature_plots.html#plot_feature_boxplots)**: Box-and-whisker plots comparing feature distributions across different tasks and hand conditions.
+- **[Cluster Heatmaps](https://childmindresearch.github.io/graphomotor/graphomotor/plot/feature_plots.html#plot_feature_clusters)**: Hierarchically clustered heatmaps of z-score standardized features to identify patterns across conditions.
 
 ## Installation
 
-Install `graphomotor` from PyPI:
+Install `graphomotor` from [PyPI](https://pypi.org/project/graphomotor/):
 
 ```sh
 pip install graphomotor
@@ -225,7 +225,7 @@ fig.savefig(f"path/to/customized_boxplots.png", dpi=300)
 ```
 
 > [!NOTE]
-> For all available feature plotting options and the list of all 25 features extracted by the toolkit, refer to the [`feature_plots` documentation](https://childmindresearch.github.io/graphomotor/graphomotor/plot/feature-plots.html).
+> For all available feature plotting options, refer to the [`feature_plots` documentation](https://childmindresearch.github.io/graphomotor/graphomotor/plot/feature_plots.html).
 
 ## Development Progress
 

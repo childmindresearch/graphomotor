@@ -32,23 +32,25 @@ def calculate_velocity_metrics(spiral: models.Spiral) -> dict[str, float]:
     This function computes three types of velocity metrics by calculating the difference
     between consecutive points in the spiral drawing data. The three types of velocity
     are:
-        1. Linear velocity: The magnitude of change of Euclidean distance in pixels
-           per second. This is calculated as the square root of the sum of squares of
-           the differences in x and y coordinates divided by the difference in time.
-        2. Radial velocity: The magnitude of change of distance from center (radius) in
-           pixels per second. Radius is calculated as the square root of the sum of
-           squares of x and y coordinates.
-        3. Angular velocity: The magnitude of change of angle in radians per second.
-           Angle is calculated using the arctangent of y coordinates divided by x
-           coordinates, and then unwrapped to maintain continuity across the -π to π
-           boundary.
+
+    1. **Linear velocity**: The magnitude of change of Euclidean distance in pixels
+       per second. This is calculated as the square root of the sum of squares of
+       the differences in x and y coordinates divided by the difference in time.
+    2. **Radial velocity**: The magnitude of change of distance from center (radius) in
+       pixels per second. Radius is calculated as the square root of the sum of
+       squares of x and y coordinates.
+    3. **Angular velocity**: The magnitude of change of angle in radians per second.
+       Angle is calculated using the arctangent of y coordinates divided by x
+       coordinates, and then unwrapped to maintain continuity across the -π to π
+       boundary.
 
     For each velocity type, the following metrics are calculated:
-        - Sum: Sum of absolute velocity values
-        - Median: Median of absolute velocity values
-        - Coefficient of variation: Standard deviation divided by the mean
-        - Skewness: Asymmetry of the velocity distribution
-        - Kurtosis: Tailedness of the velocity distribution
+
+    - **Sum**: Sum of absolute velocity values
+    - **Median**: Median of absolute velocity values
+    - **Coefficient of variation**: Standard deviation divided by the mean
+    - **Skewness**: Asymmetry of the velocity distribution
+    - **Kurtosis**: Tailedness of the velocity distribution
 
     Args:
         spiral: Spiral object containing drawing data.

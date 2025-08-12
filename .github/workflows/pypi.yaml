@@ -1,7 +1,9 @@
 name: Publish to PyPI
 
 permissions:
-  actions: write
+  contents: write # Required for creating releases and tags
+  actions: read
+  id-token: write # Required for OIDC
 
 on:
   workflow_run:
@@ -12,40 +14,123 @@ on:
     - main
 
 jobs:
+  check-version:
+    name: Check Version Change
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    outputs:
+      version-changed: ${{ steps.version-check.outputs.changed }}
+      new-version: ${{ steps.version-check.outputs.version }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 2   # Need previous commit for comparison
+
+    - name: Check version change
+      id: version-check
+      run: |
+        # Extract current version from pyproject.toml
+        current_version=$(grep -Po '(?<=^version = ")[^"]*' pyproject.toml)
+        echo "Current version: $current_version"
+
+        # Check if version changed in last commit
+        if git diff HEAD~1 HEAD pyproject.toml | grep -q "^[+-]version ="; then
+          echo "Version changed in this commit"
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "version=$current_version" >> "$GITHUB_OUTPUT"
+        else
+          echo "Version unchanged - skipping release"
+          echo "changed=false" >> "$GITHUB_OUTPUT"
+        fi
+
   pypi-release:
     name: PyPI Release
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    needs: check-version
+    if: ${{ needs.check-version.outputs.version-changed == 'true' }}
     environment:
       name: pypi
       url: https://pypi.org/project/graphomotor/
+    timeout-minutes: 10
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
       with:
-        fetch-depth: ${{ github.event_name == 'pull_request' && 2 || 0 }}
+        fetch-depth: 1   # Only need current commit for build
 
-    - uses: actions/setup-python@v5
+    - name: Set up Python
+      uses: actions/setup-python@v5
       with:
         python-version-file: pyproject.toml
-
-    - name: Skip release if version unchanged
-      run: |
-        version_change=$(git diff -r HEAD^1 pyproject.toml | grep -E "^(\+|-)version =")
-        if [[ -z "$version_change" ]]; then
-          gh run cancel ${{ github.run_id }}
-          gh run watch ${{ github.run_id }}
-        fi
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Install uv
       uses: astral-sh/setup-uv@bd01e18f51369d5a26f1651c3cb451d3417e3bba   # v6.3.1
       with:
         enable-cache: true
 
-    - name: Build package
-      run: uv build
+    - name: Cache uv dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/uv
+        key: ${{ runner.os }}-uv-${{ hashFiles('**/pyproject.toml', '**/uv.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-uv-
+
+    - name: Validate package metadata
+      run: |
+        echo "Building version: ${{ needs.check-version.outputs.new-version }}"
+        uv build --wheel --sdist
+        ls -la dist/
+
+        # Validate package contents
+        uv run python -c "
+        import tarfile
+        import zipfile
+        import os
+
+        # Check sdist contents
+        for f in os.listdir('dist'):
+            if f.endswith('.tar.gz'):
+                with tarfile.open(f'dist/{f}', 'r:gz') as tar:
+                    print(f'SDist contents ({f}):')
+                    for member in tar.getnames()[:10]:  # Show first 10 files
+                        print(f'  {member}')
+            elif f.endswith('.whl'):
+                with zipfile.ZipFile(f'dist/{f}', 'r') as zip_file:
+                    print(f'Wheel contents ({f}):')
+                    for member in zip_file.namelist()[:10]:  # Show first 10 files
+                        print(f'  {member}')
+        "
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: python-package-distributions
+        path: dist/
+        retention-days: 30
 
     - name: Publish to PyPI
       uses: pypa/gh-action-pypi-publish@76f52bc884231f62b9a034ebfe128415bbaabdfc   # v1.12.4
+      with:
+        print-hash: true
+        verbose: true
+          # OIDC authentication - no API token needed
+
+    - name: Create GitHub Release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release create "v${{ needs.check-version.outputs.new-version }}" \
+          --title "Release v${{ needs.check-version.outputs.new-version }}" \
+          --notes "## What's Changed
+
+        Automated release for version ${{ needs.check-version.outputs.new-version }}
+
+        ### Package Information
+        - **PyPI**: https://pypi.org/project/graphomotor/${{ needs.check-version.outputs.new-version }}/
+        - **Changelog**: See commit history for detailed changes
+
+        Full package verification and testing completed via CI pipeline." \
+          dist/*
