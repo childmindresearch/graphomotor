@@ -1,0 +1,394 @@
+"""Spiral visualization functions for quality control and data inspection.
+
+This module provides plotting functions for visualizing spiral drawing trajectories from
+CSV files. The functions support both single spiral plotting and batch processing for
+quality control purposes.
+
+Plot Types
+----------
+- **Single spiral plots**: Visualize individual spiral drawings with optional
+  reference spiral overlay and color-coded line segments
+- **Batch spiral plots**: Visualize multiple spiral drawings organized by metadata
+  with configurable subplot density and arrangement
+"""
+
+import pathlib
+
+import matplotlib
+import numpy as np
+from matplotlib import pyplot as plt
+
+from graphomotor.core import config, models
+from graphomotor.io import reader
+from graphomotor.utils import center_spiral, plotting
+
+matplotlib.use("agg")  # prevent interactive matplotlib
+logger = config.get_logger()
+
+
+def _plot_spiral(
+    ax: plt.Axes,
+    spiral: models.Spiral,
+    centered_ref: np.ndarray,
+    include_reference: bool = False,
+    color_segments: bool = False,
+    is_batch: bool = False,
+) -> None:
+    """Plot a spiral on a given matplotlib Axes.
+
+    Args:
+        ax: Matplotlib Axes to plot on.
+        spiral: Spiral object containing drawing data and metadata.
+        centered_ref: Pre-computed centered reference spiral coordinates.
+        include_reference: If True, overlays the reference spiral for comparison.
+        color_segments: If True, colors each line segment with distinct colors.
+        is_batch: If True, formats for batch mode (no legend, no axis labels,
+            smaller font).
+    """
+    centered_spiral = center_spiral.center_spiral(spiral)
+    x_coords = centered_spiral.data["x"].values
+    y_coords = centered_spiral.data["y"].values
+    line_numbers = centered_spiral.data["line_number"].values
+
+    if color_segments:
+        unique_line_numbers = np.unique(line_numbers)
+        color_indices = np.linspace(0, 1, len(unique_line_numbers))
+
+        if len(unique_line_numbers) <= 10:
+            colors = plt.get_cmap("tab10")(color_indices)
+        elif len(unique_line_numbers) <= 20:
+            colors = plt.get_cmap("tab20")(color_indices)
+        else:
+            colors = plt.get_cmap("viridis")(color_indices)
+
+        color_map = dict(zip(unique_line_numbers, colors))
+
+        for i in range(len(x_coords) - 1):
+            current_line = line_numbers[i]
+            label = (
+                f"Line {int(current_line)}"
+                if i == 0 or line_numbers[i - 1] != current_line
+                else None
+            )
+            ax.plot(
+                [x_coords[i], x_coords[i + 1]],
+                [y_coords[i], y_coords[i + 1]],
+                color=color_map[current_line],
+                linewidth=1.5,
+                alpha=0.8,
+                label=label,
+            )
+    else:
+        ax.plot(
+            x_coords,
+            y_coords,
+            "tab:blue",
+            linewidth=1.5,
+            alpha=0.8,
+            label="Drawn spiral",
+        )
+
+    ax.plot(
+        centered_ref[0, 0],
+        centered_ref[0, 1],
+        "go",
+        markersize=6,
+        label="Start" if not is_batch else None,
+        zorder=5,
+        alpha=0.5,
+    )
+    ax.plot(
+        centered_ref[-1, 0],
+        centered_ref[-1, 1],
+        "ro",
+        markersize=6,
+        label="End" if not is_batch else None,
+        zorder=5,
+        alpha=0.5,
+    )
+
+    if include_reference:
+        ax.plot(
+            centered_ref[:, 0],
+            centered_ref[:, 1],
+            "k--",
+            linewidth=1,
+            alpha=0.4,
+            label="Reference spiral" if not is_batch else None,
+        )
+
+    participant_id, task, hand, start_time = plotting.extract_spiral_metadata(spiral)
+
+    ax.set_title(
+        label=f"ID: {participant_id}\n{task} - {hand}\n{start_time}",
+        fontsize=8 if is_batch else 14,
+    )
+
+    ax.set_aspect("equal")
+
+    if not is_batch:
+        ax.set_xlabel("X Position (pixels)", fontsize=12)
+        ax.set_ylabel("Y Position (pixels)", fontsize=12)
+        ax.legend()
+        ax.grid(True, alpha=0.3)
+    else:
+        ax.set_xticks([])
+        ax.set_yticks([])
+
+
+def plot_single_spiral(
+    data: str | pathlib.Path | models.Spiral,
+    output_path: str | pathlib.Path | None = None,
+    include_reference: bool = False,
+    color_segments: bool = False,
+    spiral_config: config.SpiralConfig | None = None,
+) -> plt.Figure:
+    """Plot a single spiral drawing with optional reference spiral and color coding.
+
+    This function creates a visualization of an individual spiral drawing trajectory.
+    The spiral can be colored with distinct segments for better visualization of
+    drawing progression, and optionally overlaid with a reference spiral for
+    comparison.
+
+    Args:
+        data: Path to CSV file containing spiral data, or a loaded Spiral object.
+        output_path: Optional directory where the figure will be saved. If None,
+            the function only returns the figure without saving.
+        include_reference: If True, overlays the reference spiral for comparison.
+        color_segments: If True, colors each line segment with distinct colors.
+        spiral_config: Configuration for reference spiral generation. If None,
+            uses default configuration.
+
+    Returns:
+        The matplotlib Figure object.
+
+    Raises:
+        ValueError: If the input data is invalid or cannot be loaded.
+    """
+    logger.debug("Starting single spiral plot generation")
+
+    if isinstance(data, (str, pathlib.Path)):
+        try:
+            spiral = reader.load_spiral(data)
+        except Exception as e:
+            error_msg = f"Failed to load spiral data from {data}: {e}"
+            logger.error(error_msg)
+            raise ValueError(error_msg) from e
+    elif isinstance(data, models.Spiral):
+        spiral = data
+    else:
+        error_msg = f"Invalid data type: {type(data)}. Expected str, Path, or Spiral."
+        logger.error(error_msg)
+        raise ValueError(error_msg)
+
+    centered_ref = plotting.get_reference_spiral(spiral_config)
+
+    fig, ax = plt.subplots(figsize=(10, 10))
+
+    _plot_spiral(
+        ax=ax,
+        spiral=spiral,
+        centered_ref=centered_ref,
+        include_reference=include_reference,
+        color_segments=color_segments,
+        is_batch=False,
+    )
+
+    plt.tight_layout()
+
+    if output_path:
+        participant_id, task, hand, _ = plotting.extract_spiral_metadata(spiral)
+        filename = f"spiral_{participant_id}_{task}_{hand}"
+        plotting.save_figure(figure=fig, output_path=output_path, filename=filename)
+
+    return fig
+
+
+def plot_batch_spirals(
+    input_path: str | pathlib.Path,
+    output_path: str | pathlib.Path | None = None,
+    include_reference: bool = False,
+    color_segments: bool = False,
+    grid_layout: bool = False,
+    max_per_row: int = 4,
+    spiral_config: config.SpiralConfig | None = None,
+) -> plt.Figure:
+    """Plot multiple spirals in a batch with flexible layout organization.
+
+    This function processes multiple spiral CSV files from a directory and creates
+    a grid layout of spiral visualizations. The layout can be organized in a structured
+    grid format or as a simple sequential layout.
+
+    Args:
+        input_path: Path to directory containing spiral CSV files.
+        output_path: Optional directory where the figure will be saved. If None,
+            the function only returns the figure without saving.
+        include_reference: If True, overlays reference spirals for comparison.
+        color_segments: If True, colors each line segment with distinct colors.
+        grid_layout: If True, creates a structured grid with rows for participant/hand
+            combinations and columns for tasks. If False, uses sequential layout
+            sorted by participant, hand, and task.
+        max_per_row: Maximum number of subplots per row before wrapping. Only used
+            when grid_layout is False.
+        spiral_config: Configuration for reference spiral generation. If None,
+            uses default configuration.
+
+    Returns:
+        The matplotlib Figure object containing all spiral plots.
+
+    Raises:
+        ValueError: If the input directory doesn't exist or contains no CSV files.
+    """
+    logger.debug("Starting batch spiral plot generation")
+
+    input_path = pathlib.Path(input_path)
+    if not input_path.exists() or not input_path.is_dir():
+        error_msg = f"Input path does not exist or is not a directory: {input_path}"
+        logger.error(error_msg)
+        raise ValueError(error_msg)
+
+    csv_files = list(input_path.rglob("*.csv"))
+    if not csv_files:
+        error_msg = f"No CSV files found in directory: {input_path}"
+        logger.error(error_msg)
+        raise ValueError(error_msg)
+
+    logger.debug(f"Found {len(csv_files)} CSV files to process")
+
+    spirals = []
+    failed_files = []
+    for csv_file in csv_files:
+        try:
+            spiral = reader.load_spiral(csv_file)
+            spirals.append(spiral)
+        except Exception as e:
+            logger.warning(f"Failed to load {csv_file}: {e}")
+            failed_files.append(str(csv_file))
+
+    if not spirals:
+        error_msg = "Could not load any valid spiral files"
+        logger.error(error_msg)
+        raise ValueError(error_msg)
+
+    if failed_files:
+        logger.warning(f"Failed to load {len(failed_files)} files")
+
+    if len(spirals) == 1:
+        return plot_single_spiral(
+            data=spirals[0],
+            output_path=output_path,
+            include_reference=include_reference,
+            color_segments=color_segments,
+            spiral_config=spiral_config,
+        )
+
+    centered_ref = plotting.get_reference_spiral(spiral_config)
+
+    if grid_layout:
+        spiral_grid = {}
+        participants = set()
+        hands = set()
+        tasks = set()
+
+        for spiral in spirals:
+            participant_id, task, hand, _ = plotting.extract_spiral_metadata(spiral)
+
+            participants.add(participant_id)
+            hands.add(hand)
+            tasks.add(task)
+
+            key = (participant_id, hand, task)
+            spiral_grid[key] = spiral
+
+        sorted_participants = sorted(participants)
+        sorted_hands = sorted(hands)
+        sorted_tasks = sorted(tasks, key=lambda t: plotting.TASK_ORDER.get(t, 9))
+
+        participant_hand_combos = []
+        for participant in sorted_participants:
+            for hand in sorted_hands:
+                participant_hand_combos.append((participant, hand))
+
+        n_rows = len(participant_hand_combos)
+        n_cols = len(sorted_tasks)
+
+        if n_rows == 0 or n_cols == 0:
+            raise ValueError("No valid participant/hand/task combinations found")
+
+        fig, axes = plotting.create_grid_layout(n_rows, n_cols)
+
+        for row_idx, (participant, hand) in enumerate(participant_hand_combos):
+            for col_idx, task in enumerate(sorted_tasks):
+                ax = axes[row_idx, col_idx]
+                key = (participant, hand, task)
+
+                if key in spiral_grid:
+                    spiral = spiral_grid[key]
+                    _plot_spiral(
+                        ax=ax,
+                        spiral=spiral,
+                        centered_ref=centered_ref,
+                        include_reference=include_reference,
+                        color_segments=color_segments,
+                        is_batch=True,
+                    )
+                else:
+                    ax.text(
+                        0.5,
+                        0.5,
+                        "No Data",
+                        ha="center",
+                        va="center",
+                        transform=ax.transAxes,
+                        fontsize=12,
+                        alpha=0.5,
+                    )
+                    ax.set_xticks([])
+                    ax.set_yticks([])
+                    ax.set_aspect("equal")
+                    ax.set_title("No Data", fontsize=8)
+
+                plotting.add_grid_labels(ax, key, row_idx, col_idx)
+
+    else:
+        spirals.sort(
+            key=lambda s: (
+                s.metadata.get("id"),
+                s.metadata.get("hand"),
+                plotting.TASK_ORDER.get(str(s.metadata.get("task"))),
+            )
+        )
+
+        n_spirals = len(spirals)
+        n_cols = min(max_per_row, n_spirals)
+        n_rows = (n_spirals + n_cols - 1) // n_cols
+
+        fig_width = max(16, n_cols * 3)
+        fig_height = max(12, n_rows * 3)
+        fig, axes = plt.subplots(n_rows, n_cols, figsize=(fig_width, fig_height))
+        flat_axes = list(axes.flatten()) if isinstance(axes, np.ndarray) else [axes]
+
+        for i, spiral in enumerate(spirals):
+            ax = flat_axes[i]
+
+            _plot_spiral(
+                ax=ax,
+                spiral=spiral,
+                centered_ref=centered_ref,
+                include_reference=include_reference,
+                color_segments=color_segments,
+                is_batch=True,
+            )
+
+        plotting.hide_extra_axes(axes=flat_axes, num_subplots=len(spirals))
+
+        plt.tight_layout(rect=(0, 0, 1, 0.92))
+
+    fig.suptitle(f"Batch Spiral Plots for {len(spirals)} Drawings", fontsize=16, y=0.93)
+
+    if output_path:
+        filename_suffix = "grid" if grid_layout else "sequential"
+        filename = f"batch_spirals_{filename_suffix}"
+        plotting.save_figure(figure=fig, output_path=output_path, filename=filename)
+
+    return fig
