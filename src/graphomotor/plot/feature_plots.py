@@ -2,50 +2,14 @@
 
 This module provides plotting functions for visualizing extracted features from spiral
 drawing data. The plotting functions expect CSV files with the first 5 columns reserved
-for metadata (source_file, participant_id, task, hand, start_time), and treat all
-subsequent columns as numerical features.
+for metadata (`source_file`, `participant_id`, `task`, `hand`, `start_time`), and treat
+all subsequent columns as numerical features.
 
-Available Standard Features
----------------------------
-The following 25 features are extracted by the standard graphomotor pipeline:
-
-**Distance-based Features (8 features):**
-- hausdorff_distance_maximum
-- hausdorff_distance_sum
-- hausdorff_distance_sum_per_second
-- hausdorff_distance_interquartile_range
-- hausdorff_distance_start_segment_maximum_normalized
-- hausdorff_distance_end_segment_maximum_normalized
-- hausdorff_distance_middle_segment_maximum
-- hausdorff_distance_middle_segment_maximum_per_second
-
-**Velocity-based Features (15 features):**
-*Linear velocity (5 features):*
-- linear_velocity_sum
-- linear_velocity_median
-- linear_velocity_coefficient_of_variation
-- linear_velocity_skewness
-- linear_velocity_kurtosis
-
-*Radial velocity (5 features):*
-- radial_velocity_sum
-- radial_velocity_median
-- radial_velocity_coefficient_of_variation
-- radial_velocity_skewness
-- radial_velocity_kurtosis
-
-*Angular velocity (5 features):*
-- angular_velocity_sum
-- angular_velocity_median
-- angular_velocity_coefficient_of_variation
-- angular_velocity_skewness
-- angular_velocity_kurtosis
-
-**Time-based Features (1 feature):**
-- duration
-
-**Drawing Error Features (1 feature):**
-- area_under_curve
+Available Features
+------------------
+The graphomotor toolkit extracts 25 features from spiral drawing data.
+For a complete list of all available features, see the
+[features module documentation](https://childmindresearch.github.io/graphomotor/graphomotor/features.html).
 
 Custom Features
 ---------------
@@ -87,18 +51,20 @@ def plot_feature_distributions(
 
     This function creates kernel density estimation plots showing feature distributions
     grouped by task type (trace/recall) and hand (Dom/NonDom). The input data should
-    be a CSV file with the first 5 columns reserved for metadata (source_file,
-    participant_id, task, hand, start_time), with all subsequent columns treated as
-    numerical features.
+    be a CSV file with the first 5 columns reserved for metadata (`source_file`,
+    `participant_id`, `task`, `hand`, `start_time`), with all subsequent columns treated
+    as numerical features.
 
     Both standard graphomotor features and custom feature columns added by users
-    are supported. See the module-level docstring for a complete list of the 25
-    standard features available from the graphomotor extraction pipeline.
+    are supported. For a complete list of the 25 standard features available from
+    the graphomotor extraction pipeline, see the
+    [features module documentation](https://childmindresearch.github.io/graphomotor/graphomotor/features.html).
 
     Args:
         data: Path to CSV file containing features or pandas DataFrame. Input data
-            should have the first 5 columns as metadata (source_file, participant_id,
-            task, hand, start_time) followed by numerical feature columns.
+            should have the first 5 columns as metadata (`source_file`,
+            `participant_id`, `task`, `hand`, `start_time`) followed by numerical
+            feature columns.
         output_path: Optional directory where the figure will be saved. If None,
             the function only returns the figure without saving.
         features: List of specific features to plot, if None plots all features.
@@ -176,17 +142,19 @@ def plot_feature_trends(
     This function creates line plots displaying feature progression across task
     sequences with individual participant trajectories and group means. The input
     data should be a CSV file with the first 5 columns reserved for metadata
-    (source_file, participant_id, task, hand, start_time), with all subsequent
+    (`source_file`, `participant_id`, `task`, `hand`, `start_time`), with all subsequent
     columns treated as numerical features.
 
     Both standard graphomotor features and custom feature columns added by users
-    are supported. See the module-level docstring for a complete list of the 25
-    standard features available from the graphomotor extraction pipeline.
+    are supported. For a complete list of the 25 standard features available from
+    the graphomotor extraction pipeline, see the
+    [features module documentation](https://childmindresearch.github.io/graphomotor/graphomotor/features.html).
 
     Args:
         data: Path to CSV file containing features or pandas DataFrame. Input data
-            should have the first 5 columns as metadata (source_file, participant_id,
-            task, hand, start_time) followed by numerical feature columns.
+            should have the first 5 columns as metadata (`source_file`,
+            `participant_id`, `task`, `hand`, `start_time`) followed by numerical
+            feature columns.
         output_path: Optional directory where the figure will be saved. If None,
             the function only returns the figure without saving.
         features: List of specific features to plot, if None plots all features.
@@ -261,18 +229,20 @@ def plot_feature_boxplots(
 
     This function creates box-and-whisker plots comparing feature distributions
     across different tasks and hand conditions. The input data should be a CSV
-    file with the first 5 columns reserved for metadata (source_file,
-    participant_id, task, hand, start_time), with all subsequent columns treated
+    file with the first 5 columns reserved for metadata (`source_file`,
+    `participant_id`, `task`, `hand`, `start_time`), with all subsequent columns treated
     as numerical features.
 
     Both standard graphomotor features and custom feature columns added by users
-    are supported. See the module-level docstring for a complete list of the 25
-    standard features available from the graphomotor extraction pipeline.
+    are supported. For a complete list of the 25 standard features available from
+    the graphomotor extraction pipeline, see the
+    [features module documentation](https://childmindresearch.github.io/graphomotor/graphomotor/features.html).
 
     Args:
         data: Path to CSV file containing features or pandas DataFrame. Input data
-            should have the first 5 columns as metadata (source_file, participant_id,
-            task, hand, start_time) followed by numerical feature columns.
+            should have the first 5 columns as metadata (`source_file`,
+            `participant_id`, `task`, `hand`, `start_time`) followed by numerical
+            feature columns.
         output_path: Optional directory where the figure will be saved. If None,
             the function only returns the figure without saving.
         features: List of specific features to plot, if None plots all features.
@@ -345,16 +315,17 @@ def plot_feature_clusters(
     response patterns and conditions that elicit similar profiles.
 
     The input data should be a CSV file with the first 5 columns reserved for metadata
-    (source_file, participant_id, task, hand, start_time), with all subsequent columns
-    treated as numerical features. Both standard graphomotor features and custom
-    feature columns added by users are supported. See the module-level docstring for
-    a complete list of the 25 standard features available from the graphomotor
-    extraction pipeline.
+    (`source_file`, `participant_id`, `task`, `hand`, `start_time`), with all subsequent
+    columns treated as numerical features. Both standard graphomotor features and custom
+    feature columns added by users are supported. For a complete list of the 25
+    standard features available from the graphomotor extraction pipeline, see the
+    [features module documentation](https://childmindresearch.github.io/graphomotor/graphomotor/features.html).
 
     Args:
         data: Path to CSV file containing features or pandas DataFrame. Input data
-            should have the first 5 columns as metadata (source_file, participant_id,
-            task, hand, start_time) followed by numerical feature columns.
+            should have the first 5 columns as metadata (`source_file`,
+            `participant_id`, `task`, `hand`, `start_time`) followed by numerical
+            feature columns.
         output_path: Optional directory where the figure will be saved. If None,
             the function only returns the figure without saving.
         features: List of specific features to plot, if None plots all features.

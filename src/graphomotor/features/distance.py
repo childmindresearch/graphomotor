@@ -39,29 +39,32 @@ def calculate_hausdorff_metrics(
     is based on the original R script provided with the publication. The Hausdorff
     distance measures the maximum distance of a set to the nearest point in the other
     set. This metric and its derivatives capture various aspects of the spatial
-    relationship between the drawn and reference spirals. Calculated features include:
-        - hausdorff_distance_maximum: The maximum of the directed Hausdorff distances
-            between the data points and the reference data points,
-        - hausdorff_distance_sum: The sum of the directed Hausdorff distances,
-        - hausdorff_distance_sum_per_second: The sum of the directed Hausdorff distances
-            divided by the total drawing duration,
-        - hausdorff_distance_interquartile_range: The interquartile range of the
-            directed Hausdorff distances,
-        - hausdorff_distance_start_segment_maximum_normalized: The maximum of the
-            directed Hausdorff distances between the beginning segment (0% to 25%) of
-            data points and the beginning segment of reference data points divided by
-            the number of data points in the beginning segment,
-        - hausdorff_distance_end_segment_maximum_normalized: The maximum of the directed
-            Hausdorff distances in the ending segment (75% to 100%) of data points and
-            the ending segment of reference data points divided by the number of data
-            points in the ending segment,
-        - hausdorff_distance_middle_segment_maximum: The maximum of the directed
-            Hausdorff distances in the middle segment (15% to 85%) of data points and
-            the ending segment of reference data points (this metric is not divided by
-            the number of data points in the middle segment unlike previous ones),
-        - hausdorff_distance_middle_segment_maximum_per_second: The maximum of the
-            directed Hausdorff distances in the middle segment divided by the total
-            drawing duration.
+    relationship between the drawn and reference spirals.
+
+    Calculated features include:
+
+    - **hausdorff_distance_maximum**: The maximum of the directed Hausdorff distances
+      between the data points and the reference data points
+    - **hausdorff_distance_sum**: The sum of the directed Hausdorff distances
+    - **hausdorff_distance_sum_per_second**: The sum of the directed Hausdorff distances
+      divided by the total drawing duration
+    - **hausdorff_distance_interquartile_range**: The interquartile range of the
+      directed Hausdorff distances
+    - **hausdorff_distance_start_segment_maximum_normalized**: The maximum of the
+      directed Hausdorff distances between the beginning segment (0% to 25%) of
+      data points and the beginning segment of reference data points divided by
+      the number of data points in the beginning segment
+    - **hausdorff_distance_end_segment_maximum_normalized**: The maximum of the directed
+      Hausdorff distances in the ending segment (75% to 100%) of data points and
+      the ending segment of reference data points divided by the number of data
+      points in the ending segment
+    - **hausdorff_distance_middle_segment_maximum**: The maximum of the directed
+      Hausdorff distances in the middle segment (15% to 85%) of data points and
+      the ending segment of reference data points (this metric is not divided by
+      the number of data points in the middle segment unlike previous ones)
+    - **hausdorff_distance_middle_segment_maximum_per_second**: The maximum of the
+      directed Hausdorff distances in the middle segment divided by the total
+      drawing duration
 
     Args:
         spiral: Spiral object with drawing data.
