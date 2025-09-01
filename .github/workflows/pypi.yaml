@@ -23,7 +23,7 @@ jobs:
       new-version: ${{ steps.version-check.outputs.version }}
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         fetch-depth: 2   # Need previous commit for comparison
 
@@ -56,7 +56,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         fetch-depth: 1   # Only need current commit for build
 
