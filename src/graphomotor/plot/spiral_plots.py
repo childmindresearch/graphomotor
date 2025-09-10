@@ -74,7 +74,7 @@ def _plot_spiral(
                 [x_coords[i], x_coords[i + 1]],
                 [y_coords[i], y_coords[i + 1]],
                 color=color_map[current_line],
-                linewidth=1.5,
+                linewidth=2 if not is_batch else 1,
                 alpha=0.8,
                 label=label,
             )
@@ -92,19 +92,19 @@ def _plot_spiral(
         centered_ref[0, 0],
         centered_ref[0, 1],
         "go",
-        markersize=6,
+        markersize=12 if not is_batch else 6,
         label="Start" if not is_batch else None,
         zorder=5,
-        alpha=0.5,
+        alpha=0.3,
     )
     ax.plot(
         centered_ref[-1, 0],
         centered_ref[-1, 1],
         "ro",
-        markersize=6,
+        markersize=12 if not is_batch else 6,
         label="End" if not is_batch else None,
         zorder=5,
-        alpha=0.5,
+        alpha=0.3,
     )
 
     if include_reference:
@@ -112,8 +112,8 @@ def _plot_spiral(
             centered_ref[:, 0],
             centered_ref[:, 1],
             "k--",
-            linewidth=1,
-            alpha=0.4,
+            linewidth=6 if not is_batch else 3,
+            alpha=0.15,
             label="Reference spiral" if not is_batch else None,
         )
 
@@ -209,15 +209,13 @@ def plot_batch_spirals(
     output_path: str | pathlib.Path | None = None,
     include_reference: bool = False,
     color_segments: bool = False,
-    grid_layout: bool = False,
-    max_per_row: int = 4,
     spiral_config: config.SpiralConfig | None = None,
 ) -> plt.Figure:
-    """Plot multiple spirals in a batch with flexible layout organization.
+    """Plot multiple spirals in a batch using a structured grid layout.
 
     This function processes multiple spiral CSV files from a directory and creates
-    a grid layout of spiral visualizations. The layout can be organized in a structured
-    grid format or as a simple sequential layout.
+    a structured grid of spiral visualizations with rows for participant/hand
+    combinations and columns for tasks.
 
     Args:
         input_path: Path to directory containing spiral CSV files.
@@ -225,11 +223,6 @@ def plot_batch_spirals(
             the function only returns the figure without saving.
         include_reference: If True, overlays reference spirals for comparison.
         color_segments: If True, colors each line segment with distinct colors.
-        grid_layout: If True, creates a structured grid with rows for participant/hand
-            combinations and columns for tasks. If False, uses sequential layout
-            sorted by participant, hand, and task.
-        max_per_row: Maximum number of subplots per row before wrapping. Only used
-            when grid_layout is False.
         spiral_config: Configuration for reference spiral generation. If None,
             uses default configuration.
 
@@ -247,23 +240,7 @@ def plot_batch_spirals(
         logger.error(error_msg)
         raise ValueError(error_msg)
 
-    csv_files = list(input_path.rglob("*.csv"))
-    if not csv_files:
-        error_msg = f"No CSV files found in directory: {input_path}"
-        logger.error(error_msg)
-        raise ValueError(error_msg)
-
-    logger.debug(f"Found {len(csv_files)} CSV files to process")
-
-    spirals = []
-    failed_files = []
-    for csv_file in csv_files:
-        try:
-            spiral = reader.load_spiral(csv_file)
-            spirals.append(spiral)
-        except Exception as e:
-            logger.warning(f"Failed to load {csv_file}: {e}")
-            failed_files.append(str(csv_file))
+    spirals, failed_files = plotting.load_spirals_from_directory(input_path)
 
     if not spirals:
         error_msg = "Could not load any valid spiral files"
@@ -284,111 +261,53 @@ def plot_batch_spirals(
 
     centered_ref = plotting.get_reference_spiral(spiral_config)
 
-    if grid_layout:
-        spiral_grid = {}
-        participants = set()
-        hands = set()
-        tasks = set()
+    spiral_grid, participant_hand_combos, sorted_tasks = (
+        plotting.index_spirals_by_metadata(spirals)
+    )
 
-        for spiral in spirals:
-            participant_id, task, hand, _ = plotting.extract_spiral_metadata(spiral)
+    n_rows = len(participant_hand_combos)
+    n_cols = len(sorted_tasks)
 
-            participants.add(participant_id)
-            hands.add(hand)
-            tasks.add(task)
+    if n_rows == 0 or n_cols == 0:
+        raise ValueError("No valid participant/hand/task combinations found")
 
-            key = (participant_id, hand, task)
-            spiral_grid[key] = spiral
+    fig, axes = plotting.create_grid_layout(n_rows, n_cols)
 
-        sorted_participants = sorted(participants)
-        sorted_hands = sorted(hands)
-        sorted_tasks = sorted(tasks, key=lambda t: plotting.TASK_ORDER.get(t, 9))
+    for row_idx, (participant, hand) in enumerate(participant_hand_combos):
+        for col_idx, task in enumerate(sorted_tasks):
+            ax = axes[row_idx, col_idx]
+            key = (participant, hand, task)
 
-        participant_hand_combos = []
-        for participant in sorted_participants:
-            for hand in sorted_hands:
-                participant_hand_combos.append((participant, hand))
+            if key in spiral_grid:
+                spiral = spiral_grid[key]
+                _plot_spiral(
+                    ax=ax,
+                    spiral=spiral,
+                    centered_ref=centered_ref,
+                    include_reference=include_reference,
+                    color_segments=color_segments,
+                    is_batch=True,
+                )
+            else:
+                ax.text(
+                    0.5,
+                    0.5,
+                    "No Data",
+                    ha="center",
+                    va="center",
+                    transform=ax.transAxes,
+                    fontsize=12,
+                    alpha=0.5,
+                )
+                ax.set_xticks([])
+                ax.set_yticks([])
+                ax.set_aspect("equal")
+                ax.set_title("No Data", fontsize=8)
 
-        n_rows = len(participant_hand_combos)
-        n_cols = len(sorted_tasks)
-
-        if n_rows == 0 or n_cols == 0:
-            raise ValueError("No valid participant/hand/task combinations found")
-
-        fig, axes = plotting.create_grid_layout(n_rows, n_cols)
-
-        for row_idx, (participant, hand) in enumerate(participant_hand_combos):
-            for col_idx, task in enumerate(sorted_tasks):
-                ax = axes[row_idx, col_idx]
-                key = (participant, hand, task)
-
-                if key in spiral_grid:
-                    spiral = spiral_grid[key]
-                    _plot_spiral(
-                        ax=ax,
-                        spiral=spiral,
-                        centered_ref=centered_ref,
-                        include_reference=include_reference,
-                        color_segments=color_segments,
-                        is_batch=True,
-                    )
-                else:
-                    ax.text(
-                        0.5,
-                        0.5,
-                        "No Data",
-                        ha="center",
-                        va="center",
-                        transform=ax.transAxes,
-                        fontsize=12,
-                        alpha=0.5,
-                    )
-                    ax.set_xticks([])
-                    ax.set_yticks([])
-                    ax.set_aspect("equal")
-                    ax.set_title("No Data", fontsize=8)
-
-                plotting.add_grid_labels(ax, key, row_idx, col_idx)
-
-    else:
-        spirals.sort(
-            key=lambda s: (
-                s.metadata.get("id"),
-                s.metadata.get("hand"),
-                plotting.TASK_ORDER.get(str(s.metadata.get("task"))),
-            )
-        )
-
-        n_spirals = len(spirals)
-        n_cols = min(max_per_row, n_spirals)
-        n_rows = (n_spirals + n_cols - 1) // n_cols
-
-        fig_width = max(16, n_cols * 3)
-        fig_height = max(12, n_rows * 3)
-        fig, axes = plt.subplots(n_rows, n_cols, figsize=(fig_width, fig_height))
-        flat_axes = list(axes.flatten()) if isinstance(axes, np.ndarray) else [axes]
-
-        for i, spiral in enumerate(spirals):
-            ax = flat_axes[i]
-
-            _plot_spiral(
-                ax=ax,
-                spiral=spiral,
-                centered_ref=centered_ref,
-                include_reference=include_reference,
-                color_segments=color_segments,
-                is_batch=True,
-            )
-
-        plotting.hide_extra_axes(axes=flat_axes, num_subplots=len(spirals))
-
-        plt.tight_layout(rect=(0, 0, 1, 0.92))
-
-    fig.suptitle(f"Batch Spiral Plots for {len(spirals)} Drawings", fontsize=16, y=0.93)
+            plotting.add_grid_labels(ax, key, row_idx, col_idx)
 
     if output_path:
-        filename_suffix = "grid" if grid_layout else "sequential"
-        filename = f"batch_spirals_{filename_suffix}"
+        filename = "batch_spirals"
         plotting.save_figure(figure=fig, output_path=output_path, filename=filename)
 
     return fig

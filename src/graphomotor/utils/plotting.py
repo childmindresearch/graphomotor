@@ -9,11 +9,12 @@ from matplotlib import gridspec
 from matplotlib import pyplot as plt
 
 from graphomotor.core import config, models
+from graphomotor.io import reader
 from graphomotor.utils import center_spiral, generate_reference_spiral
 
 logger = config.get_logger()
 
-# This is the standard order of tasks in the graphomotor protocol
+# This is the standard order of tasks in the Graphomotor protocol
 TASK_ORDER = {
     "spiral_trace1": 1,
     "spiral_trace2": 2,
@@ -28,7 +29,7 @@ TASK_ORDER = {
 # Grid layout configuration for batch spiral plotting
 GRID_CONFIG = {
     "subplot_size": 3,
-    "max_figure_size": 24,
+    "min_figure_size": 12,
     "row_extra_spacing": 0.7,
     "row_normal_spacing": 0.35,
     "column_extra_spacing": 0.3,
@@ -220,8 +221,105 @@ def get_reference_spiral(
     return center_spiral.center_spiral(ref_spiral)
 
 
+def load_spirals_from_directory(
+    input_dir: pathlib.Path,
+) -> tuple[list[models.Spiral], list[str]]:
+    """Load spiral CSV files from a directory.
+
+    Args:
+        input_dir: Directory path to search for CSV files.
+
+    Returns:
+        A tuple of (loaded_spirals, failed_file_paths).
+    """
+    csv_files = list(input_dir.rglob("*.csv"))
+    if not csv_files:
+        error_msg = f"No CSV files found in directory: {input_dir}"
+        logger.error(error_msg)
+        raise ValueError(error_msg)
+
+    logger.debug(f"Found {len(csv_files)} CSV files to process")
+
+    spirals: list[models.Spiral] = []
+    failed_files: list[str] = []
+    for csv_file in csv_files:
+        try:
+            spiral = reader.load_spiral(csv_file)
+            spirals.append(spiral)
+        except Exception as e:
+            logger.warning(f"Failed to load {csv_file}: {e}")
+            failed_files.append(str(csv_file))
+
+    return spirals, failed_files
+
+
+def index_spirals_by_metadata(
+    spirals: list[models.Spiral],
+) -> tuple[
+    dict[tuple[str, str, str], models.Spiral],
+    list[tuple[str, str]],
+    list[str],
+]:
+    """Index spirals by (participant, hand, task) for grid plotting.
+
+    Constructs:
+      - spiral_grid: dict mapping (participant_id, hand, task) to Spiral.
+      - participant_hand_combos: ordered list of (participant_id, hand) tuples.
+      - sorted_tasks: list of task names sorted according to TASK_ORDER.
+
+    Args:
+        spirals: Iterable of Spiral objects to index.
+
+    Returns:
+        A tuple of (spiral_grid, participant_hand_combos, sorted_tasks).
+    """
+    spiral_grid: dict[tuple[str, str, str], models.Spiral] = {}
+    participants: set[str] = set()
+    hands: set[str] = set()
+    tasks: set[str] = set()
+
+    for spiral in spirals:
+        participant_id, task, hand, _ = extract_spiral_metadata(spiral)
+        participants.add(participant_id)
+        hands.add(hand)
+        tasks.add(task)
+        key = (participant_id, hand, task)
+        spiral_grid[key] = spiral
+
+    sorted_participants = sorted(participants)
+    sorted_hands = sorted(hands)
+    sorted_tasks = sorted(tasks, key=lambda t: TASK_ORDER.get(t, 9))
+
+    participant_hand_combos: list[tuple[str, str]] = []
+    for participant in sorted_participants:
+        for hand in sorted_hands:
+            participant_hand_combos.append((participant, hand))
+
+    return spiral_grid, participant_hand_combos, sorted_tasks
+
+
 def _calculate_spacing_ratios(num_subplots: int, is_width: bool = False) -> list[float]:
     """Calculate spacing ratios for grid layout with optional extra spacing.
+
+    This function constructs a list of ratios used by GridSpec to size subplots and the
+    spacing between them. For each subplot a ratio of 1.0 is appended. Spacing entries
+    are inserted only between subplots (not after the last one) and differ depending on
+    whether widths or heights are being computed.
+
+    - For widths (is_width=True):
+        - After the 5th column (index 4) an extra column spacing is inserted using
+          GRID_CONFIG['column_extra_spacing'].
+        - Otherwise, normal column spacing is inserted using
+          GRID_CONFIG['column_normal_spacing'].
+
+    - For heights (is_width=False):
+        - After every even-numbered row (i.e., rows 2, 4, ...) an extra row spacing is
+          inserted using GRID_CONFIG['row_extra_spacing'].
+        - Otherwise, normal row spacing is inserted using
+          GRID_CONFIG['row_normal_spacing'].
+
+    The resulting list alternates subplot ratio and spacing ratio where applicable,
+    e.g. [1.0, spacing, 1.0, spacing, 1.0, ...].
 
     Args:
         num_subplots: Number of subplots (rows or columns).
@@ -232,16 +330,14 @@ def _calculate_spacing_ratios(num_subplots: int, is_width: bool = False) -> list
     """
     ratios = []
     for i in range(num_subplots):
-        ratios.append(1.0)  # Ratio for subplot
-        if i < num_subplots - 1:  # Add spacing only between subplots
+        ratios.append(1.0)
+        if i < num_subplots - 1:
             if is_width:
-                # Add extra spacing after the 5th column (index 4)
                 if i == 4:
                     ratios.append(GRID_CONFIG["column_extra_spacing"])
                 else:
                     ratios.append(GRID_CONFIG["column_normal_spacing"])
             else:
-                # Add extra spacing after every even-numbered row
                 if (i + 1) % 2 == 0:
                     ratios.append(GRID_CONFIG["row_extra_spacing"])
                 else:
@@ -252,6 +348,11 @@ def _calculate_spacing_ratios(num_subplots: int, is_width: bool = False) -> list
 def create_grid_layout(n_rows: int, n_cols: int) -> tuple[plt.Figure, np.ndarray]:
     """Create figure and grid layout with proper spacing.
 
+    This function creates a matplotlib figure with a `GridSpec` layout that includes
+    proper spacing between subplots. The `axes` array maps subplot positions to
+    gridspec positions, where `grid_col` and `grid_row` are incremented by 2 to skip
+    the spacing columns and rows in the gridspec.
+
     Args:
         n_rows: Number of subplot rows.
         n_cols: Number of subplot columns.
@@ -260,10 +361,10 @@ def create_grid_layout(n_rows: int, n_cols: int) -> tuple[plt.Figure, np.ndarray
         Tuple of (figure, axes_array).
     """
     fig_width = max(
-        GRID_CONFIG["max_figure_size"], n_cols * GRID_CONFIG["subplot_size"]
+        GRID_CONFIG["min_figure_size"], n_cols * GRID_CONFIG["subplot_size"]
     )
     fig_height = max(
-        GRID_CONFIG["max_figure_size"], n_rows * GRID_CONFIG["subplot_size"]
+        GRID_CONFIG["min_figure_size"], n_rows * GRID_CONFIG["subplot_size"]
     )
 
     height_ratios = _calculate_spacing_ratios(n_rows, is_width=False)
@@ -280,15 +381,14 @@ def create_grid_layout(n_rows: int, n_cols: int) -> tuple[plt.Figure, np.ndarray
         wspace=0,
     )
 
-    # Create axes array, mapping subplot positions to gridspec positions
     axes = np.empty((n_rows, n_cols), dtype=object)
     grid_row = 0
     for i in range(n_rows):
         grid_col = 0
         for j in range(n_cols):
             axes[i, j] = fig.add_subplot(gs[grid_row, grid_col])
-            grid_col += 2  # Skip spacing column
-        grid_row += 2  # Skip spacing row
+            grid_col += 2
+        grid_row += 2
 
     return fig, axes
 

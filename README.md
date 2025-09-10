@@ -30,9 +30,32 @@ The toolkit extracts [25 clinically relevant metrics](https://childmindresearch.
 The toolkit provides several plotting functions to visualize extracted features:
 
 - **[Distribution Plots](https://childmindresearch.github.io/graphomotor/graphomotor/plot/feature_plots.html#plot_feature_distributions)**: Kernel density estimation plots showing feature distributions grouped by task type and hand.
+
+  ![Feature Distribution Plot Example](docs/plots/features/feature_distributions_20250813_1532.png)
+
 - **[Trend Plots](https://childmindresearch.github.io/graphomotor/graphomotor/plot/feature_plots.html#plot_feature_trends)**: Line plots displaying feature progression across task sequences with individual participant trajectories and group means.
+
+  ![Feature Trends Plot Example](docs/plots/features/feature_trends_20250813_1534.png)
+
 - **[Box Plots](https://childmindresearch.github.io/graphomotor/graphomotor/plot/feature_plots.html#plot_feature_boxplots)**: Box-and-whisker plots comparing feature distributions across different tasks and hand conditions.
+
+  ![Feature Box Plots Example](docs/plots/features/feature_boxplots_20250813_1537.png)
+
 - **[Cluster Heatmaps](https://childmindresearch.github.io/graphomotor/graphomotor/plot/feature_plots.html#plot_feature_clusters)**: Hierarchically clustered heatmaps of z-score standardized features to identify patterns across conditions.
+
+  ![Feature Cluster Heatmap Example](docs/plots/features/feature_clusters_20250813_1525.png)
+
+## Spiral Visualization Capabilities
+
+The toolkit includes plotting functions to visualize raw spiral drawing trajectories for quality control and data inspection:
+
+- **[Single Spiral Plots](https://childmindresearch.github.io/graphomotor/graphomotor/plot/spiral_plots.html#plot_single_spiral)**: Individual spiral trajectory visualization with optional reference spiral overlay and color-coded line segments.
+
+  ![Single Spiral Plot Example](docs/plots/spirals/spiral_5000005_spiral_trace3_Dom_20250813_1518.png)
+
+- **[Batch Spiral Plots](https://childmindresearch.github.io/graphomotor/graphomotor/plot/spiral_plots.html#plot_batch_spirals)**: Grid-based visualization of multiple spirals organized by participant, hand, and task with automatic labeling.
+
+  ![Batch Spiral Plots Example](docs/plots/spirals/batch_spirals_20250813_1520.png)
 
 ## Installation
 
@@ -226,6 +249,56 @@ fig.savefig(f"path/to/customized_boxplots.png", dpi=300)
 
 > [!NOTE]
 > For all available feature plotting options, refer to the [`feature_plots` documentation](https://childmindresearch.github.io/graphomotor/graphomotor/plot/feature_plots.html).
+
+### Spiral Visualization
+
+Visualize raw spiral drawing trajectories from Curious CSVs for quick QC and exploratory review. You can plot a single file or batch-plot a whole folder into a structured grid. Plots can optionally include a reference spiral and color-coded line segments.
+
+#### CLI Usage for Spiral Visualization
+
+**To plot a single spiral CSV file:**
+
+```bash
+graphomotor plot-spiral /path/to/spiral.csv /path/to/plots
+```
+
+**To batch-plot all spiral CSVs in a directory as a grid with reference spiral and color-coded segments:**
+
+```bash
+graphomotor plot-spiral /path/to/spiral_directory/ /path/to/plots -i -c
+```
+
+#### Python Library Usage for Spiral Visualization
+
+**To plot a single spiral and return a `matplotlib.figure.Figure` and save it:**
+
+```python
+from graphomotor.plot import spiral_plots
+
+fig = spiral_plots.plot_single_spiral(
+  data="/path/to/spiral.csv",
+  output_path="/path/to/plots",
+  include_reference=True,
+  color_segments=True,
+)
+```
+
+**To batch-plot a directory of spirals into a grid figure in a notebook:**
+
+```python
+from graphomotor.plot import spiral_plots
+
+# Use magic command for inline plotting in notebooks
+%matplotlib inline
+
+fig = spiral_plots.plot_batch_spirals(
+  input_path="/path/to/spiral_directory/",
+  include_reference=True
+)
+```
+
+> [!NOTE]
+> For all available spiral plotting options, refer to the [`spiral_plots` documentation](https://childmindresearch.github.io/graphomotor/graphomotor/plot/spiral_plots.html).
 
 ## Development Progress
 

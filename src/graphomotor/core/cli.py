@@ -333,7 +333,7 @@ def plot_features(
     name="plot-spiral",
     help=(
         "Visualize spiral drawing trajectories from CSV files. Supports both single "
-        "spiral plotting and batch plotting with structured grid or sequential layouts."
+        "spiral plotting and batch plotting using a structured grid layout."
     ),
     epilog=(
         "For more information on supported data formats, see the README at "
@@ -372,32 +372,6 @@ def plot_spiral(
             help="Color trajectory segments with distinct colors to show progression.",
         ),
     ] = False,
-    grid_layout: typing.Annotated[
-        bool,
-        typer.Option(
-            "--grid-layout",
-            "-l",
-            help=(
-                "Use structured grid layout with rows for participant/hand "
-                "combinations and columns for tasks. When enabled, creates a "
-                "systematic comparison grid with separator lines between "
-                "participants and task types."
-            ),
-        ),
-    ] = False,
-    max_per_row: typing.Annotated[
-        int,
-        typer.Option(
-            "--max-per-row",
-            "-m",
-            help=(
-                "Maximum number of subplots per row in sequential layout mode. "
-                "Only used when --grid-layout is not enabled."
-            ),
-            min=1,
-            max=10,
-        ),
-    ] = 4,
     center_x: typing.Annotated[
         float,
         typer.Option(
@@ -520,8 +494,6 @@ def plot_spiral(
                 output_path=output_path,
                 include_reference=include_reference,
                 color_segments=color_segments,
-                grid_layout=grid_layout,
-                max_per_row=max_per_row,
                 spiral_config=spiral_config,
             )
             typer.secho(f"Batch spiral plots saved to: {output_path}", fg="green")
