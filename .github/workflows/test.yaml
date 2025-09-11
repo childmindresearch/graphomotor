@@ -40,10 +40,27 @@ jobs:
           --cov=src tests \
           --log-level=DEBUG \
           --verbose
+    - name: Upload coverage artifact
+      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12' && matrix.dependency-mode == 'highest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: coverage.xml
+        retention-days: 7
+
+  coverage:
+    needs: unit
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download coverage artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: coverage-report
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7   # v5.5.1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
+        files: coverage.xml
         verbose: true
 
   ruff:
