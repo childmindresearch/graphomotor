@@ -205,7 +205,7 @@ def plot_single_spiral(
 
 
 def plot_batch_spirals(
-    input_path: str | pathlib.Path,
+    data: str | pathlib.Path,
     output_path: str | pathlib.Path | None = None,
     include_reference: bool = False,
     color_segments: bool = False,
@@ -218,7 +218,7 @@ def plot_batch_spirals(
     combinations and columns for tasks.
 
     Args:
-        input_path: Path to directory containing spiral CSV files.
+        data: Path to directory containing spiral CSV files.
         output_path: Optional directory where the figure will be saved. If None,
             the function only returns the figure without saving.
         include_reference: If True, overlays reference spirals for comparison.
@@ -234,13 +234,13 @@ def plot_batch_spirals(
     """
     logger.debug("Starting batch spiral plot generation")
 
-    input_path = pathlib.Path(input_path)
-    if not input_path.exists() or not input_path.is_dir():
-        error_msg = f"Input path does not exist or is not a directory: {input_path}"
+    data = pathlib.Path(data)
+    if not data.exists() or not data.is_dir():
+        error_msg = f"Input path does not exist or is not a directory: {data}"
         logger.error(error_msg)
         raise ValueError(error_msg)
 
-    spirals, failed_files = plotting.load_spirals_from_directory(input_path)
+    spirals, failed_files = plotting.load_spirals_from_directory(data)
 
     if not spirals:
         error_msg = "Could not load any valid spiral files"
@@ -267,9 +267,6 @@ def plot_batch_spirals(
 
     n_rows = len(participant_hand_combos)
     n_cols = len(sorted_tasks)
-
-    if n_rows == 0 or n_cols == 0:
-        raise ValueError("No valid participant/hand/task combinations found")
 
     fig, axes = plotting.create_grid_layout(n_rows, n_cols)
 

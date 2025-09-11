@@ -259,13 +259,13 @@ Visualize raw spiral drawing trajectories from Curious CSVs for quick QC and exp
 **To plot a single spiral CSV file:**
 
 ```bash
-graphomotor plot-spiral /path/to/spiral.csv /path/to/plots
+graphomotor plot-spiral /path/to/spiral.csv /path/to/plots/
 ```
 
 **To batch-plot all spiral CSVs in a directory as a grid with reference spiral and color-coded segments:**
 
 ```bash
-graphomotor plot-spiral /path/to/spiral_directory/ /path/to/plots -i -c
+graphomotor plot-spiral /path/to/spiral_directory/ /path/to/plots/ -i -c
 ```
 
 #### Python Library Usage for Spiral Visualization
@@ -277,7 +277,7 @@ from graphomotor.plot import spiral_plots
 
 fig = spiral_plots.plot_single_spiral(
   data="/path/to/spiral.csv",
-  output_path="/path/to/plots",
+  output_path="/path/to/plots/",
   include_reference=True,
   color_segments=True,
 )

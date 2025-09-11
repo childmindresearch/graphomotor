@@ -534,3 +534,309 @@ def test_cli_plot_features_all_plot_types_default(
     assert len(calls) == 4
     for expected_call in expected_calls:
         assert expected_call in calls
+
+
+def test_cli_plot_spiral_help_flag(runner: testing.CliRunner) -> None:
+    """Test --help flag displays expected information for plot-spiral command."""
+    result = runner.invoke(cli.app, ["plot-spiral", "--help"])
+    clean_stdout = _clean_output(result.stdout)
+
+    assert result.exit_code == 0
+    assert "Usage:" in clean_stdout
+    assert "Visualize spiral drawing trajectories" in clean_stdout
+    assert "--include-reference" in clean_stdout
+    assert "--color-segments" in clean_stdout
+    assert "--center-x" in clean_stdout
+    assert "--growth-rate" in clean_stdout
+
+
+def test_cli_plot_spiral_missing_arguments(runner: testing.CliRunner) -> None:
+    """Test CLI fails with missing required arguments for plot-spiral command."""
+    result = runner.invoke(cli.app, ["plot-spiral"])
+    assert result.exit_code != 0
+    assert "Missing argument" in result.stderr
+    assert "INPUT_PATH" in result.stderr
+
+
+def test_cli_plot_spiral_missing_output_path(
+    runner: testing.CliRunner,
+    sample_data: pathlib.Path,
+) -> None:
+    """Test CLI fails with missing output path for plot-spiral command."""
+    result = runner.invoke(cli.app, ["plot-spiral", str(sample_data)])
+    assert result.exit_code != 0
+    assert "Missing argument" in result.stderr
+    assert "OUTPUT_PATH" in result.stderr
+
+
+def test_cli_plot_spiral_nonexistent_input_path(
+    runner: testing.CliRunner, tmp_path: pathlib.Path
+) -> None:
+    """Test CLI handles nonexistent input path for plot-spiral command."""
+    nonexistent_path = tmp_path / "nonexistent.csv"
+    output_dir = tmp_path / "plots"
+
+    result = runner.invoke(
+        cli.app,
+        ["plot-spiral", str(nonexistent_path), str(output_dir)],
+    )
+
+    assert result.exit_code == 1
+    assert f"Error: Input path {nonexistent_path} does not exist" in result.stderr
+
+
+def test_cli_plot_spiral_invalid_input_extension_file(
+    runner: testing.CliRunner, tmp_path: pathlib.Path
+) -> None:
+    """Test CLI handles invalid input file extension for plot-spiral command."""
+    input_file = tmp_path / "spiral.txt"
+    input_file.write_text("some text")
+    output_dir = tmp_path / "plots"
+
+    result = runner.invoke(
+        cli.app,
+        ["plot-spiral", str(input_file), str(output_dir)],
+    )
+
+    assert result.exit_code == 1
+    assert f"Error: Input file {input_file} must have .csv extension" in result.stderr
+
+
+def test_cli_plot_spiral_mkdir_permission_error(
+    sample_data: pathlib.Path,
+    runner: testing.CliRunner,
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test CLI handles permission error when creating output directory."""
+    output_dir = tmp_path / "plots"
+
+    monkeypatch.setattr(
+        "pathlib.Path.mkdir",
+        lambda *args, **kwargs: (_ for _ in ()).throw(
+            PermissionError("Permission denied")
+        ),
+    )
+
+    result = runner.invoke(
+        cli.app,
+        ["plot-spiral", str(sample_data), str(output_dir)],
+    )
+
+    assert result.exit_code != 0
+    assert "Error creating output directory" in result.stderr
+
+
+def test_cli_plot_spiral_single_file_with_all_parameters(
+    runner: testing.CliRunner,
+    sample_data: pathlib.Path,
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test CLI with single file input and all available parameters."""
+    output_dir = tmp_path / "plots"
+    output_dir.mkdir()
+
+    calls = []
+    monkeypatch.setattr(
+        "graphomotor.plot.spiral_plots.plot_single_spiral",
+        lambda **kwargs: calls.append(("plot_single_spiral", kwargs)),
+    )
+
+    result = runner.invoke(
+        cli.app,
+        [
+            "plot-spiral",
+            str(sample_data),
+            str(output_dir),
+            "--include-reference",
+            "--color-segments",
+            "--center-x",
+            "100.0",
+            "--center-y",
+            "200.0",
+            "--start-radius",
+            "5.0",
+            "--growth-rate",
+            "1.5",
+            "--start-angle",
+            "0.5",
+            "--end-angle",
+            "20.0",
+            "--num-points",
+            "5000",
+        ],
+    )
+    call_kwargs = calls[0][1]
+    spiral_config = call_kwargs["spiral_config"]
+
+    assert result.exit_code == 0
+    assert f"Single spiral plot saved to: {output_dir}" in result.stdout
+    assert len(calls) == 1
+    assert calls[0][0] == "plot_single_spiral"
+
+    assert call_kwargs["data"] == sample_data
+    assert call_kwargs["output_path"] == output_dir
+    assert call_kwargs["include_reference"] is True
+    assert call_kwargs["color_segments"] is True
+
+    assert spiral_config.center_x == 100.0
+    assert spiral_config.center_y == 200.0
+    assert spiral_config.start_radius == 5.0
+    assert spiral_config.growth_rate == 1.5
+    assert spiral_config.start_angle == 0.5
+    assert spiral_config.end_angle == 20.0
+    assert spiral_config.num_points == 5000
+
+
+def test_cli_plot_spiral_directory_input(
+    runner: testing.CliRunner,
+    sample_data: pathlib.Path,
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test CLI with directory input for batch plotting."""
+    input_dir = sample_data.parent
+    output_dir = tmp_path / "plots"
+    output_dir.mkdir()
+
+    calls = []
+    monkeypatch.setattr(
+        "graphomotor.plot.spiral_plots.plot_batch_spirals",
+        lambda **kwargs: calls.append(("plot_batch_spirals", kwargs)),
+    )
+
+    result = runner.invoke(
+        cli.app,
+        ["plot-spiral", str(input_dir), str(output_dir)],
+    )
+    call_kwargs = calls[0][1]
+
+    assert result.exit_code == 0
+    assert f"Batch spiral plots saved to: {output_dir}" in result.stdout
+    assert len(calls) == 1
+    assert calls[0][0] == "plot_batch_spirals"
+
+    assert call_kwargs["data"] == input_dir
+    assert call_kwargs["output_path"] == output_dir
+    assert call_kwargs["include_reference"] is False
+    assert call_kwargs["color_segments"] is False
+
+
+def test_cli_plot_spiral_with_boolean_flags(
+    runner: testing.CliRunner,
+    sample_data: pathlib.Path,
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test CLI with boolean flags for include-reference and color-segments."""
+    output_dir = tmp_path / "plots"
+    output_dir.mkdir()
+
+    calls = []
+    monkeypatch.setattr(
+        "graphomotor.plot.spiral_plots.plot_single_spiral",
+        lambda **kwargs: calls.append(("plot_single_spiral", kwargs)),
+    )
+
+    result = runner.invoke(
+        cli.app,
+        [
+            "plot-spiral",
+            str(sample_data),
+            str(output_dir),
+            "--include-reference",
+            "--color-segments",
+        ],
+    )
+    call_kwargs = calls[0][1]
+
+    assert result.exit_code == 0
+    assert len(calls) == 1
+
+    assert call_kwargs["include_reference"] is True
+    assert call_kwargs["color_segments"] is True
+
+
+def test_cli_plot_spiral_invalid_option_types(
+    runner: testing.CliRunner,
+    sample_data: pathlib.Path,
+    tmp_path: pathlib.Path,
+) -> None:
+    """Test CLI handles invalid types for numeric options."""
+    output_dir = tmp_path / "plots"
+
+    result = runner.invoke(
+        cli.app,
+        ["plot-spiral", str(sample_data), str(output_dir), "--center-x", "invalid"],
+    )
+
+    assert result.exit_code != 0
+    assert "'invalid' is not a valid float" in _clean_output(result.stderr)
+
+
+def test_cli_plot_spiral_plot_function_exception(
+    runner: testing.CliRunner,
+    sample_data: pathlib.Path,
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test CLI handles exceptions from plot functions."""
+    output_dir = tmp_path / "plots"
+    output_dir.mkdir()
+
+    monkeypatch.setattr(
+        "graphomotor.plot.spiral_plots.plot_single_spiral",
+        lambda **kwargs: (_ for _ in ()).throw(ValueError("Test plotting error")),
+    )
+
+    result = runner.invoke(
+        cli.app,
+        ["plot-spiral", str(sample_data), str(output_dir)],
+    )
+
+    assert result.exit_code != 0
+    assert "Error generating spiral plots" in result.stderr
+
+
+def test_cli_plot_spiral_directory_vs_file_behavior(
+    runner: testing.CliRunner,
+    sample_data: pathlib.Path,
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Test CLI calls different functions for file vs directory input."""
+    output_dir = tmp_path / "plots"
+    output_dir.mkdir()
+    input_dir = sample_data.parent
+
+    calls = []
+
+    monkeypatch.setattr(
+        "graphomotor.plot.spiral_plots.plot_single_spiral",
+        lambda **kwargs: calls.append(("single", kwargs)),
+    )
+    monkeypatch.setattr(
+        "graphomotor.plot.spiral_plots.plot_batch_spirals",
+        lambda **kwargs: calls.append(("batch", kwargs)),
+    )
+
+    result_file = runner.invoke(
+        cli.app,
+        ["plot-spiral", str(sample_data), str(output_dir)],
+    )
+
+    result_dir = runner.invoke(
+        cli.app,
+        ["plot-spiral", str(input_dir), str(output_dir)],
+    )
+
+    assert result_file.exit_code == 0
+    assert "Single spiral plot saved" in result_file.stdout
+
+    assert result_dir.exit_code == 0
+    assert "Batch spiral plots saved" in result_dir.stdout
+
+    assert len(calls) == 2
+    assert calls[0][0] == "single"
+    assert calls[1][0] == "batch"

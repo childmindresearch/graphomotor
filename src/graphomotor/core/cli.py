@@ -490,7 +490,7 @@ def plot_spiral(
 
         elif input_path.is_dir():
             spiral_plots.plot_batch_spirals(
-                input_path=input_path,
+                data=input_path,
                 output_path=output_path,
                 include_reference=include_reference,
                 color_segments=color_segments,
