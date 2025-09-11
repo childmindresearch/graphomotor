@@ -20,10 +20,10 @@ will be automatically detected and available for plotting.
 Plot Types
 ----------
 - **Distribution plots**: Kernel density estimation plots showing feature distributions
-  grouped by task type and hand
-- **Trend plots**: Line plots displaying feature progression across task sequences
-- **Box plots**: Box-and-whisker plots comparing distributions across conditions
-- **Cluster heatmaps**: Hierarchically clustered heatmaps of standardized features
+  grouped by task type and hand.
+- **Trend plots**: Line plots displaying feature progression across task sequences.
+- **Box plots**: Box-and-whisker plots comparing distributions across conditions.
+- **Cluster heatmaps**: Hierarchically clustered heatmaps of standardized features.
 """
 
 import pathlib

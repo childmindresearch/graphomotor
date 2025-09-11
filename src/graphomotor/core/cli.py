@@ -457,7 +457,6 @@ def plot_spiral(
         )
         raise
 
-    # Create spiral configuration
     config_params = {
         "center_x": center_x,
         "center_y": center_y,

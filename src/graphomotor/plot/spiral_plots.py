@@ -7,9 +7,9 @@ quality control purposes.
 Plot Types
 ----------
 - **Single spiral plots**: Visualize individual spiral drawings with optional
-  reference spiral overlay and color-coded line segments
+  reference spiral overlay and color-coded line segments.
 - **Batch spiral plots**: Visualize multiple spiral drawings organized by metadata
-  with configurable subplot density and arrangement
+  with configurable subplot density and arrangement.
 """
 
 import pathlib
