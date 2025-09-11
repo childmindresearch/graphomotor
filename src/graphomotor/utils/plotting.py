@@ -223,7 +223,7 @@ def get_reference_spiral(
 
 def load_spirals_from_directory(
     input_dir: pathlib.Path,
-) -> tuple[list[models.Spiral], list[str]]:
+) -> list[models.Spiral]:
     """Load spiral CSV files from a directory.
 
     Args:
@@ -231,6 +231,9 @@ def load_spirals_from_directory(
 
     Returns:
         A tuple of (loaded_spirals, failed_file_paths).
+
+    Raises:
+        ValueError: If no CSV files are found or if no valid spirals could be loaded.
     """
     csv_files = list(input_dir.rglob("*.csv"))
     if not csv_files:
@@ -250,7 +253,15 @@ def load_spirals_from_directory(
             logger.warning(f"Failed to load {csv_file}: {e}")
             failed_files.append(str(csv_file))
 
-    return spirals, failed_files
+    if not spirals:
+        error_msg = "Could not load any valid spiral files"
+        logger.error(error_msg)
+        raise ValueError(error_msg)
+
+    if failed_files:
+        logger.warning(f"Failed to load {len(failed_files)} files")
+
+    return spirals
 
 
 def index_spirals_by_metadata(

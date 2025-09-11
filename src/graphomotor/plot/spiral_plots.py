@@ -230,7 +230,7 @@ def plot_batch_spirals(
         The matplotlib Figure object containing all spiral plots.
 
     Raises:
-        ValueError: If the input directory doesn't exist or contains no CSV files.
+        ValueError: If the input directory doesn't exist.
     """
     logger.debug("Starting batch spiral plot generation")
 
@@ -240,15 +240,7 @@ def plot_batch_spirals(
         logger.error(error_msg)
         raise ValueError(error_msg)
 
-    spirals, failed_files = plotting.load_spirals_from_directory(data)
-
-    if not spirals:
-        error_msg = "Could not load any valid spiral files"
-        logger.error(error_msg)
-        raise ValueError(error_msg)
-
-    if failed_files:
-        logger.warning(f"Failed to load {len(failed_files)} files")
+    spirals = plotting.load_spirals_from_directory(data)
 
     if len(spirals) == 1:
         return plot_single_spiral(

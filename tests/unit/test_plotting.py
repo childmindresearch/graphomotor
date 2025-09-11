@@ -136,8 +136,7 @@ def test_load_spirals_from_directory_failed_file_warning(
     """Test logger warning when individual CSV files fail to load."""
     test_dir = sample_data.parent
 
-    spirals, failed_files = plotting.load_spirals_from_directory(test_dir)
+    spirals = plotting.load_spirals_from_directory(test_dir)
 
-    assert "Failed to load" in caplog.text
-    assert len(failed_files) == 1
+    assert "Failed to load 1 files" in caplog.text
     assert len(spirals) == 2
