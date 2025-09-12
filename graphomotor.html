@@ -21,6 +21,24 @@
             <input type="search" placeholder="Search..." role="searchbox" aria-label="search"
                    pattern=".+" required>
 
+            <h2>Contents</h2>
+            <ul>
+  <li><a href="#graphomotor"><code>graphomotor</code></a></li>
+  <li><a href="#graphomotor"><code>md5-aa75de9ca671f702a9f04078e1a309f1</code"></a>
+  <ul>
+    <li><a href="#feature-extraction-capabilities">Feature Extraction Capabilities</a></li>
+    <li><a href="#feature-visualization-capabilities">Feature Visualization Capabilities</a></li>
+    <li><a href="#spiral-visualization-capabilities">Spiral Visualization Capabilities</a></li>
+    <li><a href="#installation">Installation</a></li>
+    <li><a href="#quick-start">Quick Start</a></li>
+    <li><a href="#development-progress">Development Progress</a></li>
+    <li><a href="#data-format-requirements">Data Format Requirements</a></li>
+    <li><a href="#future-directions">Future Directions</a></li>
+    <li><a href="#contributing">Contributing</a></li>
+    <li><a href="#references">References</a></li>
+  </ul></li>
+</ul>
+
 
             <h2>Submodules</h2>
             <ul>
@@ -45,39 +63,453 @@
                     <h1 class="modulename">
 graphomotor    </h1>
 
-                        <div class="docstring"><p>A Python toolkit for analysis of graphomotor data collected via Curious.</p>
+                        <div class="docstring"><h1 id="graphomotor"><code><a href="">graphomotor</a></code></h1>
 
-<p><a href="https://doi.org/10.5281/zenodo.15800191"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.15800191.svg" alt="DOI" /></a>
-<a href="https://github.com/childmindresearch/graphomotor/actions/workflows/test.yaml?query=branch%3Amain"><img src="https://github.com/childmindresearch/graphomotor/actions/workflows/test.yaml/badge.svg?branch=main" alt="Build" /></a>
-<a href="https://codecov.io/gh/childmindresearch"><img src="https://codecov.io/gh/childmindresearch/graphomotor/branch/main/graph/badge.svg?token=22HWWFWPW5" alt="codecov" /></a></p>
+<p>A Python toolkit for analysis of graphomotor data collected via Curious.</p>
 
-<p>Welcome to <code><a href="">graphomotor</a></code>, a specialized Python library for analyzing graphomotor
-data collected via <a href="https://www.gettingcurious.com/">Curious</a>. This toolkit provides
-comprehensive tools for processing, analyzing, and visualizing data from various
-graphomotor assessment tasks.</p>
+<p><a href="https://doi.org/10.5281/zenodo.15800191"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.15800191.svg" alt="DOI" /></a></p>
 
-<p>For complete documentation, examples, and API reference, visit the
-<a href="https://childmindresearch.github.io/graphomotor/">full documentation</a>.</p>
+<p><a href="https://github.com/childmindresearch/graphomotor/actions/workflows/test.yaml?query=branch%3Amain"><img src="https://github.com/childmindresearch/graphomotor/actions/workflows/test.yaml/badge.svg?branch=main" alt="Build" /></a>
+<a href="https://codecov.io/gh/childmindresearch/graphomotor"><img src="https://codecov.io/gh/childmindresearch/graphomotor/branch/main/graph/badge.svg?token=22HWWFWPW5" alt="codecov" /></a>
+<a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json" alt="Ruff" /></a>
+<img src="https://img.shields.io/badge/stability-experimental-orange.svg" alt="stability-experimental" />
+<a href="https://github.com/childmindresearch/graphomotor/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-LGPL--2.1-blue.svg" alt="LGPL--2.1 License" /></a>
+<a href="https://childmindresearch.github.io/graphomotor"><img src="https://img.shields.io/badge/api-docs-blue" alt="Documentation" /></a></p>
+
+<p>Welcome to <code><a href="">graphomotor</a></code>, a specialized Python library for analyzing graphomotor data collected via <a href="https://www.gettingcurious.com/">Curious</a>. This toolkit aims to provide comprehensive tools for processing, analyzing, and visualizing data from various graphomotor assessment tasks, including spiral drawing, trails making, alphabetic writing, digit symbol substitution, and the Rey-Osterrieth Complex Figure Test.</p>
+
+<div class="alert important">
+<em>Important</em>
+<p><code><a href="">graphomotor</a></code> is under <a href="#development-progress">active development</a>. So far, the feature extraction and visualization components for the spiral drawing task are complete. The next steps involve implementing preprocessing for this task and extending support to other tasks.</p>
+</div>
+
+<h2 id="feature-extraction-capabilities">Feature Extraction Capabilities</h2>
+
+<p>The toolkit extracts <a href="https://childmindresearch.github.io/graphomotor/graphomotor/features.html">25 clinically relevant metrics</a> from digitized drawing data. Currently implemented feature categories include:</p>
+
+<ul>
+<li><strong><a href="https://childmindresearch.github.io/graphomotor/graphomotor/features/velocity.html">Velocity Features</a> (15)</strong>: Velocity analysis including linear, radial, and angular velocity components with statistical measures (sum, median, variation, skewness, kurtosis).</li>
+<li><strong><a href="https://childmindresearch.github.io/graphomotor/graphomotor/features/distance.html">Distance Features</a> (8)</strong>: Spatial accuracy measurements using Hausdorff distance metrics with temporal normalizations and segment-specific analysis.</li>
+<li><strong><a href="https://childmindresearch.github.io/graphomotor/graphomotor/features/drawing_error.html">Drawing Error Features</a> (1)</strong>: Area under the curve (AUC) calculations between drawn paths and ideal reference trajectories to quantify spatial accuracy.</li>
+<li><strong><a href="https://childmindresearch.github.io/graphomotor/graphomotor/features/time.html">Temporal Features</a> (1)</strong>: Task completion duration.</li>
+</ul>
+
+<h2 id="feature-visualization-capabilities">Feature Visualization Capabilities</h2>
+
+<p>The toolkit provides several plotting functions to visualize extracted features:</p>
+
+<ul>
+<li><p><strong><a href="https://childmindresearch.github.io/graphomotor/graphomotor/plot/feature_plots.html#plot_feature_distributions">Distribution Plots</a></strong>: Kernel density estimation plots showing feature distributions grouped by task type and hand.</p>
+
+<p><img src="data:image/png;base64,dmVyc2lvbiBodHRwczovL2dpdC1sZnMuZ2l0aHViLmNvbS9zcGVjL3YxCm9pZCBzaGEyNTY6Y2U0MTQ2YzhmYmIwNTQzYmEzM2ZlOGQxY2IwNDJiNTRiZmRiZmY1MjhmYTE5YjhiNTliMjhiYTFkOTI2ZDQxMQpzaXplIDM3Nzg0Nwo=" alt="Feature Distribution Plot Example" /></p></li>
+<li><p><strong><a href="https://childmindresearch.github.io/graphomotor/graphomotor/plot/feature_plots.html#plot_feature_trends">Trend Plots</a></strong>: Line plots displaying feature progression across task sequences with individual participant trajectories and group means.</p>
+
+<p><img src="data:image/png;base64,dmVyc2lvbiBodHRwczovL2dpdC1sZnMuZ2l0aHViLmNvbS9zcGVjL3YxCm9pZCBzaGEyNTY6YmM3ZjllZmY0MGE2Mjc2MGNjODU2ZjQyNDcwZWIyZmQ3MTUzZjM4ZGVkNzdjZmQzMjgxMTAxZmY4OWI0NGJiYQpzaXplIDc4MTAyMgo=" alt="Feature Trends Plot Example" /></p></li>
+<li><p><strong><a href="https://childmindresearch.github.io/graphomotor/graphomotor/plot/feature_plots.html#plot_feature_boxplots">Box Plots</a></strong>: Box-and-whisker plots comparing feature distributions across different tasks and hand conditions.</p>
+
+<p><img src="data:image/png;base64,dmVyc2lvbiBodHRwczovL2dpdC1sZnMuZ2l0aHViLmNvbS9zcGVjL3YxCm9pZCBzaGEyNTY6NjA5NzAwYTViNTY1NjQwMDVkYjA5ZjVhZjQzM2JmMzA5MDBiNzFlZTllNzU5MmE5NWI3YWJjMzQzYWQ4YzNhMApzaXplIDI0NzYwMAo=" alt="Feature Box Plots Example" /></p></li>
+<li><p><strong><a href="https://childmindresearch.github.io/graphomotor/graphomotor/plot/feature_plots.html#plot_feature_clusters">Cluster Heatmaps</a></strong>: Hierarchically clustered heatmaps of z-score standardized features to identify patterns across conditions.</p>
+
+<p><img src="data:image/png;base64,dmVyc2lvbiBodHRwczovL2dpdC1sZnMuZ2l0aHViLmNvbS9zcGVjL3YxCm9pZCBzaGEyNTY6YjRjMmNhODZkZDdjNWM0NmYwNzFiMDg5NTE5ZWNmNjZjZWQ4MzdiZjVmNTA0ZWIzZjY0OTg0NjQ0NmJjZjcxZgpzaXplIDIwMzQ0Ngo=" alt="Feature Cluster Heatmap Example" /></p></li>
+</ul>
+
+<h2 id="spiral-visualization-capabilities">Spiral Visualization Capabilities</h2>
+
+<p>The toolkit includes plotting functions to visualize raw spiral drawing trajectories for quality control and data inspection:</p>
+
+<ul>
+<li><p><strong><a href="https://childmindresearch.github.io/graphomotor/graphomotor/plot/spiral_plots.html#plot_single_spiral">Single Spiral Plots</a></strong>: Individual spiral trajectory visualization with optional reference spiral overlay and color-coded line segments.</p>
+
+<p><img src="data:image/png;base64,dmVyc2lvbiBodHRwczovL2dpdC1sZnMuZ2l0aHViLmNvbS9zcGVjL3YxCm9pZCBzaGEyNTY6ZGNjN2YzNTUwZGEyNGE4Zjk3Yjg0NTFmZTIyZjQxYTU5MWI5YTAwZTg5NWJjMDIzMDk3NmVlZDlkYWUyMGIxNgpzaXplIDY4MDMxNwo=" alt="Single Spiral Plot Example" /></p></li>
+<li><p><strong><a href="https://childmindresearch.github.io/graphomotor/graphomotor/plot/spiral_plots.html#plot_batch_spirals">Batch Spiral Plots</a></strong>: Grid-based visualization of multiple spirals organized by participant, hand, and task with automatic labeling.</p>
+
+<p><img src="data:image/png;base64,dmVyc2lvbiBodHRwczovL2dpdC1sZnMuZ2l0aHViLmNvbS9zcGVjL3YxCm9pZCBzaGEyNTY6MGU0NmNhMzIyZDgzZDg3ZTdkZDg2MDJjYjM0ZmYwNGFhMjE2NjliN2Y0ODNlNGNlNzAxZmUwY2FmNjkyODYxOQpzaXplIDI2NDgzOTkK" alt="Batch Spiral Plots Example" /></p></li>
+</ul>
+
+<h2 id="installation">Installation</h2>
+
+<p>Install <code><a href="">graphomotor</a></code> from <a href="https://pypi.org/project/graphomotor/">PyPI</a>:</p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>graphomotor
+</code></pre>
+</div>
+
+<p>Or install the latest development version directly from GitHub:</p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/childmindresearch/graphomotor
+</code></pre>
+</div>
+
+<h2 id="quick-start">Quick Start</h2>
+
+<p><code><a href="">graphomotor</a></code> provides two main functionalities: <a href="#feature-extraction">feature extraction</a> from raw drawing data and <a href="#feature-visualization">visualization</a> of extracted features. Both are available as a <strong>command-line interface</strong> (CLI) and an <strong>importable Python library</strong>.</p>
+
+<div class="alert caution">
+<em>Caution</em>
+<p>Input data must follow the <a href="https://mindlogger.atlassian.net/servicedesk/customer/portal/3/article/859242501">Curious drawing responses format</a>. See <a href="#data-format-requirements">Data Format Requirements</a> below.</p>
+</div>
+
+<p><strong>To see all available commands and global options in the CLI:</strong></p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>graphomotor<span class="w"> </span>--help
+</code></pre>
+</div>
+
+<h3 id="feature-extraction">Feature Extraction</h3>
+
+<p>The feature extraction functionality computes a set of clinically relevant metrics from digitized graphomotor drawing data. It processes raw CSV files exported from Curious, extracts participant metadata, and <a href="#feature-extraction-capabilities">calculates features</a> such as velocity, distance, drawing error, and temporal measures for each drawing. The resulting structured dataset can be used for further analysis or visualization, supporting both single-file and batch processing workflows.</p>
+
+<h4 id="cli-usage-for-feature-extraction">CLI Usage for Feature Extraction</h4>
+
+<p><strong>To extract features from a single file:</strong></p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>graphomotor<span class="w"> </span>extract<span class="w"> </span>/path/to/data.csv<span class="w"> </span>/path/to/output/features.csv
+</code></pre>
+</div>
+
+<p><strong>To extract features from entire directories:</strong></p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>graphomotor<span class="w"> </span>extract<span class="w"> </span>/path/to/data_directory/<span class="w"> </span>/path/to/output/features.csv
+</code></pre>
+</div>
+
+<p><strong>To see all available options for <code>extract</code>:</strong></p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>graphomotor<span class="w"> </span>extract<span class="w"> </span>--help
+</code></pre>
+</div>
+
+<h4 id="python-library-usage-for-feature-extraction">Python Library Usage for Feature Extraction</h4>
+
+<p><strong>To extract features from a single file:</strong></p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn"><a href="graphomotor/core.html">graphomotor.core</a></span><span class="w"> </span><span class="kn">import</span> <span class="n">orchestrator</span>
+
+<span class="c1"># Define input path</span>
+<span class="n">input_path</span> <span class="o">=</span> <span class="s2">&quot;/path/to/data.csv&quot;</span>
+
+<span class="c1"># Define output path to save results to disk</span>
+<span class="c1"># If output path is a directory, file name will be auto-generated as</span>
+<span class="c1"># `{participant_id}_{task}_{hand}_features_{YYYYMMDD_HHMM}.csv`</span>
+<span class="n">output_path</span> <span class="o">=</span> <span class="s2">&quot;/path/to/output/features.csv&quot;</span>
+
+<span class="c1"># Run the pipeline</span>
+<span class="n">results_df</span> <span class="o">=</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">run_pipeline</span><span class="p">(</span><span class="n">input_path</span><span class="o">=</span><span class="n">input_path</span><span class="p">,</span> <span class="n">output_path</span><span class="o">=</span><span class="n">output_path</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p><strong>To extract features from entire directories:</strong></p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn"><a href="graphomotor/core.html">graphomotor.core</a></span><span class="w"> </span><span class="kn">import</span> <span class="n">orchestrator</span>
+
+<span class="c1"># Define input directory</span>
+<span class="n">input_dir</span> <span class="o">=</span> <span class="s2">&quot;/path/to/data_directory/&quot;</span>
+
+<span class="c1"># Define output path to save results to disk</span>
+<span class="c1"># If output path is a directory, file name will be auto-generated as</span>
+<span class="c1"># `batch_features_{YYYYMMDD_HHMM}.csv`</span>
+<span class="n">output_dir</span> <span class="o">=</span> <span class="s2">&quot;/path/to/output/&quot;</span>
+
+<span class="c1"># Run the pipeline</span>
+<span class="n">results_df</span> <span class="o">=</span> <span class="n">orchestrator</span><span class="o">.</span><span class="n">run_pipeline</span><span class="p">(</span><span class="n">input_path</span><span class="o">=</span><span class="n">input_dir</span><span class="p">,</span> <span class="n">output_path</span><span class="o">=</span><span class="n">output_dir</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p><strong>To access the results:</strong></p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code><span class="c1"># run_pipeline() returns a DataFrame with extracted metadata and features</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processed </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">results_df</span><span class="p">)</span><span class="si">}</span><span class="s2"> files&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Extracted metadata and features: </span><span class="si">{</span><span class="n">results_df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Get data for first file</span>
+<span class="c1"># DataFrame is indexed by file path</span>
+<span class="n">file_path</span> <span class="o">=</span> <span class="n">results_df</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">participant</span> <span class="o">=</span> <span class="n">results_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;participant_id&quot;</span><span class="p">]</span>
+<span class="n">task</span> <span class="o">=</span> <span class="n">results_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;task&quot;</span><span class="p">]</span>
+<span class="n">duration</span> <span class="o">=</span> <span class="n">results_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;duration&quot;</span><span class="p">]</span>
+</code></pre>
+</div>
+
+<div class="alert note">
+<em>Note</em>
+<p>For detailed configuration options and additional parameters for feature extraction, refer to the <a href="https://childmindresearch.github.io/graphomotor/graphomotor/core/orchestrator.html#run_pipeline"><code>run_pipeline</code> documentation</a>.</p>
+</div>
+
+<h3 id="feature-visualization">Feature Visualization</h3>
+
+<p>The feature visualization module enables users to generate <a href="#feature-visualization-capabilities">a variety of plots</a> from batch feature output files produced by the <a href="#feature-extraction">feature extraction</a> process. These output CSV files are expected to contain data from multiple participants, with the first five columns reserved for metadata (<code>source_file</code>, <code>participant_id</code>, <code>task</code>, <code>hand</code>, <code>start_time</code>), followed by columns representing numerical features. The visualization tools offer flexible selection of features and plot types, accessible via both the CLI and Python library. All plots return <code>matplotlib.figure</code> objects, facilitating further customization and integration into analysis workflows. This functionality streamlines exploratory data analysis and supports the identification of trends and outliers in graphomotor datasets.</p>
+
+<div class="alert tip">
+<em>Tip</em>
+<p><strong>Custom Features</strong>: You can add custom feature columns to your output CSV files alongside the standard graphomotor features. The plotting functions will automatically detect and include any additional columns after the first 5 metadata columns.</p>
+</div>
+
+<h4 id="cli-usage-for-feature-visualization">CLI Usage for Feature Visualization</h4>
+
+<p><strong>To generate all available plot types with all features in the input file:</strong></p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>graphomotor<span class="w"> </span>plot-features<span class="w"> </span>/path/to/batch_features.csv<span class="w"> </span>/path/to/plots/
+</code></pre>
+</div>
+
+<p><strong>To generate only selected plot types for specific features:</strong></p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>graphomotor<span class="w"> </span>plot-features<span class="w"> </span>/path/to/batch_features.csv<span class="w"> </span>/path/to/plots/<span class="w"> </span>-p<span class="w"> </span>dist<span class="w"> </span>-p<span class="w"> </span>trend<span class="w"> </span>-f<span class="w"> </span>area_under_curve<span class="w"> </span>-f<span class="w"> </span>duration
+</code></pre>
+</div>
+
+<p><strong>To see all available options for <code>plot-features</code>:</strong></p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>graphomotor<span class="w"> </span>plot-features<span class="w"> </span>--help
+</code></pre>
+</div>
+
+<h4 id="python-library-usage-for-feature-visualization">Python Library Usage for Feature Visualization</h4>
+
+<p><strong>To generate a distribution plot for specific features and save it:</strong></p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn"><a href="graphomotor/plot.html">graphomotor.plot</a></span><span class="w"> </span><span class="kn">import</span> <span class="n">feature_plots</span>
+
+<span class="c1"># Define paths to data, output directory and features to plot</span>
+<span class="n">data</span> <span class="o">=</span> <span class="s2">&quot;/path/to/batch_features.csv&quot;</span>
+<span class="n">output_dir</span> <span class="o">=</span> <span class="s2">&quot;/path/to/plots/&quot;</span>
+<span class="n">features</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;linear_velocity_median&quot;</span><span class="p">,</span> <span class="s2">&quot;hausdorff_distance_maximum&quot;</span><span class="p">]</span>
+
+<span class="c1"># Generate and save distribution plots for selected features</span>
+<span class="n">feature_plots</span><span class="o">.</span><span class="n">plot_feature_distributions</span><span class="p">(</span>
+  <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+  <span class="n">output_path</span><span class="o">=</span><span class="n">output_dir</span><span class="p">,</span>
+  <span class="n">features</span><span class="o">=</span><span class="n">features</span>
+<span class="p">)</span>
+</code></pre>
+</div>
+
+<p><strong>To generate boxplots for all available features in a notebook:</strong></p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn"><a href="graphomotor/plot.html">graphomotor.plot</a></span><span class="w"> </span><span class="kn">import</span> <span class="n">feature_plots</span>
+
+<span class="c1"># Use magic command for inline plotting in notebooks</span>
+<span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+
+<span class="c1"># Define the path to data</span>
+<span class="n">data</span> <span class="o">=</span> <span class="s2">&quot;/path/to/batch_features.csv&quot;</span>
+
+<span class="c1"># Generate boxplots for all available features and return the figure object</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">feature_plots</span><span class="o">.</span><span class="n">plot_feature_boxplots</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+
+<span class="c1"># It is possible to customize the figure object further before displaying or saving it:</span>
+<span class="c1"># Change the figure title</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">&quot;Custom Title&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">24</span><span class="p">)</span>
+
+<span class="c1"># Adjust the layout so that figure title does not overlap with subplots</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">top</span><span class="o">=</span><span class="mf">0.94</span><span class="p">)</span>
+
+<span class="c1"># Customize each subplot</span>
+<span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">fig</span><span class="o">.</span><span class="n">get_axes</span><span class="p">():</span>
+    <span class="c1"># Change the degree of rotation for x-tick labels:</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+    <span class="c1"># Hide gridlines</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="c1"># Highlight outliers by changing their color and size</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_lines</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">get_marker</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;o&quot;</span><span class="p">:</span>
+            <span class="n">line</span><span class="o">.</span><span class="n">set_markerfacecolor</span><span class="p">(</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+            <span class="n">line</span><span class="o">.</span><span class="n">set_markeredgecolor</span><span class="p">(</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+            <span class="n">line</span><span class="o">.</span><span class="n">set_markersize</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+
+<span class="c1"># Save the figure after the changes</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;path/to/customized_boxplots.png&quot;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<div class="alert note">
+<em>Note</em>
+<p>For all available feature plotting options, refer to the <a href="https://childmindresearch.github.io/graphomotor/graphomotor/plot/feature_plots.html"><code>feature_plots</code> documentation</a>.</p>
+</div>
+
+<h3 id="spiral-visualization">Spiral Visualization</h3>
+
+<p>Visualize raw spiral drawing trajectories from Curious CSVs for quick QC and exploratory review. You can plot a single file or batch-plot a whole folder into a structured grid. Plots can optionally include a reference spiral and color-coded line segments.</p>
+
+<h4 id="cli-usage-for-spiral-visualization">CLI Usage for Spiral Visualization</h4>
+
+<p><strong>To plot a single spiral CSV file:</strong></p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>graphomotor<span class="w"> </span>plot-spiral<span class="w"> </span>/path/to/spiral.csv<span class="w"> </span>/path/to/plots/
+</code></pre>
+</div>
+
+<p><strong>To batch-plot all spiral CSVs in a directory as a grid with reference spiral and color-coded segments:</strong></p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>graphomotor<span class="w"> </span>plot-spiral<span class="w"> </span>/path/to/spiral_directory/<span class="w"> </span>/path/to/plots/<span class="w"> </span>-i<span class="w"> </span>-c
+</code></pre>
+</div>
+
+<h4 id="python-library-usage-for-spiral-visualization">Python Library Usage for Spiral Visualization</h4>
+
+<p><strong>To plot a single spiral and return a <code>matplotlib.figure.Figure</code> and save it:</strong></p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn"><a href="graphomotor/plot.html">graphomotor.plot</a></span><span class="w"> </span><span class="kn">import</span> <span class="n">spiral_plots</span>
+
+<span class="n">fig</span> <span class="o">=</span> <span class="n">spiral_plots</span><span class="o">.</span><span class="n">plot_single_spiral</span><span class="p">(</span>
+  <span class="n">data</span><span class="o">=</span><span class="s2">&quot;/path/to/spiral.csv&quot;</span><span class="p">,</span>
+  <span class="n">output_path</span><span class="o">=</span><span class="s2">&quot;/path/to/plots/&quot;</span><span class="p">,</span>
+  <span class="n">include_reference</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+  <span class="n">color_segments</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre>
+</div>
+
+<p><strong>To batch-plot a directory of spirals into a grid figure in a notebook:</strong></p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn"><a href="graphomotor/plot.html">graphomotor.plot</a></span><span class="w"> </span><span class="kn">import</span> <span class="n">spiral_plots</span>
+
+<span class="c1"># Use magic command for inline plotting in notebooks</span>
+<span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+
+<span class="n">fig</span> <span class="o">=</span> <span class="n">spiral_plots</span><span class="o">.</span><span class="n">plot_batch_spirals</span><span class="p">(</span>
+  <span class="n">input_path</span><span class="o">=</span><span class="s2">&quot;/path/to/spiral_directory/&quot;</span><span class="p">,</span>
+  <span class="n">include_reference</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+</code></pre>
+</div>
+
+<div class="alert note">
+<em>Note</em>
+<p>For all available spiral plotting options, refer to the <a href="https://childmindresearch.github.io/graphomotor/graphomotor/plot/spiral_plots.html"><code>spiral_plots</code> documentation</a>.</p>
+</div>
+
+<h2 id="development-progress">Development Progress</h2>
+
+<table>
+<thead>
+<tr>
+  <th style="text-align:left;">Task</th>
+  <th style="text-align:center;">Preprocessing</th>
+  <th style="text-align:center;">Feature Extraction</th>
+  <th style="text-align:center;">Visualization</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td style="text-align:left;">Spiral</td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="Spiral: Preprocessing Pending" /></td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/complete-green" alt="Spiral: Feature Extraction Complete" /></td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/complete-green" alt="Spiral: Visualization Complete" /></td>
+</tr>
+<tr>
+  <td style="text-align:left;">Rey-Osterrieth Complex Figure</td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="Rey-Osterrieth: Preprocessing Pending" /></td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="Rey-Osterrieth: Feature Extraction Pending" /></td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="Rey-Osterrieth: Visualization Pending" /></td>
+</tr>
+<tr>
+  <td style="text-align:left;">Alphabetic Writing</td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="Alphabetic Writing: Preprocessing Pending" /></td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="Alphabetic Writing: Feature Extraction Pending" /></td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="Alphabetic Writing: Visualization Pending" /></td>
+</tr>
+<tr>
+  <td style="text-align:left;">Digit Symbol Substitution</td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="Digit Symbol Substitution: Preprocessing Pending" /></td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="Digit Symbol Substitution: Feature Extraction Pending" /></td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="Digit Symbol Substitution: Visualization Pending" /></td>
+</tr>
+<tr>
+  <td style="text-align:left;">Trails Making</td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="Trails Making: Preprocessing Pending" /></td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="Trails Making: Feature Extraction Pending" /></td>
+  <td style="text-align:center;"><img src="https://img.shields.io/badge/pending-red" alt="Trails Making: Visualization Pending" /></td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="data-format-requirements">Data Format Requirements</h2>
+
+<p>When exporting drawing data from Curious, the export typically includes the following files:</p>
+
+<ul>
+<li><strong>report.csv</strong>: Contains the participants' actual responses.</li>
+<li><strong>activity_user_journey.csv</strong>: Logs the entire journey through the activity, including button actions like "Next", "Skip", "Back", and "Undo", regardless of whether a response was provided.</li>
+<li><strong>drawing-responses-{date}.zip</strong>: A ZIP archive with raw drawing response CSV files for each participant (e.g., <code>drawing-responses-Mon May 29 2023.zip</code>).</li>
+<li><strong>media-responses-{date}.zip</strong>: A ZIP archive containing SVG files for the drawing responses (e.g., <code>media-responses-Mon May 29 2023.zip</code>).</li>
+<li><strong>trails-responses-{date}.zip</strong>: A ZIP archive with raw trail making response CSV files (if there are any) for each participant (e.g., <code>trails-responses-Mon May 29 2023.zip</code>).</li>
+</ul>
+
+<p>For Spiral tasks, the toolkit uses only the CSV files from the drawing responses ZIP. Support for additional tasks will be added in future releases.</p>
+
+<h3 id="file-naming-convention">File Naming Convention</h3>
+
+<p>Spiral data files must follow this naming convention:</p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>[5123456]a7f3b2e9-d4c8-f1a6-e5b9-c2d7f8a3e6b4-spiral_trace1_Dom.csv
+</code></pre>
+</div>
+
+<p>Where:</p>
+
+<ul>
+<li><strong>Participant ID</strong>: Must be enclosed in brackets <code>[]</code> and be a 7-digit number starting with <code>5</code> (e.g., <code>[5123456]</code>) that matches the <code>target_secret_id</code> column in the <strong>report.csv</strong> file.</li>
+<li><strong>Activity Submission ID</strong>: Must be a 32-character hexadecimal string (e.g., <code>18f2-45ea-a1e4-2334e07cc706</code>) that matches the <code>id</code> column in the <strong>report.csv</strong> file.</li>
+<li><strong>Task</strong>: Must be one of the following that matches the <code>item</code> column in the <strong>report.csv</strong> file:
+<ul>
+<li><code>spiral_trace1_Dom</code> through <code>spiral_trace5_Dom</code> (dominant hand tracing tasks)</li>
+<li><code>spiral_trace1_NonDom</code> through <code>spiral_trace5_NonDom</code> (non-dominant hand tracing tasks)</li>
+<li><code>spiral_recall1_Dom</code> through <code>spiral_recall3_Dom</code> (dominant hand recall tasks)</li>
+<li><code>spiral_recall1_NonDom</code> through <code>spiral_recall3_NonDom</code> (non-dominant hand recall tasks)</li>
+</ul></li>
+</ul>
+
+<h3 id="data-format">Data Format</h3>
+
+<p>Spiral data CSV files must contain the following columns:</p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>line_number, x, y, UTC_Timestamp, seconds, epoch_time_in_seconds_start
+</code></pre>
+</div>
+
+<p>These columns constitute the standard output from <a href="https://mindlogger.atlassian.net/servicedesk/customer/portal/3/article/596082739">Curious drawing responses data dictionary</a>.</p>
+
+<h2 id="future-directions">Future Directions</h2>
+
+<p>The <code><a href="">graphomotor</a></code> is under active development. For more detailed information about upcoming features and development plans, please refer to our <a href="https://github.com/childmindresearch/graphomotor/issues">GitHub Issues</a> page.</p>
+
+<h2 id="contributing">Contributing</h2>
+
+<p>Contributions from the community are welcome! Please review the <a href="CONTRIBUTING.md">Contributing Guidelines</a> for information on how to get started, coding standards, and the pull request process.</p>
+
+<h2 id="references">References</h2>
+
+<ol>
+<li>Messan, K. S., Kia, S. M., Narayan, V. A., Redmond, S. J., Kogan, A., Hussain, M. A., McKhann, G. M. II, &amp; Vahdat, S. (2022). Assessment of Smartphone-Based Spiral Tracing in Multiple Sclerosis Reveals Intra-Individual Reproducibility as a Major Determinant of the Clinical Utility of the Digital Test. Frontiers in Medical Technology, 3, 714682. <a href="https://doi.org/10.3389/fmedt.2021.714682">https://doi.org/10.3389/fmedt.2021.714682</a></li>
+</ol>
 </div>
 
                         <input id="mod-graphomotor-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 
                         <label class="view-source-button" for="mod-graphomotor-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="sd">&quot;&quot;&quot;A Python toolkit for analysis of graphomotor data collected via Curious.</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a>
-</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="sd">[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15800191.svg)](https://doi.org/10.5281/zenodo.15800191)</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a><span class="sd">[![Build](https://github.com/childmindresearch/graphomotor/actions/workflows/test.yaml/badge.svg?branch=main)](https://github.com/childmindresearch/graphomotor/actions/workflows/test.yaml?query=branch%3Amain)</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="sd">[![codecov](https://codecov.io/gh/childmindresearch/graphomotor/branch/main/graph/badge.svg?token=22HWWFWPW5)](https://codecov.io/gh/childmindresearch)</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a>
-</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="sd">Welcome to `graphomotor`, a specialized Python library for analyzing graphomotor</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a><span class="sd">data collected via [Curious](https://www.gettingcurious.com/). This toolkit provides</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="sd">comprehensive tools for processing, analyzing, and visualizing data from various</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a><span class="sd">graphomotor assessment tasks.</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>
-</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a><span class="sd">For complete documentation, examples, and API reference, visit the</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a><span class="sd">[full documentation](https://childmindresearch.github.io/graphomotor/).</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a><span class="sd">&quot;&quot;&quot;</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">1</span></a><span class="sd">&quot;&quot;&quot;.. include:: ../../README.md&quot;&quot;&quot;</span>  <span class="c1"># noqa: D415</span>
 </span></pre></div>
 
 
