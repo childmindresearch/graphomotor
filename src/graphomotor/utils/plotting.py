@@ -230,7 +230,7 @@ def load_spirals_from_directory(
         input_dir: Directory path to search for CSV files.
 
     Returns:
-        A tuple of (loaded_spirals, failed_file_paths).
+        List of loaded Spiral objects.
 
     Raises:
         ValueError: If no CSV files are found or if no valid spirals could be loaded.

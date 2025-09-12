@@ -240,7 +240,11 @@ def plot_batch_spirals(
         logger.error(error_msg)
         raise ValueError(error_msg)
 
-    spirals = plotting.load_spirals_from_directory(data)
+    try:
+        spirals = plotting.load_spirals_from_directory(data)
+    except ValueError as e:
+        logger.error(f"Failed to load any spirals from directory: {e}")
+        raise
 
     if len(spirals) == 1:
         return plot_single_spiral(
