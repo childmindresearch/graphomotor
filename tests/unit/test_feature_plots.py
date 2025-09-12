@@ -5,7 +5,6 @@ import pathlib
 import matplotlib.pyplot as plt
 import pandas as pd
 import pytest
-from matplotlib import figure
 
 from graphomotor.plot import feature_plots
 
@@ -37,7 +36,7 @@ def test_plot_feature_distributions_all_saved(
     assert len(output_files) == 1
     assert output_files[0].is_file()
 
-    assert isinstance(fig, figure.Figure)
+    assert isinstance(fig, plt.Figure)
     assert fig.get_suptitle() == "Feature Distributions across Task Types and Hands"
     assert len(fig.axes) == 25
     for ax in fig.axes:
@@ -70,7 +69,7 @@ def test_plot_feature_distributions_specific_features_no_save(
     assert "Created subplot grid for 3 features" in caplog.text
     assert "Feature distributions plot generated but not saved" in caplog.text
 
-    assert isinstance(fig, figure.Figure)
+    assert isinstance(fig, plt.Figure)
     assert len(fig.axes) == 4
     assert not fig.axes[-1].get_visible()
     assert not fig.axes[-1].has_data()
@@ -102,7 +101,7 @@ def test_plot_feature_trends_all_saved(
     assert len(output_files) == 1
     assert output_files[0].is_file()
 
-    assert isinstance(fig, figure.Figure)
+    assert isinstance(fig, plt.Figure)
     assert fig.get_suptitle() == "Feature Trends across Tasks and Hands"
     assert len(fig.axes) == 25
     for ax in fig.axes:
@@ -131,7 +130,7 @@ def test_plot_feature_trends_specific_features_no_save(
 
     assert "Feature trends plot generated but not saved" in caplog.text
 
-    assert isinstance(fig, figure.Figure)
+    assert isinstance(fig, plt.Figure)
     assert len(fig.axes) == 4
     assert not fig.axes[-1].get_visible()
     assert not fig.axes[-1].has_data()
@@ -163,7 +162,7 @@ def test_plot_feature_boxplots_all_saved(
     assert len(output_files) == 1
     assert output_files[0].is_file()
 
-    assert isinstance(fig, figure.Figure)
+    assert isinstance(fig, plt.Figure)
     assert fig.get_suptitle() == "Feature Boxplots across Tasks and Hands"
     assert len(fig.axes) == 25
     for ax in fig.axes:
@@ -192,7 +191,7 @@ def test_plot_feature_boxplots_specific_features_no_save(
 
     assert "Feature boxplots generated but not saved" in caplog.text
 
-    assert isinstance(fig, figure.Figure)
+    assert isinstance(fig, plt.Figure)
     assert len(fig.axes) == 4
     assert not fig.axes[-1].get_visible()
     assert not fig.axes[-1].has_data()
@@ -224,7 +223,7 @@ def test_plot_feature_clusters_all_saved(
     assert len(output_files) == 1
     assert output_files[0].is_file()
 
-    assert isinstance(fig, figure.Figure)
+    assert isinstance(fig, plt.Figure)
     assert fig.get_suptitle() == "Feature Clusters Across Conditions"
     assert len(fig.axes) == 4  # dendograms + heatmap + colorbar
     for ax in fig.axes:
@@ -253,7 +252,7 @@ def test_plot_feature_clusters_specific_features_no_save(
     assert "Heatmap data shape: (3, 16) for (features, conditions)" in caplog.text
     assert "Feature clusters heatmap generated but not saved" in caplog.text
 
-    assert isinstance(fig, figure.Figure)
+    assert isinstance(fig, plt.Figure)
     assert len(fig.axes) == 4  # dendograms + heatmap + colorbar
     for ax in fig.axes:
         assert ax.has_data()

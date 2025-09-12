@@ -1,6 +1,6 @@
 [project]
 name = "graphomotor"
-version = "0.1.1"
+version = "0.2.0"
 description = "A Python toolkit for analysis of graphomotor data collected via Curious"
 authors = [
   {name = "Alp Erkent", email = "alp.erkent@childmind.org"},

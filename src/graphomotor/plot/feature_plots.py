@@ -20,10 +20,10 @@ will be automatically detected and available for plotting.
 Plot Types
 ----------
 - **Distribution plots**: Kernel density estimation plots showing feature distributions
-  grouped by task type and hand
-- **Trend plots**: Line plots displaying feature progression across task sequences
-- **Box plots**: Box-and-whisker plots comparing distributions across conditions
-- **Cluster heatmaps**: Hierarchically clustered heatmaps of standardized features
+  grouped by task type and hand.
+- **Trend plots**: Line plots displaying feature progression across task sequences.
+- **Box plots**: Box-and-whisker plots comparing distributions across conditions.
+- **Cluster heatmaps**: Hierarchically clustered heatmaps of standardized features.
 """
 
 import pathlib
@@ -32,7 +32,6 @@ import warnings
 import matplotlib
 import pandas as pd
 import seaborn as sns
-from matplotlib import figure
 from matplotlib import pyplot as plt
 
 from graphomotor.core import config
@@ -46,7 +45,7 @@ def plot_feature_distributions(
     data: str | pathlib.Path | pd.DataFrame,
     output_path: str | pathlib.Path | None = None,
     features: list[str] | None = None,
-) -> figure.Figure:
+) -> plt.Figure:
     """Plot histograms for each feature grouped by task type and hand.
 
     This function creates kernel density estimation plots showing feature distributions
@@ -115,7 +114,7 @@ def plot_feature_distributions(
         ax.legend(title="Hand - Task Type")
         ax.grid(alpha=0.3)
 
-    plotting.hide_extra_axes(axes, len(features))
+    plotting.hide_extra_axes(axes=axes, num_subplots=len(features))
 
     plt.tight_layout()
     plt.suptitle(
@@ -125,7 +124,9 @@ def plot_feature_distributions(
     )
 
     if output_path:
-        plotting.save_figure(output_path, "feature_distributions")
+        plotting.save_figure(
+            figure=fig, output_path=output_path, filename="feature_distributions"
+        )
     else:
         logger.debug("Feature distributions plot generated but not saved")
 
@@ -136,7 +137,7 @@ def plot_feature_trends(
     data: str | pathlib.Path | pd.DataFrame,
     output_path: str | pathlib.Path | None = None,
     features: list[str] | None = None,
-) -> figure.Figure:
+) -> plt.Figure:
     """Plot lineplots to compare feature values across conditions per participant.
 
     This function creates line plots displaying feature progression across task
@@ -205,7 +206,7 @@ def plot_feature_trends(
         ax.legend(title="Hand")
         ax.grid(alpha=0.3)
 
-    plotting.hide_extra_axes(axes, len(features))
+    plotting.hide_extra_axes(axes=axes, num_subplots=len(features))
 
     plt.tight_layout()
     plt.suptitle(
@@ -213,7 +214,9 @@ def plot_feature_trends(
     )
 
     if output_path:
-        plotting.save_figure(output_path, "feature_trends")
+        plotting.save_figure(
+            figure=fig, output_path=output_path, filename="feature_trends"
+        )
     else:
         logger.debug("Feature trends plot generated but not saved")
 
@@ -224,7 +227,7 @@ def plot_feature_boxplots(
     data: str | pathlib.Path | pd.DataFrame,
     output_path: str | pathlib.Path | None = None,
     features: list[str] | None = None,
-) -> figure.Figure:
+) -> plt.Figure:
     """Plot boxplots to compare feature distributions across conditions.
 
     This function creates box-and-whisker plots comparing feature distributions
@@ -286,7 +289,7 @@ def plot_feature_boxplots(
         ax.legend(title="Hand")
         ax.grid(alpha=0.3)
 
-    plotting.hide_extra_axes(axes, len(features))
+    plotting.hide_extra_axes(axes=axes, num_subplots=len(features))
 
     plt.tight_layout()
     plt.suptitle(
@@ -294,7 +297,9 @@ def plot_feature_boxplots(
     )
 
     if output_path:
-        plotting.save_figure(output_path, "feature_boxplots")
+        plotting.save_figure(
+            figure=fig, output_path=output_path, filename="feature_boxplots"
+        )
     else:
         logger.debug("Feature boxplots generated but not saved")
 
@@ -305,7 +310,7 @@ def plot_feature_clusters(
     data: str | pathlib.Path | pd.DataFrame,
     output_path: str | pathlib.Path | None = None,
     features: list[str] | None = None,
-) -> figure.Figure:
+) -> plt.Figure:
     """Plot clustered heatmap of standardized feature values across conditions.
 
     This function creates a hierarchically clustered heatmap that visualizes the median
@@ -388,7 +393,9 @@ def plot_feature_clusters(
     )
 
     if output_path:
-        plotting.save_figure(output_path, "feature_clusters")
+        plotting.save_figure(
+            figure=grid.figure, output_path=output_path, filename="feature_clusters"
+        )
     else:
         logger.debug("Feature clusters heatmap generated but not saved")
 

@@ -7,7 +7,7 @@ import typing
 import typer
 
 from graphomotor.core import config, orchestrator
-from graphomotor.plot import feature_plots
+from graphomotor.plot import feature_plots, spiral_plots
 
 logger = config.get_logger()
 app = typer.Typer(
@@ -224,11 +224,7 @@ def extract(
     name="plot-features",
     help=(
         "Generate plots from extracted features. Supports distribution, trend, box, "
-        "and cluster plots. The plotting functions expect CSV files with the first 5 "
-        "columns reserved for metadata (source_file, participant_id, task, hand, "
-        "start_time), and treat all subsequent columns as numerical features. This "
-        "allows users to add custom feature columns to the CSV file alongside the "
-        "standard graphomotor features, and they will be plotted automatically."
+        "and cluster plots."
     ),
     epilog=(
         "For more information, see the README at "
@@ -239,7 +235,12 @@ def plot_features(
     input_path: typing.Annotated[
         pathlib.Path,
         typer.Argument(
-            help="Path to a CSV file containing extracted features.",
+            help=(
+                "Path to a CSV file containing extracted features. The plotting "
+                "functions expect the first 5 columns to contain metadata "
+                "(source_file, participant_id, task, hand, start_time), and "
+                "treat all subsequent columns as numerical features."
+            ),
         ),
     ],
     output_path: typing.Annotated[
@@ -270,7 +271,7 @@ def plot_features(
                 "To specify multiple features, use this option multiple times. "
                 "Features include standard extracted metrics (e.g., duration, "
                 "velocity statistics, distance, or drawing error measures) and any "
-                "custom columns added to the CSV file. See [bold cyan]feature_plots"
+                "custom columns added to the CSV file. See [bold cyan]features"
                 "[/bold cyan] module documentation for complete list of available "
                 "features."
             ),
@@ -325,6 +326,187 @@ def plot_features(
 
     except Exception as e:
         typer.secho(f"Error generating plots: {e}", fg="red", err=True)
+        raise
+
+
+@app.command(
+    name="plot-spiral",
+    help=(
+        "Visualize spiral drawing trajectories from CSV files. Supports both single "
+        "spiral plotting and batch plotting using a structured grid layout."
+    ),
+    epilog=(
+        "For more information on supported data formats, see the README at "
+        "https://github.com/childmindresearch/graphomotor?tab=readme-ov-file#spiral-visualization."
+    ),
+)
+def plot_spiral(
+    input_path: typing.Annotated[
+        pathlib.Path,
+        typer.Argument(
+            help=(
+                "Path to a CSV file (single spiral) or directory containing CSV files "
+                "(batch mode) with Curious spiral drawing data."
+            ),
+        ),
+    ],
+    output_path: typing.Annotated[
+        pathlib.Path,
+        typer.Argument(
+            help="Output directory where spiral plots will be saved.",
+        ),
+    ],
+    include_reference: typing.Annotated[
+        bool,
+        typer.Option(
+            "--include-reference",
+            "-i",
+            help="Include reference spiral overlay for comparison.",
+        ),
+    ] = False,
+    color_segments: typing.Annotated[
+        bool,
+        typer.Option(
+            "--color-segments",
+            "-c",
+            help="Color trajectory segments with distinct colors to show progression.",
+        ),
+    ] = False,
+    center_x: typing.Annotated[
+        float,
+        typer.Option(
+            "--center-x",
+            "-x",
+            help="X-coordinate of the reference spiral center.",
+            rich_help_panel="Spiral Configuration Options",
+        ),
+    ] = config.SpiralConfig.center_x,
+    center_y: typing.Annotated[
+        float,
+        typer.Option(
+            "--center-y",
+            "-y",
+            help="Y-coordinate of the reference spiral center.",
+            rich_help_panel="Spiral Configuration Options",
+        ),
+    ] = config.SpiralConfig.center_y,
+    start_radius: typing.Annotated[
+        float,
+        typer.Option(
+            "--start-radius",
+            "-r",
+            help="Starting radius of the reference spiral.",
+            rich_help_panel="Spiral Configuration Options",
+        ),
+    ] = config.SpiralConfig.start_radius,
+    growth_rate: typing.Annotated[
+        float,
+        typer.Option(
+            "--growth-rate",
+            "-g",
+            help="Growth rate of the reference spiral.",
+            rich_help_panel="Spiral Configuration Options",
+        ),
+    ] = config.SpiralConfig.growth_rate,
+    start_angle: typing.Annotated[
+        float,
+        typer.Option(
+            "--start-angle",
+            "-s",
+            help="Starting angle of the reference spiral.",
+            rich_help_panel="Spiral Configuration Options",
+        ),
+    ] = config.SpiralConfig.start_angle,
+    end_angle: typing.Annotated[
+        float,
+        typer.Option(
+            "--end-angle",
+            "-e",
+            help="Ending angle of the reference spiral (in radians).",
+            rich_help_panel="Spiral Configuration Options",
+        ),
+    ] = config.SpiralConfig.end_angle,
+    num_points: typing.Annotated[
+        int,
+        typer.Option(
+            "--num-points",
+            "-n",
+            help="Number of points in the reference spiral.",
+            rich_help_panel="Spiral Configuration Options",
+        ),
+    ] = config.SpiralConfig.num_points,
+) -> None:
+    """Generate spiral trajectory visualizations."""
+    logger.debug(f"Generating spiral plots with arguments: {locals()}")
+
+    if not input_path.exists():
+        typer.secho(
+            f"Error: Input path {input_path} does not exist",
+            fg="red",
+            err=True,
+        )
+        raise typer.Exit(1)
+
+    try:
+        output_path.mkdir(parents=True, exist_ok=True)
+    except Exception as e:
+        typer.secho(
+            f"Error creating output directory {output_path}: {e}",
+            fg="red",
+            err=True,
+        )
+        raise
+
+    config_params = {
+        "center_x": center_x,
+        "center_y": center_y,
+        "start_radius": start_radius,
+        "growth_rate": growth_rate,
+        "start_angle": start_angle,
+        "end_angle": end_angle,
+        "num_points": num_points,
+    }
+    spiral_config = config.SpiralConfig.add_custom_params(config_params)
+
+    try:
+        if input_path.is_file():
+            if input_path.suffix.lower() != ".csv":
+                typer.secho(
+                    f"Error: Input file {input_path} must have .csv extension",
+                    fg="red",
+                    err=True,
+                )
+                raise typer.Exit(1)
+
+            spiral_plots.plot_single_spiral(
+                data=input_path,
+                output_path=output_path,
+                include_reference=include_reference,
+                color_segments=color_segments,
+                spiral_config=spiral_config,
+            )
+            typer.secho(f"Single spiral plot saved to: {output_path}", fg="green")
+
+        elif input_path.is_dir():
+            spiral_plots.plot_batch_spirals(
+                data=input_path,
+                output_path=output_path,
+                include_reference=include_reference,
+                color_segments=color_segments,
+                spiral_config=spiral_config,
+            )
+            typer.secho(f"Batch spiral plots saved to: {output_path}", fg="green")
+
+        else:
+            typer.secho(
+                f"Error: Input path {input_path} must be a file or directory",
+                fg="red",
+                err=True,
+            )
+            raise typer.Exit(1)
+
+    except Exception as e:
+        typer.secho(f"Error generating spiral plots: {e}", fg="red", err=True)
         raise
 
 

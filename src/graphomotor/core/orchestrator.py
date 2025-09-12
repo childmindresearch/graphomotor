@@ -97,11 +97,11 @@ def extract_features(
     formatted_features = {k: f"{v:.15f}" for k, v in features.items()}
 
     formatted_features_with_metadata = {
-        "source_file": str(spiral.metadata.get("source_path", "")),
-        "participant_id": str(spiral.metadata.get("id", "")),
-        "task": str(spiral.metadata.get("task", "")),
-        "hand": str(spiral.metadata.get("hand", "")),
-        "start_time": str(spiral.metadata.get("start_time", "")),
+        "source_file": str(spiral.metadata.get("source_path")),
+        "participant_id": str(spiral.metadata.get("id")),
+        "task": str(spiral.metadata.get("task")),
+        "hand": str(spiral.metadata.get("hand")),
+        "start_time": str(spiral.metadata.get("start_time")),
         **formatted_features,
     }
 

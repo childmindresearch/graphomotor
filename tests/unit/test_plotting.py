@@ -119,3 +119,24 @@ def test_validate_features_dataframe_logging_behavior(
     assert "All metadata rows validation passed" in caplog.text
     assert f"Using {len(features)} user-specified features" in caplog.text
     assert "Feature validation completed successfully" in caplog.text
+
+
+def test_load_spirals_from_directory_no_csv_files(tmp_path: pathlib.Path) -> None:
+    """Test ValueError when directory contains no CSV files."""
+    empty_dir = tmp_path / "empty_directory"
+    empty_dir.mkdir()
+
+    with pytest.raises(ValueError, match="No CSV files found in directory"):
+        plotting.load_spirals_from_directory(empty_dir)
+
+
+def test_load_spirals_from_directory_failed_file_warning(
+    sample_data: pathlib.Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Test logger warning when individual CSV files fail to load."""
+    test_dir = sample_data.parent
+
+    spirals = plotting.load_spirals_from_directory(test_dir)
+
+    assert "Failed to load 1 files" in caplog.text
+    assert len(spirals) == 2

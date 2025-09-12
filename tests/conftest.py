@@ -98,3 +98,9 @@ def sample_batch_features() -> pathlib.Path:
 def sample_batch_features_df(sample_batch_features: pathlib.Path) -> pd.DataFrame:
     """Create a sample batch features DataFrame for testing."""
     return pd.read_csv(sample_batch_features)
+
+
+@pytest.fixture
+def sample_batch_spirals() -> pathlib.Path:
+    """Path to the sample batch spirals directory."""
+    return pathlib.Path(__file__).parent / "sample_batch_data"
