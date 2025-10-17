@@ -28,7 +28,9 @@ def center_spiral(spiral):
 
     if isinstance(spiral, models.Drawing):
         centered_spiral = models.Drawing(
-            data=spiral.data.copy(), metadata=spiral.metadata.copy()
+            data=spiral.data.copy(),
+            metadata=spiral.metadata.copy(),
+            task_name=spiral.task_name,
         )
         centered_spiral.data["x"] -= spiral_config.center_x
         centered_spiral.data["y"] -= spiral_config.center_y

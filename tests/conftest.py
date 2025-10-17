@@ -55,6 +55,7 @@ def valid_spiral(
     """Create a valid Spiral object."""
     return models.Drawing(
         data=valid_spiral_data,
+        task_name="spiral",
         metadata=valid_spiral_metadata,
     )
 
