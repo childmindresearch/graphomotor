@@ -102,10 +102,10 @@ def load_drawing_data(filepath: pathlib.Path | str) -> models.Drawing:
     function extracts metadata from the filename using the _parse_filename function.
 
     Args:
-        filepath: Path to the CSV file containing spiral drawing data.
+        filepath: Path to the CSV file containing  drawing data.
 
     Returns:
-        A Spiral object containing the loaded data and metadata.
+        A Drawing object containing the loaded data and metadata.
 
     Raises:
         IOError: If the file cannot be read.
