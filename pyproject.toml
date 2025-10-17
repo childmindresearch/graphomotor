@@ -4,8 +4,8 @@ version = "0.2.1"
 description = "A Python toolkit for analysis of graphomotor data collected via Curious"
 authors = [
   {name = "Alp Erkent", email = "alp.erkent@childmind.org"},
-  {name = "Celia Maiorano", email = "celia.maiorano.childmind.org"}
-  {name = "Iktae Kim", email = "iktae.kim@childmind.org}
+  {name = "Celia Maiorano", email = "celia.maiorano.childmind.org"},
+  {name = "Iktae Kim", email = "iktae.kim@childmind.org"},
   {name = "Adam Santorelli", email = "adam.santorelli@childmind.org"}
 ]
 license = "LGPL-2.1"
