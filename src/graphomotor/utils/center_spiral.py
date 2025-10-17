@@ -8,7 +8,7 @@ from graphomotor.core import config, models
 
 
 @typing.overload
-def center_spiral(spiral: models.Spiral) -> models.Spiral: ...
+def center_spiral(spiral: models.Drawing) -> models.Drawing: ...
 @typing.overload
 def center_spiral(spiral: np.ndarray) -> np.ndarray: ...
 def center_spiral(spiral):
@@ -26,9 +26,11 @@ def center_spiral(spiral):
     """
     spiral_config = config.SpiralConfig()
 
-    if isinstance(spiral, models.Spiral):
-        centered_spiral = models.Spiral(
-            data=spiral.data.copy(), metadata=spiral.metadata.copy()
+    if isinstance(spiral, models.Drawing):
+        centered_spiral = models.Drawing(
+            data=spiral.data.copy(),
+            metadata=spiral.metadata.copy(),
+            task_name=spiral.task_name,
         )
         centered_spiral.data["x"] -= spiral_config.center_x
         centered_spiral.data["y"] -= spiral_config.center_y

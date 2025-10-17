@@ -79,7 +79,7 @@ def test_validate_feature_categories_mixed(caplog: pytest.LogCaptureFixture) -> 
 def test_extract_features_categories(
     feature_categories: list[str],
     expected_feature_number: int,
-    valid_spiral: models.Spiral,
+    valid_spiral: models.Drawing,
     ref_spiral: np.ndarray,
 ) -> None:
     """Test extract_features with various feature categories."""
@@ -100,7 +100,7 @@ def test_extract_features_categories(
 
 
 def test_extract_features_with_custom_spiral_config(
-    valid_spiral: models.Spiral,
+    valid_spiral: models.Drawing,
 ) -> None:
     """Test extract_features with a custom spiral configuration."""
     centered_spiral = center_spiral.center_spiral(valid_spiral)

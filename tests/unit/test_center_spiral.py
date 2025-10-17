@@ -10,13 +10,13 @@ from graphomotor.utils import center_spiral
 
 
 def test_center_spiral_valid_type(
-    perfect_spiral: models.Spiral, ref_spiral: np.ndarray
+    perfect_spiral: models.Drawing, ref_spiral: np.ndarray
 ) -> None:
     """Test that center_spiral works with valid Spiral and reference spiral."""
     centered_perfect_spiral = center_spiral.center_spiral(perfect_spiral)
     centered_ref_spiral = center_spiral.center_spiral(ref_spiral)
 
-    assert isinstance(centered_perfect_spiral, models.Spiral)
+    assert isinstance(centered_perfect_spiral, models.Drawing)
     assert centered_perfect_spiral.data["x"].iloc[0] == 0
     assert centered_perfect_spiral.data["y"].iloc[0] == 0
 
@@ -42,4 +42,4 @@ def test_center_spiral_invalid_type(
         TypeError,
         match=f"Expected models.Spiral or np.ndarray, got {expected_type_name}",
     ):
-        center_spiral.center_spiral(typing.cast(models.Spiral, invalid_input))
+        center_spiral.center_spiral(typing.cast(models.Drawing, invalid_input))

@@ -85,7 +85,7 @@ def test_plot_single_spiral_invalid_data_type_error(
 
 
 def test_plot_single_spiral_with_valid_spiral_object(
-    valid_spiral: models.Spiral,
+    valid_spiral: models.Drawing,
 ) -> None:
     """Test plotting with a pre-loaded valid Spiral object."""
     fig = spiral_plots.plot_single_spiral(

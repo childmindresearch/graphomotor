@@ -7,7 +7,7 @@ from graphomotor.core import models
 from graphomotor.features import drawing_error
 
 
-def test_calculate_area_under_curve(valid_spiral: models.Spiral) -> None:
+def test_calculate_area_under_curve(valid_spiral: models.Drawing) -> None:
     """Test that the area under the curve is calculated correctly."""
     x = np.linspace(-np.pi / 2, 3 * np.pi / 2, 100)
     y1 = np.sin(x)

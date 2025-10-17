@@ -97,7 +97,7 @@ def _validate_features_dataframe(
     logger.debug("Validating features and metadata")
 
     try:
-        models.Spiral.validate_dataframe(df)
+        models.Drawing.validate_dataframe(df)
     except ValueError as e:
         logger.error(str(e))
         raise
@@ -122,7 +122,7 @@ def _validate_features_dataframe(
             "task": row["task"],
         }
         try:
-            models.Spiral.validate_metadata(metadata)
+            models.Drawing.validate_metadata(metadata)
         except ValueError as e:
             logger.error(str(e))
             raise
@@ -188,7 +188,7 @@ def prepare_feature_plot_data(
     return plot_data, features, tasks
 
 
-def extract_spiral_metadata(spiral: models.Spiral) -> tuple[str, str, str, str]:
+def extract_spiral_metadata(spiral: models.Drawing) -> tuple[str, str, str, str]:
     """Extract common metadata from a spiral object.
 
     Args:
@@ -223,7 +223,7 @@ def get_reference_spiral(
 
 def load_spirals_from_directory(
     input_dir: pathlib.Path,
-) -> list[models.Spiral]:
+) -> list[models.Drawing]:
     """Load spiral CSV files from a directory.
 
     Args:
@@ -243,11 +243,11 @@ def load_spirals_from_directory(
 
     logger.debug(f"Found {len(csv_files)} CSV files to process")
 
-    spirals: list[models.Spiral] = []
+    spirals: list[models.Drawing] = []
     failed_files: list[str] = []
     for csv_file in csv_files:
         try:
-            spiral = reader.load_spiral(csv_file)
+            spiral = reader.load_drawing_data(csv_file)
             spirals.append(spiral)
         except Exception as e:
             logger.warning(f"Failed to load {csv_file}: {e}")
@@ -265,9 +265,9 @@ def load_spirals_from_directory(
 
 
 def index_spirals_by_metadata(
-    spirals: list[models.Spiral],
+    spirals: list[models.Drawing],
 ) -> tuple[
-    dict[tuple[str, str, str], models.Spiral],
+    dict[tuple[str, str, str], models.Drawing],
     list[tuple[str, str]],
     list[str],
 ]:
@@ -284,7 +284,7 @@ def index_spirals_by_metadata(
     Returns:
         A tuple of (spiral_grid, participant_hand_combos, sorted_tasks).
     """
-    spiral_grid: dict[tuple[str, str, str], models.Spiral] = {}
+    spiral_grid: dict[tuple[str, str, str], models.Drawing] = {}
     participants: set[str] = set()
     hands: set[str] = set()
     tasks: set[str] = set()
