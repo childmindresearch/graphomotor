@@ -32,7 +32,7 @@ def test_segment_data_invalid() -> None:
 
 
 def test_calculate_hausdorff_metrics(
-    valid_spiral: models.Spiral, ref_spiral: np.ndarray
+    valid_spiral: models.Drawing, ref_spiral: np.ndarray
 ) -> None:
     """Test that each Hausdorff metric is calculated."""
     metrics = distance.calculate_hausdorff_metrics(valid_spiral, ref_spiral)

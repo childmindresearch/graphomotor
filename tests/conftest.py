@@ -51,9 +51,9 @@ def valid_spiral_metadata() -> dict[str, str | datetime.datetime]:
 def valid_spiral(
     valid_spiral_data: pd.DataFrame,
     valid_spiral_metadata: dict[str, str | datetime.datetime],
-) -> models.Spiral:
+) -> models.Drawing:
     """Create a valid Spiral object."""
-    return models.Spiral(
+    return models.Drawing(
         data=valid_spiral_data,
         metadata=valid_spiral_metadata,
     )
@@ -66,9 +66,9 @@ def ref_spiral() -> np.ndarray:
 
 
 @pytest.fixture
-def perfect_spiral() -> models.Spiral:
+def perfect_spiral() -> models.Drawing:
     """Create a perfect Spiral object."""
-    return reader.load_spiral(
+    return reader.load_drawing_data(
         pathlib.Path(__file__).parent
         / "sample_data"
         / "[5000000]perfect-3000-points-spiral_trace1_Dom.csv"

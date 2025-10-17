@@ -65,7 +65,7 @@ def _validate_feature_categories(
 
 
 def extract_features(
-    spiral: models.Spiral,
+    spiral: models.Drawing,
     feature_categories: list[str],
     reference_spiral: np.ndarray,
 ) -> dict[str, str]:
@@ -168,7 +168,7 @@ def _run_file(
     Returns:
         Dictionary containing the extracted features with metadata.
     """
-    spiral = reader.load_spiral(input_path)
+    spiral = reader.load_drawing_data(input_path)
     centered_spiral = center_spiral.center_spiral(spiral)
     reference_spiral = generate_reference_spiral.generate_reference_spiral(
         spiral_config

@@ -28,7 +28,7 @@ logger = config.get_logger()
 
 def _plot_spiral(
     ax: plt.Axes,
-    spiral: models.Spiral,
+    spiral: models.Drawing,
     centered_ref: np.ndarray,
     include_reference: bool = False,
     color_segments: bool = False,
@@ -137,7 +137,7 @@ def _plot_spiral(
 
 
 def plot_single_spiral(
-    data: str | pathlib.Path | models.Spiral,
+    data: str | pathlib.Path | models.Drawing,
     output_path: str | pathlib.Path | None = None,
     include_reference: bool = False,
     color_segments: bool = False,
@@ -169,12 +169,12 @@ def plot_single_spiral(
 
     if isinstance(data, (str, pathlib.Path)):
         try:
-            spiral = reader.load_spiral(data)
+            spiral = reader.load_drawing_data(data)
         except Exception as e:
             error_msg = f"Failed to load spiral data from {data}: {e}"
             logger.error(error_msg)
             raise ValueError(error_msg) from e
-    elif isinstance(data, models.Spiral):
+    elif isinstance(data, models.Drawing):
         spiral = data
     else:
         error_msg = f"Invalid data type: {type(data)}. Expected str, Path, or Spiral."

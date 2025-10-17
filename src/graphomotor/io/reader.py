@@ -93,10 +93,10 @@ def _convert_start_time(data: pd.DataFrame) -> datetime.datetime:
         raise ValueError(f"Error converting 'start_time' to datetime: {e}")
 
 
-def load_spiral(filepath: pathlib.Path | str) -> models.Spiral:
-    """Load a single spiral drawing CSV file and return a Spiral object.
+def load_drawing_data(filepath: pathlib.Path | str) -> models.Drawing:
+    """Load a single drawing CSV file and return a Drawing object.
 
-    This function loads data from a pre-processed/cleaned CSV file containing spiral
+    This function loads data from a pre-processed/cleaned CSV file containing
     drawing data. The loaded data is assumed to already have unique timestamps and
     uniform sampling, so no further validation is performed for these aspects. The
     function extracts metadata from the filename using the _parse_filename function.
@@ -138,5 +138,5 @@ def load_spiral(filepath: pathlib.Path | str) -> models.Spiral:
     metadata["source_path"] = str(filepath)
 
     data = data.drop(columns=["epoch_time_in_seconds_start"])
-
-    return models.Spiral(data=data, metadata=metadata)
+    task_name = metadata["task"]
+    return models.Drawing(data=data, task_name=task_name, metadata=metadata)

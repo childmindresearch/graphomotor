@@ -61,8 +61,8 @@ def test_convert_start_time() -> None:
 
 def test_load_spiral(sample_data: pathlib.Path) -> None:
     """Test that spiral loads with string input and start time is moved to metadata."""
-    spiral = reader.load_spiral(str(sample_data))
-    assert isinstance(spiral, models.Spiral)
+    spiral = reader.load_drawing_data(str(sample_data))
+    assert isinstance(spiral, models.Drawing)
     assert "epoch_time_in_seconds_start" not in spiral.data.columns
     assert "start_time" in spiral.metadata
     assert "source_path" in spiral.metadata
@@ -73,4 +73,4 @@ def test_load_spiral_invalid_extension(sample_data: pathlib.Path) -> None:
     invalid_file = sample_data.with_suffix(".txt")
     filename = re.escape(str(invalid_file))
     with pytest.raises(IOError, match=f"Error reading file {filename}"):
-        reader.load_spiral(invalid_file)
+        reader.load_drawing_data(invalid_file)
