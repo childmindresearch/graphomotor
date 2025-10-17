@@ -32,7 +32,9 @@ def test_empty_dataframe(
     )
 
     with pytest.raises(ValueError, match="DataFrame is empty"):
-        models.Drawing(data=empty_data, metadata=valid_spiral_metadata)
+        models.Drawing(
+            data=empty_data, task_name="spiral", metadata=valid_spiral_metadata
+        )
 
 
 @pytest.mark.parametrize(
@@ -69,4 +71,6 @@ def test_invalid_metadata_values(
     invalid_metadata[key] = invalid_value
 
     with pytest.raises(ValueError, match=expected_error):
-        models.Drawing(data=valid_spiral_data, metadata=invalid_metadata)
+        models.Drawing(
+            data=valid_spiral_data, task_name="spiral", metadata=invalid_metadata
+        )
