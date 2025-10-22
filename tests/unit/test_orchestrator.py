@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from graphomotor.core import config, models, orchestrator
+from graphomotor.core import config, models, spiral_orchestrator
 from graphomotor.utils import center_spiral, generate_reference_spiral
 
 
@@ -21,11 +21,13 @@ from graphomotor.utils import center_spiral, generate_reference_spiral
     ],
 )
 def test_validate_feature_categories_valid(
-    feature_categories: list[orchestrator.FeatureCategories],
+    feature_categories: list[spiral_orchestrator.FeatureCategories],
     expected_valid_count: int,
 ) -> None:
     """Test _validate_feature_categories with valid categories."""
-    valid_categories = orchestrator._validate_feature_categories(feature_categories)
+    valid_categories = spiral_orchestrator._validate_feature_categories(
+        feature_categories
+    )
 
     assert len(valid_categories) == expected_valid_count
     for category in feature_categories:
@@ -41,24 +43,26 @@ def test_validate_feature_categories_valid(
     ],
 )
 def test_validate_feature_categories_invalid(
-    feature_categories: list[orchestrator.FeatureCategories],
+    feature_categories: list[spiral_orchestrator.FeatureCategories],
 ) -> None:
     """Test _validate_feature_categories with only invalid categories."""
     with pytest.raises(ValueError, match="No valid feature categories provided"):
-        orchestrator._validate_feature_categories(feature_categories)
+        spiral_orchestrator._validate_feature_categories(feature_categories)
 
 
 def test_validate_feature_categories_mixed(caplog: pytest.LogCaptureFixture) -> None:
     """Test _validate_feature_categories with mix of valid and invalid categories."""
     feature_categories = typing.cast(
-        list[orchestrator.FeatureCategories],
+        list[spiral_orchestrator.FeatureCategories],
         [
             "duration",
             "meaning_of_life",
         ],
     )
 
-    valid_categories = orchestrator._validate_feature_categories(feature_categories)
+    valid_categories = spiral_orchestrator._validate_feature_categories(
+        feature_categories
+    )
 
     assert len(valid_categories) == 1
     assert "duration" in valid_categories
@@ -86,7 +90,7 @@ def test_extract_features_categories(
     centered_spiral = center_spiral.center_spiral(valid_spiral)
     centered_reference_spiral = center_spiral.center_spiral(ref_spiral)
 
-    features = orchestrator.extract_features(
+    features = spiral_orchestrator.extract_features(
         centered_spiral, feature_categories, centered_reference_spiral
     )
 
@@ -117,7 +121,7 @@ def test_extract_features_with_custom_spiral_config(
         for x, y in zip(valid_spiral.data["x"], valid_spiral.data["y"])
     )
 
-    features = orchestrator.extract_features(
+    features = spiral_orchestrator.extract_features(
         centered_spiral, feature_categories, centered_reference_spiral
     )
 
@@ -134,7 +138,7 @@ def test_export_features_to_csv_basic(
     """Test basic export_features_to_csv functionality."""
     output_path = tmp_path / "features.csv"
 
-    orchestrator.export_features_to_csv(sample_features, output_path)
+    spiral_orchestrator.export_features_to_csv(sample_features, output_path)
     saved_df = pd.read_csv(output_path, index_col=0)
 
     assert output_path.is_file()
@@ -151,7 +155,7 @@ def test_export_features_to_csv_file_with_parent_creation(
     output_path = tmp_path / "nonexistent" / "features.csv"
 
     with caplog.at_level("DEBUG", logger="graphomotor"):
-        orchestrator.export_features_to_csv(sample_features, output_path)
+        spiral_orchestrator.export_features_to_csv(sample_features, output_path)
 
     assert output_path.is_file()
     assert "Creating parent directory that doesn't exist:" in caplog.text
@@ -166,7 +170,7 @@ def test_export_features_to_csv_directory_single_row(
     output_path = tmp_path / "output_dir"
 
     with caplog.at_level("DEBUG", logger="graphomotor"):
-        orchestrator.export_features_to_csv(sample_features, output_path)
+        spiral_orchestrator.export_features_to_csv(sample_features, output_path)
     created_files = list(output_path.glob("5123456_spiral_trace1_Dom_features_*.csv"))
 
     assert len(created_files) == 1
@@ -181,7 +185,7 @@ def test_export_features_to_csv_directory_batch(
     output_path = tmp_path
     test_df = pd.concat([sample_features, sample_features])
 
-    orchestrator.export_features_to_csv(test_df, output_path)
+    spiral_orchestrator.export_features_to_csv(test_df, output_path)
     created_files = list(output_path.glob("batch_features_*.csv"))
 
     assert len(created_files) == 1
@@ -197,7 +201,7 @@ def test_export_features_to_csv_overwrite(
     output_path.write_text("This should be overwritten\n")
 
     with caplog.at_level("DEBUG", logger="graphomotor"):
-        orchestrator.export_features_to_csv(sample_features, output_path)
+        spiral_orchestrator.export_features_to_csv(sample_features, output_path)
 
     assert output_path.is_file()
     assert "Overwriting existing file:" in caplog.text
@@ -215,7 +219,7 @@ def test_export_features_to_csv_permission_error(
     readonly_path.write_text(original_content)
     readonly_path.chmod(0o444)
 
-    orchestrator.export_features_to_csv(sample_features, readonly_path)
+    spiral_orchestrator.export_features_to_csv(sample_features, readonly_path)
 
     assert readonly_path.read_text() == original_content
     assert "Failed to save features to" in caplog.text
@@ -224,11 +228,11 @@ def test_export_features_to_csv_permission_error(
 
 def test_run_pipeline_directory(sample_data: pathlib.Path) -> None:
     """Test run_pipeline with a directory containing multiple files."""
-    feature_categories: list[orchestrator.FeatureCategories] = ["duration"]
+    feature_categories: list[spiral_orchestrator.FeatureCategories] = ["duration"]
     sample_dir = sample_data.parent
     expected_columns = ["participant_id", "task", "hand", "duration"]
 
-    features = orchestrator.run_pipeline(sample_dir, None, feature_categories)
+    features = spiral_orchestrator.run_pipeline(sample_dir, None, feature_categories)
 
     assert isinstance(features, pd.DataFrame)
     assert len(features) == 2
@@ -255,10 +259,10 @@ def test_run_pipeline_directory_with_failed_files(
     invalid_file = input_dir / "[5123457]test-spiral_trace1_Dom.csv"
     invalid_file.write_text("invalid,csv,data\n1,2,3")
 
-    feature_categories: list[orchestrator.FeatureCategories] = ["duration"]
+    feature_categories: list[spiral_orchestrator.FeatureCategories] = ["duration"]
 
     with caplog.at_level("DEBUG", logger="graphomotor"):
-        result = orchestrator.run_pipeline(input_dir, None, feature_categories)
+        result = spiral_orchestrator.run_pipeline(input_dir, None, feature_categories)
 
     assert isinstance(result, pd.DataFrame)
     assert len(result) == 1
@@ -276,30 +280,30 @@ def test_run_pipeline_directory_all_files_fail(tmp_path: pathlib.Path) -> None:
         invalid_file = input_dir / f"[512345{i}]test-spiral_trace1_Dom.csv"
         invalid_file.write_text("invalid,csv,data\n1,2,3")
 
-    feature_categories: list[orchestrator.FeatureCategories] = ["duration"]
+    feature_categories: list[spiral_orchestrator.FeatureCategories] = ["duration"]
 
     with pytest.raises(ValueError, match="Could not extract features from any file"):
-        orchestrator.run_pipeline(input_dir, None, feature_categories)
+        spiral_orchestrator.run_pipeline(input_dir, None, feature_categories)
 
 
 def test_run_pipeline_invalid_path() -> None:
     """Test run_pipeline with invalid path."""
-    feature_categories: list[orchestrator.FeatureCategories] = ["duration"]
+    feature_categories: list[spiral_orchestrator.FeatureCategories] = ["duration"]
 
     with pytest.raises(
         ValueError, match="Input path does not exist or is not a file/directory"
     ):
-        orchestrator.run_pipeline("/nonexistent/path", None, feature_categories)
+        spiral_orchestrator.run_pipeline("/nonexistent/path", None, feature_categories)
 
 
 def test_run_pipeline_empty_directory(tmp_path: pathlib.Path) -> None:
     """Test run_pipeline with empty directory should raise ValueError."""
-    feature_categories: list[orchestrator.FeatureCategories] = ["duration"]
+    feature_categories: list[spiral_orchestrator.FeatureCategories] = ["duration"]
     empty_dir = tmp_path / "empty"
     empty_dir.mkdir()
 
     with pytest.raises(ValueError, match="No CSV files found in directory"):
-        orchestrator.run_pipeline(empty_dir, None, feature_categories)
+        spiral_orchestrator.run_pipeline(empty_dir, None, feature_categories)
 
 
 @pytest.mark.parametrize(
@@ -311,9 +315,11 @@ def test_run_pipeline_output_path_valid(
 ) -> None:
     """Test run_pipeline validates output paths with valid extensions."""
     output_path = tmp_path / f"output{valid_extension}"
-    feature_categories: list[orchestrator.FeatureCategories] = ["duration"]
+    feature_categories: list[spiral_orchestrator.FeatureCategories] = ["duration"]
 
-    result = orchestrator.run_pipeline(sample_data, output_path, feature_categories)
+    result = spiral_orchestrator.run_pipeline(
+        sample_data, output_path, feature_categories
+    )
 
     assert isinstance(result, pd.DataFrame)
     assert len(result) == 1
@@ -334,7 +340,7 @@ def test_run_pipeline_output_path_invalid(
 ) -> None:
     """Test run_pipeline validates output paths with invalid extensions."""
     output_path = tmp_path / f"output{invalid_extension}"
-    feature_categories: list[orchestrator.FeatureCategories] = ["duration"]
+    feature_categories: list[spiral_orchestrator.FeatureCategories] = ["duration"]
 
     with pytest.raises(ValueError, match="Output file must have a .csv extension"):
-        orchestrator.run_pipeline(sample_data, output_path, feature_categories)
+        spiral_orchestrator.run_pipeline(sample_data, output_path, feature_categories)

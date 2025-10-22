@@ -1,4 +1,4 @@
-"""Runner for graphomotor."""
+"""Orchestrator for the Graphomotor spiral feature extraction pipeline."""
 
 import dataclasses
 import datetime

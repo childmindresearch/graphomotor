@@ -5,7 +5,7 @@ import pathlib
 import pandas as pd
 import pytest
 
-from graphomotor.core import orchestrator
+from graphomotor.core import spiral_orchestrator
 
 
 def test_orchestrator_happy_path(
@@ -15,7 +15,7 @@ def test_orchestrator_happy_path(
 ) -> None:
     """Test the orchestrator with a happy path scenario."""
     output_path = tmp_path / "features.csv"
-    features = orchestrator.run_pipeline(
+    features = spiral_orchestrator.run_pipeline(
         input_path=sample_data,
         output_path=output_path,
         feature_categories=None,

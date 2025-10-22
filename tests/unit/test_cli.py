@@ -57,7 +57,7 @@ def test_cli_extract_with_single_input_all_parameters(
         cli.app,
         [
             "-v",
-            "extract",
+            "extract-spiral",
             str(sample_data),
             str(output_file),
             "--features",
@@ -103,7 +103,7 @@ def test_cli_extract_with_directory_input(
 
     result = runner.invoke(
         cli.app,
-        ["extract", str(input_dir), str(output_file)],
+        ["extract-spiral", str(input_dir), str(output_file)],
     )
     content = output_file.read_text()
     warning_records = [r for r in caplog.records if r.levelname == "WARNING"]
@@ -132,7 +132,7 @@ def test_cli_extract_with_verbosity(
 
     result = runner.invoke(
         cli.app,
-        verbosity_args + ["extract", str(sample_data), str(output_file)],
+        verbosity_args + ["extract-spiral", str(sample_data), str(output_file)],
     )
 
     assert result.exit_code == 0
@@ -151,7 +151,7 @@ def test_cli_extract_verbosity_invalid_level(
     verbosity_args = ["-" + "v" * 3]
     result = runner.invoke(
         cli.app,
-        verbosity_args + ["extract", str(sample_data), str(output_file)],
+        verbosity_args + ["extract-spiral", str(sample_data), str(output_file)],
     )
 
     assert result.exit_code == 0
@@ -162,7 +162,7 @@ def test_cli_extract_verbosity_invalid_level(
 
 def test_cli_extract_help_flag(runner: testing.CliRunner) -> None:
     """Test --help flag displays expected information."""
-    result = runner.invoke(cli.app, ["extract", "--help"])
+    result = runner.invoke(cli.app, ["extract-spiral", "--help"])
     clean_stdout = _clean_output(result.stdout)
 
     assert result.exit_code == 0
@@ -176,7 +176,7 @@ def test_cli_extract_help_flag(runner: testing.CliRunner) -> None:
 
 def test_cli_extract_missing_arguments(runner: testing.CliRunner) -> None:
     """Test CLI fails with missing required arguments."""
-    result = runner.invoke(cli.app, ["extract"])
+    result = runner.invoke(cli.app, ["extract-spiral"])
     assert result.exit_code != 0
     assert "Missing argument" in result.stderr
     assert "INPUT_PATH" in result.stderr
@@ -186,7 +186,7 @@ def test_cli_extract_missing_output_path(
     runner: testing.CliRunner, sample_data: pathlib.Path
 ) -> None:
     """Test CLI fails with missing output path."""
-    result = runner.invoke(cli.app, ["extract", str(sample_data)])
+    result = runner.invoke(cli.app, ["extract-spiral", str(sample_data)])
     assert result.exit_code != 0
     assert "Missing argument" in result.stderr
     assert "OUTPUT_PATH" in result.stderr
@@ -201,7 +201,7 @@ def test_cli_extract_nonexistent_input_path(
 
     result = runner.invoke(
         cli.app,
-        ["extract", str(nonexistent_path), str(output_file)],
+        ["extract-spiral", str(nonexistent_path), str(output_file)],
     )
 
     assert result.exit_code != 0
@@ -219,7 +219,7 @@ def test_cli_extract_invalid_features(
     result = runner.invoke(
         cli.app,
         [
-            "extract",
+            "extract-spiral",
             str(sample_data),
             str(output_file),
             "--features",
@@ -244,7 +244,7 @@ def test_cli_extract_invalid_output_extension(
 
     result = runner.invoke(
         cli.app,
-        ["extract", str(sample_data), str(output_file)],
+        ["extract-spiral", str(sample_data), str(output_file)],
     )
 
     assert result.exit_code != 0
@@ -276,7 +276,7 @@ def test_cli_extract_invalid_option_types(
 
     result = runner.invoke(
         cli.app,
-        ["extract", str(sample_data), str(output_file), option, invalid_value],
+        ["extract-spiral", str(sample_data), str(output_file), option, invalid_value],
     )
 
     assert result.exit_code != 0
