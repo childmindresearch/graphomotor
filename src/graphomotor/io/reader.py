@@ -63,20 +63,6 @@ def _parse_filename(filename: str) -> dict[str, str | datetime.datetime]:
     raise ValueError(f"Filename does not match expected pattern: {filename}")
 
 
-def _check_missing_columns(data: pd.DataFrame) -> None:
-    """Check for missing columns in the DataFrame.
-
-    Args:
-        data: DataFrame containing spiral drawing data.
-
-    Raises:
-        KeyError: If any required columns are missing.
-    """
-    missing_columns = set(DTYPE_MAP.keys()) - set(data.columns)
-    if missing_columns:
-        raise KeyError(f"Missing required columns: {', '.join(missing_columns)}")
-
-
 def _convert_start_time(data: pd.DataFrame) -> datetime.datetime:
     """Convert start time to a datetime object.
 
@@ -118,24 +104,22 @@ def load_drawing_data(filepath: pathlib.Path | str) -> models.Drawing:
     if isinstance(filepath, str):
         filepath = pathlib.Path(filepath)
 
-    to_datetime_converter = {
-        "UTC_Timestamp": lambda x: pd.to_datetime(
-            float(x) * 1000, unit="ms", utc=True, exact=True
-        ),
-    }
-    accepted_dtypes = {k: v for k, v in DTYPE_MAP.items() if k != "UTC_Timestamp"}
-
     try:
-        data = pd.read_csv(
-            filepath,
-            dtype=accepted_dtypes,
-            converters=to_datetime_converter,
-            usecols=list(DTYPE_MAP.keys()),
-        )
+        data = pd.read_csv(filepath)
+
+        if "UTC_Timestamp" in data.columns:
+            data["UTC_Timestamp"] = pd.to_datetime(
+                data["UTC_Timestamp"].astype(float) * 1000,
+                unit="ms",
+                utc=True,
+                exact=True,
+            )
+
+        for col, dtype in DTYPE_MAP.items():
+            if col in data.columns and col != "UTC_Timestamp":
+                data[col] = data[col].astype(dtype)
     except Exception as e:
         raise IOError(f"Error reading file {filepath}: {e}")
-
-    _check_missing_columns(data)
 
     metadata = _parse_filename(filepath.stem)
 

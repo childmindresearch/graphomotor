@@ -42,16 +42,6 @@ def test_parse_filename_invalid(invalid_filename: str) -> None:
         reader._parse_filename(invalid_filename)
 
 
-@pytest.mark.parametrize("missing_column", list(reader.DTYPE_MAP.keys()))
-def test_check_missing_columns(
-    valid_spiral_data: pd.DataFrame, missing_column: str
-) -> None:
-    """Test that missing columns raise a KeyError."""
-    valid_spiral_data = valid_spiral_data.drop(columns=[missing_column])
-    with pytest.raises(KeyError, match=f"Missing required columns: {missing_column}"):
-        reader._check_missing_columns(valid_spiral_data)
-
-
 def test_convert_start_time() -> None:
     """Test that start time is converted correctly."""
     dummy_data = pd.DataFrame({"epoch_time_in_seconds_start": [10**15]})
