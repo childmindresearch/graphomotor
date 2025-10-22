@@ -15,6 +15,11 @@ DTYPE_MAP = {
     "UTC_Timestamp": "float",
     "seconds": "float",
     "epoch_time_in_seconds_start": "float",
+    "error": "str",
+    "correct_path": "str",
+    "actual_path": "str",
+    "total_time": "float",
+    "total_number_of_errors": "int",
 }
 
 
