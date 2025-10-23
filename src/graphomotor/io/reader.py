@@ -134,7 +134,7 @@ def load_drawing_data(filepath: pathlib.Path | str) -> models.Drawing:
         raise IOError(f"Error reading file {filepath}: {e}")
 
     metadata = _parse_filename(filepath.stem)
-    io_utils._check_missing_columns(data, metadata["task"])
+    io_utils._check_missing_columns(data, str(metadata["task"]))
     metadata["start_time"] = _convert_start_time(data)
     metadata["source_path"] = str(filepath)
 
