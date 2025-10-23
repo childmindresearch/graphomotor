@@ -13,8 +13,8 @@ from graphomotor.utils import generate_reference_spiral
 
 
 @pytest.fixture
-def sample_data() -> pathlib.Path:
-    """Sample data for tests."""
+def sample_spiral_data() -> pathlib.Path:
+    """Sample spiral data for tests."""
     return (
         pathlib.Path(__file__).parent
         / "sample_data"
@@ -26,9 +26,41 @@ def sample_data() -> pathlib.Path:
 
 
 @pytest.fixture
-def valid_spiral_data(sample_data: pathlib.Path) -> pd.DataFrame:
+def sample_trails_data() -> pathlib.Path:
+    """Sample trails data for tests."""
+    return (
+        pathlib.Path(__file__).parent
+        / "sample_data"
+        / ("[5012543]648b6b868819c1120b4f6ce3-trail4.csv")
+    )
+
+
+@pytest.fixture
+def sample_alpha_data() -> pathlib.Path:
+    """Sample alphabet data for tests."""
+    return (
+        pathlib.Path(__file__).parent
+        / "sample_data"
+        / (
+            "[5902334]17745689-f78c-4513-b052-ea9e3daad2f0-648c7b45-8819-c112-0b4f-6f3200000000-Alpha_AtoZ.csv"
+        )
+    )
+
+
+@pytest.fixture
+def sample_dsym_data() -> pathlib.Path:
+    """Sample DSYM data for tests."""
+    return (
+        pathlib.Path(__file__).parent
+        / "sample_data"
+        / ("[5086403]64d3ba8e22d8180cf9b407b5-648c7d0e8819c1120b4f708d-dsym_2.csv")
+    )
+
+
+@pytest.fixture
+def valid_spiral_data(sample_spiral_data: pathlib.Path) -> pd.DataFrame:
     """Create a valid DataFrame for spiral data."""
-    return pd.read_csv(sample_data)
+    return pd.read_csv(sample_spiral_data)
 
 
 @pytest.fixture

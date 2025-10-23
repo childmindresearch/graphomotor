@@ -69,18 +69,6 @@ class Drawing(pydantic.BaseModel):
         if len(v["id"]) != 7:
             raise ValueError("'id' must be 7 digits long")
 
-        if v["hand"] not in ["Dom", "NonDom"]:
-            raise ValueError("'hand' must be either 'Dom' or 'NonDom'")
-
-        valid_tasks = ["spiral_trace", "spiral_recall"]
-        valid_tasks_trials = [
-            f"{prefix}{i}" for prefix in valid_tasks for i in range(1, 6)
-        ]
-        if v["task"] not in valid_tasks_trials:
-            raise ValueError(
-                "'task' must be either 'spiral_trace' or 'spiral_recall', numbered 1-5"
-            )
-
         return v
 
 
@@ -128,3 +116,19 @@ class FeatureCategories:
                 spiral, reference_spiral
             ),
         }
+
+
+"""
+TODO: Add these additional metadata validations back in if needed Only for spiral tasks 
+       if v["hand"] not in ["Dom", "NonDom"]:
+            raise ValueError("'hand' must be either 'Dom' or 'NonDom'")
+
+        valid_tasks = ["spiral_trace", "spiral_recall"]
+        valid_tasks_trials = [
+            f"{prefix}{i}" for prefix in valid_tasks for i in range(1, 6)
+        ]
+        if v["task"] not in valid_tasks_trials:
+            raise ValueError(
+                "'task' must be either 'spiral_trace' or 'spiral_recall', numbered 1-5"
+            )
+"""

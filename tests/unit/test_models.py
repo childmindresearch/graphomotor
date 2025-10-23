@@ -12,7 +12,7 @@ def test_valid_spiral_creation(
     valid_spiral_data: pd.DataFrame,
     valid_spiral_metadata: dict[str, str | datetime.datetime],
 ) -> None:
-    """Test creating a valid Spiral instance."""
+    """Test creating a valid Drawing instance."""
     spiral = models.Drawing(
         data=valid_spiral_data,
         task_name="spiral_drawing",
@@ -42,21 +42,6 @@ def test_empty_dataframe(
     [
         ("id", "1001", "'id' must start with digit 5"),
         ("id", "512345", "'id' must be 7 digits long"),
-        (
-            "hand",
-            "left",
-            "'hand' must be either 'Dom' or 'NonDom'",
-        ),
-        (
-            "task",
-            "rey_o_copy",
-            "'task' must be either 'spiral_trace' or 'spiral_recall', numbered 1-5",
-        ),
-        (
-            "task",
-            "spiral_trace6",
-            "'task' must be either 'spiral_trace' or 'spiral_recall', numbered 1-5",
-        ),
     ],
 )
 def test_invalid_metadata_values(

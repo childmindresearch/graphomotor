@@ -1,6 +1,7 @@
 """Tests for the orchestrator module."""
 
 import pathlib
+import re
 import typing
 
 import numpy as np
@@ -9,6 +10,38 @@ import pytest
 
 from graphomotor.core import config, models, spiral_orchestrator
 from graphomotor.utils import center_spiral, generate_reference_spiral
+
+
+def test_parse_filename_valid(sample_spiral_data: pathlib.Path) -> None:
+    """Test that valid filenames are parsed correctly."""
+    expected_metadata = {
+        "id": "5123456",
+        "hand": "Dom",
+        "task": "spiral_trace1",
+    }
+    metadata = spiral_orchestrator._parse_spiral_metadata(sample_spiral_data.stem)
+    assert metadata == expected_metadata, (
+        f"Expected {expected_metadata}, but got {metadata}"
+    )
+
+
+@pytest.mark.parametrize(
+    "invalid_filename",
+    [
+        "asdf123-spiral_trace1_Dom.csv",  # missing ID
+        "[5123456]-spiral_trace1_Dom.csv",  # missing Curious ID
+        "[5123456]asdf123-Dom.csv",  # missing task
+        "[5123456]asdf123-spiral_trace1.csv",  # missing hand
+    ],
+)
+def test_parse_filename_invalid(invalid_filename: str) -> None:
+    """Test that invalid filenames raise a ValueError."""
+    filename = re.escape(invalid_filename)
+    with pytest.raises(
+        ValueError,
+        match=f"Filename does not match expected pattern: {filename}",
+    ):
+        spiral_orchestrator._parse_spiral_metadata(invalid_filename)
 
 
 @pytest.mark.parametrize(
@@ -226,10 +259,10 @@ def test_export_features_to_csv_permission_error(
     assert "Permission denied" in caplog.text
 
 
-def test_run_pipeline_directory(sample_data: pathlib.Path) -> None:
+def test_run_pipeline_directory(sample_spiral_data: pathlib.Path) -> None:
     """Test run_pipeline with a directory containing multiple files."""
     feature_categories: list[spiral_orchestrator.FeatureCategories] = ["duration"]
-    sample_dir = sample_data.parent
+    sample_dir = sample_spiral_data.parent
     expected_columns = ["participant_id", "task", "hand", "duration"]
 
     features = spiral_orchestrator.run_pipeline(sample_dir, None, feature_categories)
@@ -246,7 +279,7 @@ def test_run_pipeline_directory(sample_data: pathlib.Path) -> None:
 
 def test_run_pipeline_directory_with_failed_files(
     tmp_path: pathlib.Path,
-    sample_data: pathlib.Path,
+    sample_spiral_data: pathlib.Path,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test run_pipeline with directory containing files that fail processing."""
@@ -254,7 +287,7 @@ def test_run_pipeline_directory_with_failed_files(
     input_dir.mkdir()
 
     valid_file = input_dir / "[5123456]test-spiral_trace1_Dom.csv"
-    valid_file.write_text(sample_data.read_text())
+    valid_file.write_text(sample_spiral_data.read_text())
 
     invalid_file = input_dir / "[5123457]test-spiral_trace1_Dom.csv"
     invalid_file.write_text("invalid,csv,data\n1,2,3")
@@ -311,14 +344,14 @@ def test_run_pipeline_empty_directory(tmp_path: pathlib.Path) -> None:
     [".csv", ".CSV", ""],
 )
 def test_run_pipeline_output_path_valid(
-    sample_data: pathlib.Path, tmp_path: pathlib.Path, valid_extension: str
+    sample_spiral_data: pathlib.Path, tmp_path: pathlib.Path, valid_extension: str
 ) -> None:
     """Test run_pipeline validates output paths with valid extensions."""
     output_path = tmp_path / f"output{valid_extension}"
     feature_categories: list[spiral_orchestrator.FeatureCategories] = ["duration"]
 
     result = spiral_orchestrator.run_pipeline(
-        sample_data, output_path, feature_categories
+        sample_spiral_data, output_path, feature_categories
     )
 
     assert isinstance(result, pd.DataFrame)
@@ -336,11 +369,13 @@ def test_run_pipeline_output_path_valid(
     [".txt", ".json", ".xlsx"],
 )
 def test_run_pipeline_output_path_invalid(
-    sample_data: pathlib.Path, tmp_path: pathlib.Path, invalid_extension: str
+    sample_spiral_data: pathlib.Path, tmp_path: pathlib.Path, invalid_extension: str
 ) -> None:
     """Test run_pipeline validates output paths with invalid extensions."""
     output_path = tmp_path / f"output{invalid_extension}"
     feature_categories: list[spiral_orchestrator.FeatureCategories] = ["duration"]
 
     with pytest.raises(ValueError, match="Output file must have a .csv extension"):
-        spiral_orchestrator.run_pipeline(sample_data, output_path, feature_categories)
+        spiral_orchestrator.run_pipeline(
+            sample_spiral_data, output_path, feature_categories
+        )

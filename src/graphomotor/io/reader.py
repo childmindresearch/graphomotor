@@ -7,6 +7,7 @@ import re
 import pandas as pd
 
 from graphomotor.core import models
+from graphomotor.io import io_utils
 
 DTYPE_MAP = {
     "line_number": "int",
@@ -24,43 +25,46 @@ DTYPE_MAP = {
 
 
 def _parse_filename(filename: str) -> dict[str, str | datetime.datetime]:
-    """Extract metadata from spiral drawing filename.
+    """Extract metadata from drawing filename.
 
     The function parses filenames of Curious exports of drawing data that are
-    typically formatted as '[5123456]curious-ID-spiral_trace2_NonDom'. It extracts
-    the participant ID (the value within the brackets), task name ('spiral_trace' or
-    'spiral_recall', followed by the trial number from 1 to 5), and hand used (dominant
-    or non-dominant). Regular expressions are used to match the expected pattern
-    and extract the relevant components.
+    typically formatted as:
+    - Spiral: '[5123456]curious-ID-spiral_trace1_Dom'
+    - Trail: '[5012543]648b6b868819c1120b4f6ce3-trail4'
+    - Alphabet: '[5902334]uuid-uuid-Alpha_AtoZ'
+    - DSYM: '[5086403]curious-ID-dsym_2'
+
+    It extracts the participant ID (the value within the brackets) and task name
+    (everything after the last dash) from the filename.
 
     Note: A 'start_time' key (datetime object) will be added to the returned dictionary
-    later in the load_spiral function.
+    later in the load_drawing function.
 
     Args:
-        filename: Filename of the spiral drawing CSV file from Curious export.
+        filename: Filename of the drawing CSV file from Curious export.
 
     Returns:
         Dictionary containing extracted metadata:
-            - id: Participant ID (e.g., '5123456')
-            - hand: Hand used for drawing ('Dom' or 'NonDom')
-            - task: Task name and trial number (e.g., 'spiral_trace2')
+            - id: 7-digit Participant ID ('5123456')
+            - task: Task name ('spiral_trace1_Dom', 'trail4', 'Alpha_AtoZ', 'dsym_2')
 
     Raises:
         ValueError: If filename does not match expected pattern.
     """
-    pattern = r"\[(\d+)\].*-([^_]+)_([^_]+)_(\w+)$"
+    pattern = r"\[(\d+)\].*-(.+)$"
     match = re.match(pattern, filename)
 
-    if match:
-        id, task_name, task_detail, hand = match.groups()
-        metadata = {
-            "id": id,
-            "hand": hand,
-            "task": f"{task_name}_{task_detail}",
-        }
-        return metadata
+    if not match:
+        raise ValueError(f"Filename does not match expected pattern: {filename}")
 
-    raise ValueError(f"Filename does not match expected pattern: {filename}")
+    participant_id, task_name = match.groups()
+
+    metadata = {
+        "id": participant_id,
+        "task": task_name,
+    }
+
+    return metadata
 
 
 def _convert_start_time(data: pd.DataFrame) -> datetime.datetime:
@@ -92,6 +96,9 @@ def load_drawing_data(filepath: pathlib.Path | str) -> models.Drawing:
     uniform sampling, so no further validation is performed for these aspects. The
     function extracts metadata from the filename using the _parse_filename function.
 
+    With trails data there are often empty values in certain columns, so we handle
+    missing values when applying data types (empty string, 0.0 for numerical).
+
     Args:
         filepath: Path to the CSV file containing  drawing data.
 
@@ -117,15 +124,20 @@ def load_drawing_data(filepath: pathlib.Path | str) -> models.Drawing:
 
         for col, dtype in DTYPE_MAP.items():
             if col in data.columns and col != "UTC_Timestamp":
-                data[col] = data[col].astype(dtype)
+                if dtype == "int":
+                    data[col] = data[col].fillna(0).astype(dtype)
+                elif dtype == "float":
+                    data[col] = data[col].fillna(0.0).astype(dtype)
+                elif dtype == "str":
+                    data[col] = data[col].fillna("").astype(dtype)
     except Exception as e:
         raise IOError(f"Error reading file {filepath}: {e}")
 
     metadata = _parse_filename(filepath.stem)
-
+    io_utils._check_missing_columns(data, metadata["task"])
     metadata["start_time"] = _convert_start_time(data)
     metadata["source_path"] = str(filepath)
 
     data = data.drop(columns=["epoch_time_in_seconds_start"])
-    task_name = metadata["task"]
-    return models.Drawing(data=data, task_name=task_name, metadata=metadata)
+
+    return models.Drawing(data=data, task_name=str(metadata["task"]), metadata=metadata)
