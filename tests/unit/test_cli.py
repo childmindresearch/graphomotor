@@ -84,7 +84,7 @@ def test_cli_extract_with_single_input_all_parameters(
 
     assert result.exit_code == 0
     assert output_file.exists()
-    assert "5123456" in content
+    assert "5000000" in content
     assert "duration" in content
     assert "area_under_curve" in content
     assert "hausdorff" not in content
@@ -110,7 +110,6 @@ def test_cli_extract_with_directory_input(
     assert result.exit_code == 0
     assert output_file.exists()
     assert "5000000" in content
-    assert "5123456" in content
 
 
 @pytest.mark.parametrize(

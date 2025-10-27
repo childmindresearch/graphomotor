@@ -15,7 +15,7 @@ from graphomotor.utils import center_spiral, generate_reference_spiral
 def test_parse_filename_valid(sample_spiral_data: pathlib.Path) -> None:
     """Test that valid filenames are parsed correctly."""
     expected_metadata = {
-        "id": "5123456",
+        "id": "5000000",
         "hand": "Dom",
         "task": "spiral_trace1",
     }
@@ -286,10 +286,10 @@ def test_run_pipeline_directory_with_failed_files(
     input_dir = tmp_path / "input"
     input_dir.mkdir()
 
-    valid_file = input_dir / "[5123456]test-spiral_trace1_Dom.csv"
+    valid_file = input_dir / "[5000000]test-spiral_trace1_Dom.csv"
     valid_file.write_text(sample_spiral_data.read_text())
 
-    invalid_file = input_dir / "[5123457]test-spiral_trace1_Dom.csv"
+    invalid_file = input_dir / "[5000002]test-spiral_trace1_Dom.csv"
     invalid_file.write_text("invalid,csv,data\n1,2,3")
 
     feature_categories: list[spiral_orchestrator.FeatureCategories] = ["duration"]
