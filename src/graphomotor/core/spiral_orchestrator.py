@@ -67,6 +67,26 @@ def _parse_spiral_metadata(filename: str) -> dict[str, str]:
     raise ValueError(f"Filename does not match expected pattern: {filename}")
 
 
+def _validate_spiral_metadata(metadata: dict[str, str]) -> None:
+    """Validate metadata extracted from spiral drawing filename.
+
+    Args:
+        metadata: Dictionary containing extracted metadata.
+
+    Raises:
+        ValueError: If metadata is invalid.
+    """
+    if metadata["hand"] not in ["Dom", "NonDom"]:
+        raise ValueError("'hand' must be either 'Dom' or 'NonDom'")
+
+    valid_tasks = ["spiral_trace", "spiral_recall"]
+    valid_tasks_trials = [f"{prefix}{i}" for prefix in valid_tasks for i in range(1, 6)]
+    if metadata["task"] not in valid_tasks_trials:
+        raise ValueError(
+            "'task' must be either 'spiral_trace' or 'spiral_recall', numbered 1-5"
+        )
+
+
 def _validate_feature_categories(
     feature_categories: list[FeatureCategories],
 ) -> set[str]:
@@ -82,7 +102,7 @@ def _validate_feature_categories(
         ValueError: If no valid feature categories are provided.
     """
     feature_categories_set: set[str] = set(feature_categories)
-    supported_categories_set = models.FeatureCategories.all()
+    supported_categories_set = models.SpiralFeatureCategories.all()
     unknown_categories = feature_categories_set - supported_categories_set
     valid_requested_categories = feature_categories_set & supported_categories_set
 
@@ -122,7 +142,7 @@ def extract_features(
     Returns:
         Dictionary containing the extracted features with metadata.
     """
-    feature_extractors = models.FeatureCategories.get_extractors(
+    feature_extractors = models.SpiralFeatureCategories.get_extractors(
         spiral, reference_spiral
     )
 
@@ -209,6 +229,7 @@ def _run_file(
     """
     spiral = reader.load_drawing_data(input_path)
     spiral.metadata.update(_parse_spiral_metadata(input_path.stem))
+    _validate_spiral_metadata(spiral.metadata)
     centered_spiral = center_spiral.center_spiral(spiral)
     reference_spiral = generate_reference_spiral.generate_reference_spiral(
         spiral_config
@@ -366,7 +387,7 @@ def run_pipeline(
         valid_categories = sorted(_validate_feature_categories(feature_categories))
         logger.debug(f"Requested feature categories: {valid_categories}")
     else:
-        valid_categories = [*models.FeatureCategories.all()]
+        valid_categories = [*models.SpiralFeatureCategories.all()]
         logger.debug(f"Using default feature categories: {valid_categories}")
 
     if config_params and config_params != dataclasses.asdict(config.SpiralConfig()):

@@ -29,10 +29,10 @@ def _parse_filename(filename: str) -> dict[str, str | datetime.datetime]:
 
     The function parses filenames of Curious exports of drawing data that are
     typically formatted as:
-    - Spiral: '[5123456]curious-ID-spiral_trace1_Dom'
-    - Trail: '[5012543]648b6b868819c1120b4f6ce3-trail4'
-    - Alphabet: '[5902334]uuid-uuid-Alpha_AtoZ'
-    - DSYM: '[5086403]curious-ID-dsym_2'
+    - Spiral: '[5000000]curious-ID-spiral_trace1_Dom'
+    - Trail: '[5000000]648b6b868819c1120b4f6ce3-trail'
+    - Alphabet: '[5000000]uuid-uuid-Alpha_AtoZ'
+    - DSYM: '[5000000]curious-ID-dsym'
 
     It extracts the participant ID (the value within the brackets) and task name
     (everything after the last dash) from the filename.
@@ -45,8 +45,8 @@ def _parse_filename(filename: str) -> dict[str, str | datetime.datetime]:
 
     Returns:
         Dictionary containing extracted metadata:
-            - id: 7-digit Participant ID ('5123456')
-            - task: Task name ('spiral_trace1_Dom', 'trail4', 'Alpha_AtoZ', 'dsym_2')
+            - id: 7-digit Participant ID ('5000000')
+            - task: Task name ('spiral_trace1_Dom', 'trail', 'Alpha_AtoZ', 'dsym')
 
     Raises:
         ValueError: If filename does not match expected pattern.

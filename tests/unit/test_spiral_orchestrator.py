@@ -1,5 +1,6 @@
 """Tests for the orchestrator module."""
 
+import datetime
 import pathlib
 import re
 import typing
@@ -379,3 +380,37 @@ def test_run_pipeline_output_path_invalid(
         spiral_orchestrator.run_pipeline(
             sample_spiral_data, output_path, feature_categories
         )
+
+
+@pytest.mark.parametrize(
+    "key,invalid_value,expected_error",
+    [
+        (
+            "hand",
+            "left",
+            "'hand' must be either 'Dom' or 'NonDom'",
+        ),
+        (
+            "task",
+            "rey_o_copy",
+            "'task' must be either 'spiral_trace' or 'spiral_recall', numbered 1-5",
+        ),
+        (
+            "task",
+            "spiral_trace6",
+            "'task' must be either 'spiral_trace' or 'spiral_recall', numbered 1-5",
+        ),
+    ],
+)
+def test_invalid_metadata_values(
+    valid_spiral_metadata: dict[str, str | datetime.datetime],
+    key: str,
+    invalid_value: str | datetime.datetime,
+    expected_error: str,
+) -> None:
+    """Test validation errors for various invalid metadata values."""
+    invalid_metadata = valid_spiral_metadata.copy()
+    invalid_metadata[key] = invalid_value
+
+    with pytest.raises(ValueError, match=expected_error):
+        spiral_orchestrator._validate_spiral_metadata(invalid_metadata)
