@@ -67,7 +67,7 @@ def _parse_spiral_metadata(filename: str) -> dict[str, str]:
     raise ValueError(f"Filename does not match expected pattern: {filename}")
 
 
-def _validate_spiral_metadata(metadata: dict[str, str]) -> None:
+def _validate_spiral_metadata(metadata: dict[str, str | datetime.datetime]) -> None:
     """Validate metadata extracted from spiral drawing filename.
 
     Args:
