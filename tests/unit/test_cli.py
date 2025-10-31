@@ -47,7 +47,7 @@ def test_cli_version_flags(runner: testing.CliRunner, flag: str) -> None:
 
 def test_cli_extract_with_single_input_all_parameters(
     runner: testing.CliRunner,
-    sample_data: pathlib.Path,
+    sample_spiral_data: pathlib.Path,
     tmp_path: pathlib.Path,
 ) -> None:
     """Test CLI with single input and all available parameters."""
@@ -57,8 +57,8 @@ def test_cli_extract_with_single_input_all_parameters(
         cli.app,
         [
             "-v",
-            "extract",
-            str(sample_data),
+            "extract-spiral",
+            str(sample_spiral_data),
             str(output_file),
             "--features",
             "duration",
@@ -84,7 +84,7 @@ def test_cli_extract_with_single_input_all_parameters(
 
     assert result.exit_code == 0
     assert output_file.exists()
-    assert "5123456" in content
+    assert "5000000" in content
     assert "duration" in content
     assert "area_under_curve" in content
     assert "hausdorff" not in content
@@ -93,26 +93,23 @@ def test_cli_extract_with_single_input_all_parameters(
 
 def test_cli_extract_with_directory_input(
     runner: testing.CliRunner,
-    sample_data: pathlib.Path,
+    sample_spiral_data: pathlib.Path,
     tmp_path: pathlib.Path,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     """Test CLI with directory path containing CSV files."""
     output_file = tmp_path / "batch_output.csv"
-    input_dir = sample_data.parent
+    input_dir = sample_spiral_data.parent
 
     result = runner.invoke(
         cli.app,
-        ["extract", str(input_dir), str(output_file)],
+        ["extract-spiral", str(input_dir), str(output_file)],
     )
     content = output_file.read_text()
-    warning_records = [r for r in caplog.records if r.levelname == "WARNING"]
 
     assert result.exit_code == 0
     assert output_file.exists()
     assert "5000000" in content
-    assert "5123456" in content
-    assert len(warning_records) == 2  # Warnings for sample_batch_features.csv
 
 
 @pytest.mark.parametrize(
@@ -120,7 +117,7 @@ def test_cli_extract_with_directory_input(
 )
 def test_cli_extract_with_verbosity(
     runner: testing.CliRunner,
-    sample_data: pathlib.Path,
+    sample_spiral_data: pathlib.Path,
     tmp_path: pathlib.Path,
     verbosity_level: int,
     expected_log_level: str,
@@ -132,7 +129,7 @@ def test_cli_extract_with_verbosity(
 
     result = runner.invoke(
         cli.app,
-        verbosity_args + ["extract", str(sample_data), str(output_file)],
+        verbosity_args + ["extract-spiral", str(sample_spiral_data), str(output_file)],
     )
 
     assert result.exit_code == 0
@@ -142,7 +139,7 @@ def test_cli_extract_with_verbosity(
 
 def test_cli_extract_verbosity_invalid_level(
     runner: testing.CliRunner,
-    sample_data: pathlib.Path,
+    sample_spiral_data: pathlib.Path,
     tmp_path: pathlib.Path,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
@@ -151,7 +148,7 @@ def test_cli_extract_verbosity_invalid_level(
     verbosity_args = ["-" + "v" * 3]
     result = runner.invoke(
         cli.app,
-        verbosity_args + ["extract", str(sample_data), str(output_file)],
+        verbosity_args + ["extract-spiral", str(sample_spiral_data), str(output_file)],
     )
 
     assert result.exit_code == 0
@@ -162,7 +159,7 @@ def test_cli_extract_verbosity_invalid_level(
 
 def test_cli_extract_help_flag(runner: testing.CliRunner) -> None:
     """Test --help flag displays expected information."""
-    result = runner.invoke(cli.app, ["extract", "--help"])
+    result = runner.invoke(cli.app, ["extract-spiral", "--help"])
     clean_stdout = _clean_output(result.stdout)
 
     assert result.exit_code == 0
@@ -176,17 +173,17 @@ def test_cli_extract_help_flag(runner: testing.CliRunner) -> None:
 
 def test_cli_extract_missing_arguments(runner: testing.CliRunner) -> None:
     """Test CLI fails with missing required arguments."""
-    result = runner.invoke(cli.app, ["extract"])
+    result = runner.invoke(cli.app, ["extract-spiral"])
     assert result.exit_code != 0
     assert "Missing argument" in result.stderr
     assert "INPUT_PATH" in result.stderr
 
 
 def test_cli_extract_missing_output_path(
-    runner: testing.CliRunner, sample_data: pathlib.Path
+    runner: testing.CliRunner, sample_spiral_data: pathlib.Path
 ) -> None:
     """Test CLI fails with missing output path."""
-    result = runner.invoke(cli.app, ["extract", str(sample_data)])
+    result = runner.invoke(cli.app, ["extract-spiral", str(sample_spiral_data)])
     assert result.exit_code != 0
     assert "Missing argument" in result.stderr
     assert "OUTPUT_PATH" in result.stderr
@@ -201,7 +198,7 @@ def test_cli_extract_nonexistent_input_path(
 
     result = runner.invoke(
         cli.app,
-        ["extract", str(nonexistent_path), str(output_file)],
+        ["extract-spiral", str(nonexistent_path), str(output_file)],
     )
 
     assert result.exit_code != 0
@@ -210,7 +207,7 @@ def test_cli_extract_nonexistent_input_path(
 
 def test_cli_extract_invalid_features(
     runner: testing.CliRunner,
-    sample_data: pathlib.Path,
+    sample_spiral_data: pathlib.Path,
     tmp_path: pathlib.Path,
 ) -> None:
     """Test CLI handles invalid feature categories."""
@@ -219,8 +216,8 @@ def test_cli_extract_invalid_features(
     result = runner.invoke(
         cli.app,
         [
-            "extract",
-            str(sample_data),
+            "extract-spiral",
+            str(sample_spiral_data),
             str(output_file),
             "--features",
             "invalid_feature",
@@ -236,7 +233,7 @@ def test_cli_extract_invalid_features(
 
 def test_cli_extract_invalid_output_extension(
     runner: testing.CliRunner,
-    sample_data: pathlib.Path,
+    sample_spiral_data: pathlib.Path,
     tmp_path: pathlib.Path,
 ) -> None:
     """Test CLI handles invalid output file extension."""
@@ -244,7 +241,7 @@ def test_cli_extract_invalid_output_extension(
 
     result = runner.invoke(
         cli.app,
-        ["extract", str(sample_data), str(output_file)],
+        ["extract-spiral", str(sample_spiral_data), str(output_file)],
     )
 
     assert result.exit_code != 0
@@ -265,7 +262,7 @@ def test_cli_extract_invalid_output_extension(
 )
 def test_cli_extract_invalid_option_types(
     runner: testing.CliRunner,
-    sample_data: pathlib.Path,
+    sample_spiral_data: pathlib.Path,
     tmp_path: pathlib.Path,
     option: str,
     invalid_value: str,
@@ -276,7 +273,13 @@ def test_cli_extract_invalid_option_types(
 
     result = runner.invoke(
         cli.app,
-        ["extract", str(sample_data), str(output_file), option, invalid_value],
+        [
+            "extract-spiral",
+            str(sample_spiral_data),
+            str(output_file),
+            option,
+            invalid_value,
+        ],
     )
 
     assert result.exit_code != 0
@@ -560,10 +563,10 @@ def test_cli_plot_spiral_missing_arguments(runner: testing.CliRunner) -> None:
 
 def test_cli_plot_spiral_missing_output_path(
     runner: testing.CliRunner,
-    sample_data: pathlib.Path,
+    sample_spiral_data: pathlib.Path,
 ) -> None:
     """Test CLI fails with missing output path for plot-spiral command."""
-    result = runner.invoke(cli.app, ["plot-spiral", str(sample_data)])
+    result = runner.invoke(cli.app, ["plot-spiral", str(sample_spiral_data)])
     assert result.exit_code != 0
     assert "Missing argument" in result.stderr
     assert "OUTPUT_PATH" in result.stderr
@@ -603,7 +606,7 @@ def test_cli_plot_spiral_invalid_input_extension_file(
 
 
 def test_cli_plot_spiral_mkdir_permission_error(
-    sample_data: pathlib.Path,
+    sample_spiral_data: pathlib.Path,
     runner: testing.CliRunner,
     tmp_path: pathlib.Path,
     monkeypatch: pytest.MonkeyPatch,
@@ -620,7 +623,7 @@ def test_cli_plot_spiral_mkdir_permission_error(
 
     result = runner.invoke(
         cli.app,
-        ["plot-spiral", str(sample_data), str(output_dir)],
+        ["plot-spiral", str(sample_spiral_data), str(output_dir)],
     )
 
     assert result.exit_code != 0
@@ -629,7 +632,7 @@ def test_cli_plot_spiral_mkdir_permission_error(
 
 def test_cli_plot_spiral_single_file_with_all_parameters(
     runner: testing.CliRunner,
-    sample_data: pathlib.Path,
+    sample_spiral_data: pathlib.Path,
     tmp_path: pathlib.Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -647,7 +650,7 @@ def test_cli_plot_spiral_single_file_with_all_parameters(
         cli.app,
         [
             "plot-spiral",
-            str(sample_data),
+            str(sample_spiral_data),
             str(output_dir),
             "--include-reference",
             "--color-segments",
@@ -675,7 +678,7 @@ def test_cli_plot_spiral_single_file_with_all_parameters(
     assert len(calls) == 1
     assert calls[0][0] == "plot_single_spiral"
 
-    assert call_kwargs["data"] == sample_data
+    assert call_kwargs["data"] == sample_spiral_data
     assert call_kwargs["output_path"] == output_dir
     assert call_kwargs["include_reference"] is True
     assert call_kwargs["color_segments"] is True
@@ -691,12 +694,12 @@ def test_cli_plot_spiral_single_file_with_all_parameters(
 
 def test_cli_plot_spiral_directory_input(
     runner: testing.CliRunner,
-    sample_data: pathlib.Path,
+    sample_spiral_data: pathlib.Path,
     tmp_path: pathlib.Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Test CLI with directory input for batch plotting."""
-    input_dir = sample_data.parent
+    input_dir = sample_spiral_data.parent
     output_dir = tmp_path / "plots"
     output_dir.mkdir()
 
@@ -725,7 +728,7 @@ def test_cli_plot_spiral_directory_input(
 
 def test_cli_plot_spiral_with_boolean_flags(
     runner: testing.CliRunner,
-    sample_data: pathlib.Path,
+    sample_spiral_data: pathlib.Path,
     tmp_path: pathlib.Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -743,7 +746,7 @@ def test_cli_plot_spiral_with_boolean_flags(
         cli.app,
         [
             "plot-spiral",
-            str(sample_data),
+            str(sample_spiral_data),
             str(output_dir),
             "--include-reference",
             "--color-segments",
@@ -760,7 +763,7 @@ def test_cli_plot_spiral_with_boolean_flags(
 
 def test_cli_plot_spiral_invalid_option_types(
     runner: testing.CliRunner,
-    sample_data: pathlib.Path,
+    sample_spiral_data: pathlib.Path,
     tmp_path: pathlib.Path,
 ) -> None:
     """Test CLI handles invalid types for numeric options."""
@@ -768,7 +771,13 @@ def test_cli_plot_spiral_invalid_option_types(
 
     result = runner.invoke(
         cli.app,
-        ["plot-spiral", str(sample_data), str(output_dir), "--center-x", "invalid"],
+        [
+            "plot-spiral",
+            str(sample_spiral_data),
+            str(output_dir),
+            "--center-x",
+            "invalid",
+        ],
     )
 
     assert result.exit_code != 0
@@ -777,7 +786,7 @@ def test_cli_plot_spiral_invalid_option_types(
 
 def test_cli_plot_spiral_plot_function_exception(
     runner: testing.CliRunner,
-    sample_data: pathlib.Path,
+    sample_spiral_data: pathlib.Path,
     tmp_path: pathlib.Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -792,7 +801,7 @@ def test_cli_plot_spiral_plot_function_exception(
 
     result = runner.invoke(
         cli.app,
-        ["plot-spiral", str(sample_data), str(output_dir)],
+        ["plot-spiral", str(sample_spiral_data), str(output_dir)],
     )
 
     assert result.exit_code != 0
@@ -801,14 +810,14 @@ def test_cli_plot_spiral_plot_function_exception(
 
 def test_cli_plot_spiral_directory_vs_file_behavior(
     runner: testing.CliRunner,
-    sample_data: pathlib.Path,
+    sample_spiral_data: pathlib.Path,
     tmp_path: pathlib.Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Test CLI calls different functions for file vs directory input."""
     output_dir = tmp_path / "plots"
     output_dir.mkdir()
-    input_dir = sample_data.parent
+    input_dir = sample_spiral_data.parent
 
     calls = []
 
@@ -823,7 +832,7 @@ def test_cli_plot_spiral_directory_vs_file_behavior(
 
     result_file = runner.invoke(
         cli.app,
-        ["plot-spiral", str(sample_data), str(output_dir)],
+        ["plot-spiral", str(sample_spiral_data), str(output_dir)],
     )
 
     result_dir = runner.invoke(

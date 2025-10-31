@@ -26,7 +26,7 @@ def _calculate_statistics(values: np.ndarray, name: str) -> dict[str, float]:
     }
 
 
-def calculate_velocity_metrics(spiral: models.Spiral) -> dict[str, float]:
+def calculate_velocity_metrics(spiral: models.Drawing) -> dict[str, float]:
     """Calculate velocity-based metrics from spiral drawing data.
 
     This function computes three types of velocity metrics by calculating the difference

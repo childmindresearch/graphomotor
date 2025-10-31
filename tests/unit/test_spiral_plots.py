@@ -12,7 +12,7 @@ from graphomotor.plot import spiral_plots
 
 
 def test_single_spiral_saved(
-    sample_data: pathlib.Path,
+    sample_spiral_data: pathlib.Path,
     tmp_path: pathlib.Path,
     caplog: pytest.LogCaptureFixture,
 ) -> None:
@@ -22,7 +22,7 @@ def test_single_spiral_saved(
 
     with caplog.at_level("DEBUG", logger="graphomotor"):
         fig = spiral_plots.plot_single_spiral(
-            data=sample_data,
+            data=sample_spiral_data,
             output_path=output_dir,
             include_reference=True,
             color_segments=True,
@@ -85,7 +85,7 @@ def test_plot_single_spiral_invalid_data_type_error(
 
 
 def test_plot_single_spiral_with_valid_spiral_object(
-    valid_spiral: models.Spiral,
+    valid_spiral: models.Drawing,
 ) -> None:
     """Test plotting with a pre-loaded valid Spiral object."""
     fig = spiral_plots.plot_single_spiral(
@@ -146,13 +146,13 @@ def test_plot_batch_spirals_failed_files_warning(
 
 
 def test_plot_batch_spirals_single_spiral_fallback(
-    sample_data: pathlib.Path, tmp_path: pathlib.Path
+    sample_spiral_data: pathlib.Path, tmp_path: pathlib.Path
 ) -> None:
     """Test that plot_single_spiral is called when only one spiral is loaded."""
     single_spiral_dir = tmp_path / "single_spiral_dir"
     single_spiral_dir.mkdir()
-    copied_file = single_spiral_dir / sample_data.name
-    shutil.copy2(sample_data, copied_file)
+    copied_file = single_spiral_dir / sample_spiral_data.name
+    shutil.copy2(sample_spiral_data, copied_file)
 
     fig = spiral_plots.plot_batch_spirals(data=single_spiral_dir)
 

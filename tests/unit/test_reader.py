@@ -10,26 +10,11 @@ from graphomotor.core import models
 from graphomotor.io import reader
 
 
-def test_parse_filename_valid(sample_data: pathlib.Path) -> None:
-    """Test that valid filenames are parsed correctly."""
-    expected_metadata = {
-        "id": "5123456",
-        "hand": "Dom",
-        "task": "spiral_trace1",
-    }
-    metadata = reader._parse_filename(sample_data.stem)
-    assert metadata == expected_metadata, (
-        f"Expected {expected_metadata}, but got {metadata}"
-    )
-
-
 @pytest.mark.parametrize(
     "invalid_filename",
     [
         "asdf123-spiral_trace1_Dom.csv",  # missing ID
-        "[5123456]-spiral_trace1_Dom.csv",  # missing Curious ID
-        "[5123456]asdf123-Dom.csv",  # missing task
-        "[5123456]asdf123-spiral_trace1.csv",  # missing hand
+        "[5123456]asdf123_Dom.csv",  # missing task
     ],
 )
 def test_parse_filename_invalid(invalid_filename: str) -> None:
@@ -42,16 +27,6 @@ def test_parse_filename_invalid(invalid_filename: str) -> None:
         reader._parse_filename(invalid_filename)
 
 
-@pytest.mark.parametrize("missing_column", list(reader.DTYPE_MAP.keys()))
-def test_check_missing_columns(
-    valid_spiral_data: pd.DataFrame, missing_column: str
-) -> None:
-    """Test that missing columns raise a KeyError."""
-    valid_spiral_data = valid_spiral_data.drop(columns=[missing_column])
-    with pytest.raises(KeyError, match=f"Missing required columns: {missing_column}"):
-        reader._check_missing_columns(valid_spiral_data)
-
-
 def test_convert_start_time() -> None:
     """Test that start time is converted correctly."""
     dummy_data = pd.DataFrame({"epoch_time_in_seconds_start": [10**15]})
@@ -59,18 +34,49 @@ def test_convert_start_time() -> None:
         reader._convert_start_time(dummy_data)
 
 
-def test_load_spiral(sample_data: pathlib.Path) -> None:
+def test_load_spiral(sample_spiral_data: pathlib.Path) -> None:
     """Test that spiral loads with string input and start time is moved to metadata."""
-    spiral = reader.load_spiral(str(sample_data))
-    assert isinstance(spiral, models.Spiral)
+    spiral = reader.load_drawing_data(str(sample_spiral_data))
+    assert isinstance(spiral, models.Drawing)
     assert "epoch_time_in_seconds_start" not in spiral.data.columns
     assert "start_time" in spiral.metadata
     assert "source_path" in spiral.metadata
+    assert spiral.metadata["task"] == "spiral_trace1_Dom"
 
 
-def test_load_spiral_invalid_extension(sample_data: pathlib.Path) -> None:
+def test_load_trails(sample_trails_data: pathlib.Path) -> None:
+    """Test that trails loads with string input and start time is moved to metadata."""
+    trails = reader.load_drawing_data(str(sample_trails_data))
+    assert isinstance(trails, models.Drawing)
+    assert "epoch_time_in_seconds_start" not in trails.data.columns
+    assert "start_time" in trails.metadata
+    assert "source_path" in trails.metadata
+    assert trails.metadata["task"] == "trail4"
+
+
+def test_load_alpha(sample_alpha_data: pathlib.Path) -> None:
+    """Test that alpha loads with string input and start time is moved to metadata."""
+    alpha = reader.load_drawing_data(str(sample_alpha_data))
+    assert isinstance(alpha, models.Drawing)
+    assert "epoch_time_in_seconds_start" not in alpha.data.columns
+    assert "start_time" in alpha.metadata
+    assert "source_path" in alpha.metadata
+    assert alpha.metadata["task"] == "Alpha_AtoZ"
+
+
+def test_load_dsym(sample_dsym_data: pathlib.Path) -> None:
+    """Test that dsym loads with string input and start time is moved to metadata."""
+    dsym = reader.load_drawing_data(str(sample_dsym_data))
+    assert isinstance(dsym, models.Drawing)
+    assert "epoch_time_in_seconds_start" not in dsym.data.columns
+    assert "start_time" in dsym.metadata
+    assert "source_path" in dsym.metadata
+    assert dsym.metadata["task"] == "dsym_2"
+
+
+def test_load_spiral_invalid_extension(sample_spiral_data: pathlib.Path) -> None:
     """Test that loading a non-CSV file raises an error."""
-    invalid_file = sample_data.with_suffix(".txt")
+    invalid_file = sample_spiral_data.with_suffix(".txt")
     filename = re.escape(str(invalid_file))
     with pytest.raises(IOError, match=f"Error reading file {filename}"):
-        reader.load_spiral(invalid_file)
+        reader.load_drawing_data(invalid_file)

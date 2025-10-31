@@ -7,7 +7,7 @@ from graphomotor.core import config, models
 from graphomotor.features import velocity
 
 
-def test_calculate_velocity_metrics(valid_spiral: models.Spiral) -> None:
+def test_calculate_velocity_metrics(valid_spiral: models.Drawing) -> None:
     """Test that velocity metrics are calculated correctly."""
     num_points = 1000
     time_total = 100

@@ -8,12 +8,13 @@ import pandas as pd
 import pydantic
 
 
-class Spiral(pydantic.BaseModel):
-    """Class representing a spiral drawing, encapsulating both raw data and metadata.
+class Drawing(pydantic.BaseModel):
+    """Class representing a drawing task, encapsulating both raw data and metadata.
 
     Attributes:
         data: DataFrame containing drawing data with required columns (line_number, x,
             y, UTC_Timestamp, seconds).
+        task_name: Name of the drawing task (e.g., 'spiral', 'trails', etc.).
         metadata: Dictionary containing metadata about the spiral:
             - id: Unique identifier for the participant,
             - hand: Hand used ('Dom' for dominant, 'NonDom' for non-dominant),
@@ -25,6 +26,7 @@ class Spiral(pydantic.BaseModel):
     model_config = pydantic.ConfigDict(arbitrary_types_allowed=True)
 
     data: pd.DataFrame
+    task_name: str
     metadata: dict[str, str | datetime.datetime]
 
     @pydantic.field_validator("data")
@@ -67,22 +69,10 @@ class Spiral(pydantic.BaseModel):
         if len(v["id"]) != 7:
             raise ValueError("'id' must be 7 digits long")
 
-        if v["hand"] not in ["Dom", "NonDom"]:
-            raise ValueError("'hand' must be either 'Dom' or 'NonDom'")
-
-        valid_tasks = ["spiral_trace", "spiral_recall"]
-        valid_tasks_trials = [
-            f"{prefix}{i}" for prefix in valid_tasks for i in range(1, 6)
-        ]
-        if v["task"] not in valid_tasks_trials:
-            raise ValueError(
-                "'task' must be either 'spiral_trace' or 'spiral_recall', numbered 1-5"
-            )
-
         return v
 
 
-class FeatureCategories:
+class SpiralFeatureCategories:
     """Class to hold valid feature categories for Graphomotor."""
 
     DURATION = "duration"
@@ -102,7 +92,7 @@ class FeatureCategories:
 
     @classmethod
     def get_extractors(
-        cls, spiral: Spiral, reference_spiral: np.ndarray
+        cls, spiral: Drawing, reference_spiral: np.ndarray
     ) -> dict[str, typing.Callable[[], dict[str, float]]]:
         """Get all feature extractors with appropriate inputs.
 

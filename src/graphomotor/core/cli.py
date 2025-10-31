@@ -6,7 +6,7 @@ import typing
 
 import typer
 
-from graphomotor.core import config, orchestrator
+from graphomotor.core import config, spiral_orchestrator
 from graphomotor.plot import feature_plots, spiral_plots
 
 logger = config.get_logger()
@@ -85,7 +85,7 @@ def main(
 
 
 @app.command(
-    name="extract",
+    name="extract-spiral",
     help=(
         "Extract features from spiral drawing data. "
         "Supports both single-file and batch (directory) processing."
@@ -95,7 +95,7 @@ def main(
         "https://github.com/childmindresearch/graphomotor?tab=readme-ov-file#feature-extraction."
     ),
 )
-def extract(
+def extract_spiral(
     input_path: typing.Annotated[
         pathlib.Path,
         typer.Argument(
@@ -196,7 +196,7 @@ def extract(
     """Extract features from spiral drawing data."""
     logger.debug(f"Running Graphomotor pipeline with these arguments: {locals()}")
 
-    config_params: dict[orchestrator.ConfigParams, float | int] = {
+    config_params: dict[spiral_orchestrator.ConfigParams, float | int] = {
         "center_x": center_x,
         "center_y": center_y,
         "start_radius": start_radius,
@@ -207,11 +207,11 @@ def extract(
     }
 
     try:
-        orchestrator.run_pipeline(
+        spiral_orchestrator.run_pipeline(
             input_path=input_path,
             output_path=output_path,
             feature_categories=typing.cast(
-                list[orchestrator.FeatureCategories], features
+                list[spiral_orchestrator.FeatureCategories], features
             ),
             config_params=config_params,
         )
