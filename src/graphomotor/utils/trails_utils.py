@@ -1,1 +1,1 @@
-"""Utility classes and functions for trails management."""
+"""Utility functions for trails management."""

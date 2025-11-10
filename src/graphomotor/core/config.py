@@ -6,6 +6,7 @@ import typing
 from importlib import metadata
 
 import numpy as np
+import pandas as pd
 
 
 def get_version() -> str:
@@ -93,3 +94,28 @@ class SpiralConfig:
                 )
 
         return cls(**filtered_params)
+
+
+@dataclasses.dataclass
+class LineSegment:
+    """Represents a line drawn between two circles."""
+
+    start_label: str
+    end_label: str
+    points: pd.DataFrame
+    is_error: bool
+    line_number: int
+
+    # Computed metrics
+    ink_time: float = 0.0
+    think_time: float = 0.0
+    think_circle_label: str = ""  # Which circle the think time applies to
+    distance: float = 0.0  # Total distance drawn outside circles
+    mean_speed: float = 0.0
+    speed_variance: float = 0.0
+    path_optimality: float = 0.0
+    smoothness: float = 0.0  # Based on curvature changes
+    hesitation_count: int = 0
+    hesitation_duration: float = 0.0
+    velocities: typing.List[float] = dataclasses.field(default_factory=list)
+    accelerations: typing.List[float] = dataclasses.field(default_factory=list)
