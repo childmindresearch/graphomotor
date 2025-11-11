@@ -119,3 +119,19 @@ class LineSegment:
     hesitation_duration: float = 0.0
     velocities: typing.List[float] = dataclasses.field(default_factory=list)
     accelerations: typing.List[float] = dataclasses.field(default_factory=list)
+
+
+@dataclasses.dataclass
+class CircleTarget:
+    """Represents a target circle in the drawing task."""
+
+    order: int
+    label: str
+    center_x: float
+    center_y: float
+    radius: float
+
+    def contains_point(self, x: float, y: float, tolerance: float = 1.5) -> bool:
+        """Check if a point is within the circle (with tolerance multiplier)."""
+        distance = np.sqrt((x - self.center_x) ** 2 + (y - self.center_y) ** 2)
+        return distance <= (self.radius * tolerance)
