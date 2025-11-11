@@ -1,5 +1,6 @@
 """Internal data class for spiral drawing data."""
 
+import dataclasses
 import datetime
 import typing
 
@@ -116,3 +117,44 @@ class SpiralFeatureCategories:
                 spiral, reference_spiral
             ),
         }
+
+
+@dataclasses.dataclass
+class LineSegment:
+    """Represents a line drawn between two circles."""
+
+    start_label: str
+    end_label: str
+    points: pd.DataFrame
+    is_error: bool
+    line_number: int
+
+    # Computed metrics
+    ink_time: float = 0.0
+    think_time: float = 0.0
+    think_circle_label: str = ""  # Which circle the think time applies to
+    distance: float = 0.0  # Total distance drawn outside circles
+    mean_speed: float = 0.0
+    speed_variance: float = 0.0
+    path_optimality: float = 0.0
+    smoothness: float = 0.0  # Based on curvature changes
+    hesitation_count: int = 0
+    hesitation_duration: float = 0.0
+    velocities: typing.List[float] = dataclasses.field(default_factory=list)
+    accelerations: typing.List[float] = dataclasses.field(default_factory=list)
+
+
+@dataclasses.dataclass
+class CircleTarget:
+    """Represents a target circle in the drawing task."""
+
+    order: int
+    label: str
+    center_x: float
+    center_y: float
+    radius: float
+
+    def contains_point(self, x: float, y: float, tolerance: float = 1.5) -> bool:
+        """Check if a point is within the circle (with tolerance multiplier)."""
+        distance = np.sqrt((x - self.center_x) ** 2 + (y - self.center_y) ** 2)
+        return distance <= (self.radius * tolerance)
