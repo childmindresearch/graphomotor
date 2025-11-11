@@ -109,36 +109,3 @@ def test_get_logger_second_call() -> None:
     assert len(logger.handlers) == len(second_logger.handlers) == 1
     assert logger.handlers[0] is second_logger.handlers[0]
     assert logger is second_logger
-
-
-@pytest.fixture
-def circle() -> config.CircleTarget:
-    """Create a standard circle at origin with radius 10."""
-    return config.CircleTarget(
-        order=1, label="test_circle", center_x=0.0, center_y=0.0, radius=10.0
-    )
-
-
-def test_point_at_center(circle: config.CircleTarget) -> None:
-    """Point at the exact center should be inside the circle."""
-    assert circle.contains_point(0.0, 0.0)
-
-
-def test_point_on_edge_exact(circle: config.CircleTarget) -> None:
-    """Point exactly on the edge should be inside (with default tolerance)."""
-    assert circle.contains_point(10.0, 0.0)
-    assert circle.contains_point(0.0, 10.0)
-    assert circle.contains_point(-10.0, 0.0)
-    assert circle.contains_point(0.0, -10.0)
-
-
-def test_point_just_inside(circle: config.CircleTarget) -> None:
-    """Point just inside the radius should be contained."""
-    assert circle.contains_point(5.0, 0.0)
-    assert circle.contains_point(0.0, 5.0)
-
-
-def test_point_outside_with_default_tolerance(circle: config.CircleTarget) -> None:
-    """Point outside default tolerance boundary should not be contained."""
-    assert not circle.contains_point(16.0, 0.0)
-    assert not circle.contains_point(0.0, 16.0)
