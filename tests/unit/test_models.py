@@ -69,23 +69,26 @@ def circle() -> models.CircleTarget:
     )
 
 
-def test_point_at_center(circle: models.CircleTarget) -> None:
-    """Point at the exact center should be inside the circle."""
-    assert circle.contains_point(0.0, 0.0)
-
-
-def test_point_on_edge_exact(circle: models.CircleTarget) -> None:
-    """Point exactly on the edge should be inside (with default tolerance)."""
-    assert circle.contains_point(10.0, 0.0)
-    assert circle.contains_point(0.0, 10.0)
-    assert circle.contains_point(-10.0, 0.0)
-    assert circle.contains_point(0.0, -10.0)
-
-
-def test_point_just_inside(circle: models.CircleTarget) -> None:
-    """Point just inside the radius should be contained."""
-    assert circle.contains_point(5.0, 0.0)
-    assert circle.contains_point(0.0, 5.0)
+@pytest.mark.parametrize(
+    "x,y,description",
+    [
+        (0.0, 0.0, "center"),
+        (10.0, 0.0, "right edge"),
+        (0.0, 10.0, "top edge"),
+        (-10.0, 0.0, "left edge"),
+        (0.0, -10.0, "bottom edge"),
+        (5.0, 0.0, "inside horizontally"),
+        (0.0, 5.0, "inside vertically"),
+    ],
+)
+def test_point_inside_circle(
+    circle: models.CircleTarget,
+    x: float,
+    y: float,
+    description: str,
+) -> None:
+    """Point at center, on edge, or just inside should be contained."""
+    assert circle.contains_point(x, y)
 
 
 def test_point_outside_with_default_tolerance(circle: models.CircleTarget) -> None:
