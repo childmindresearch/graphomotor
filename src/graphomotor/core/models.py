@@ -121,7 +121,29 @@ class SpiralFeatureCategories:
 
 @dataclasses.dataclass
 class LineSegment:
-    """Represents a line drawn between two circles."""
+    """Represents a line drawn between two circles.
+
+    Attributes:
+        start_label: Label of the starting circle.
+        end_label: Label of the ending circle.
+        points: DataFrame containing the points in the line segment.
+        is_error: Whether the line segment is an error (missed target).
+        line_number: The line number of the segment.
+
+        Calculated features:
+        ink_time: Time spent drawing the line segment.
+        think_time: Time spent thinking before drawing the line segment.
+        think_circle_label: Label of the circle associated with think time.
+        distance: Total distance drawn outside circles.
+        mean_speed: Mean speed of drawing the line segment.
+        speed_variance: Variance of speed during the line segment.
+        path_optimality: Ratio of actual path length to optimal path length.
+        smoothness: Smoothness of the line segment based on curvature changes.
+        hesitation_count: Number of hesitations during the line segment.
+        hesitation_duration: Total duration of hesitations during the line segment.
+        velocities: List of velocities at each point in the line segment.
+        accelerations: List of accelerations at each point in the line segment.
+    """
 
     start_label: str
     end_label: str
@@ -129,15 +151,14 @@ class LineSegment:
     is_error: bool
     line_number: int
 
-    # Computed metrics
     ink_time: float = 0.0
     think_time: float = 0.0
-    think_circle_label: str = ""  # Which circle the think time applies to
-    distance: float = 0.0  # Total distance drawn outside circles
+    think_circle_label: str = ""
+    distance: float = 0.0
     mean_speed: float = 0.0
     speed_variance: float = 0.0
     path_optimality: float = 0.0
-    smoothness: float = 0.0  # Based on curvature changes
+    smoothness: float = 0.0
     hesitation_count: int = 0
     hesitation_duration: float = 0.0
     velocities: typing.List[float] = dataclasses.field(default_factory=list)
@@ -146,7 +167,15 @@ class LineSegment:
 
 @dataclasses.dataclass
 class CircleTarget:
-    """Represents a target circle in the drawing task."""
+    """Represents a target circle in the drawing task.
+
+    Attributes:
+        order: The order of the circle in the sequence.
+        label: The label of the circle.
+        center_x: The x-coordinate of the circle's center.
+        center_y: The y-coordinate of the circle's center.
+        radius: The radius of the circle.
+    """
 
     order: int
     label: str
@@ -155,6 +184,15 @@ class CircleTarget:
     radius: float
 
     def contains_point(self, x: float, y: float, tolerance: float = 1.5) -> bool:
-        """Check if a point is within the circle (with tolerance multiplier)."""
+        """Check if a point is within the circle (with tolerance multiplier).
+
+        Args:
+            x: X coordinate of the point.
+            y: Y coordinate of the point.
+            tolerance: Multiplier for the radius to define tolerance boundary.
+
+        Returns:
+            True if the point is within the circle (with tolerance), False otherwise.
+        """
         distance = np.sqrt((x - self.center_x) ** 2 + (y - self.center_y) ** 2)
         return distance <= (self.radius * tolerance)
