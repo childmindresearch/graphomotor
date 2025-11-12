@@ -44,13 +44,15 @@ def test_multiple_unique_paths(
     circles: typing.Dict[str, typing.Dict[str, models.CircleTarget]],
 ) -> None:
     """Test that segment_lines correctly segments multiple unique paths."""
-    df = pd.DataFrame({
-        "actual_path": ["1 ~ 2", "2 ~ 1"],
-        "line_number": [0, 1],
-        "is_error": [False, True],
-        "x": [0, 1],
-        "y": [0, 1],
-    })
+    df = pd.DataFrame(
+        {
+            "actual_path": ["1 ~ 2", "2 ~ 1"],
+            "line_number": [0, 1],
+            "is_error": [False, True],
+            "x": [0, 1],
+            "y": [0, 1],
+        }
+    )
     segments = trails_utils.segment_lines(df, "trail2", circles)
     assert len(segments) == 2
     assert segments[0].start_label == "1"
@@ -67,13 +69,15 @@ def test_single_path_fallback_line_number(
     circles: typing.Dict[str, typing.Dict[str, models.CircleTarget]],
 ) -> None:
     """Test that segment_lines handles fallback for line_number for identical paths."""
-    df = pd.DataFrame({
-        "actual_path": ["1 ~ 2", "1 ~ 2"],
-        "line_number": [0, 1],
-        "is_error": [False, False],
-        "x": [0, 1],
-        "y": [0, 1],
-    })
+    df = pd.DataFrame(
+        {
+            "actual_path": ["1 ~ 2", "1 ~ 2"],
+            "line_number": [0, 1],
+            "is_error": [False, False],
+            "x": [0, 1],
+            "y": [0, 1],
+        }
+    )
     segments = trails_utils.segment_lines(df, "trail2", circles)
     assert len(segments) == 2
     for idx, seg in enumerate(segments):
@@ -96,11 +100,13 @@ def test_invalid_trail_id(
     circles: typing.Dict[str, typing.Dict[str, models.CircleTarget]],
 ) -> None:
     """Test that segment_lines raises KeyError for invalid trail_id."""
-    df = pd.DataFrame({
-        "actual_path": ["1 ~ 2"],
-        "line_number": [0],
-        "is_error": [False],
-    })
+    df = pd.DataFrame(
+        {
+            "actual_path": ["1 ~ 2"],
+            "line_number": [0],
+            "is_error": [False],
+        }
+    )
     with pytest.raises(KeyError, match="Trail ID 'invalid' not found"):
         trails_utils.segment_lines(df, "invalid", circles)
 

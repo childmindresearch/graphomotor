@@ -10,7 +10,7 @@ from graphomotor.core import models
 def segment_lines(
     df: pd.DataFrame,
     trail_id: str,
-    circles: typing.Dict[str, typing.List[models.CircleTarget]],
+    circles: typing.Dict[str, typing.Dict[str, models.CircleTarget]],
 ) -> typing.List[models.LineSegment]:
     """Segment data into individual lines drawn between circles.
 
