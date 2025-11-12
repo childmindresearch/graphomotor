@@ -1,11 +1,16 @@
 """Configuration module for graphomotor."""
 
 import dataclasses
+import json
 import logging
+import os
 import typing
 from importlib import metadata
+from typing import Dict
 
 import numpy as np
+
+from graphomotor.core import models
 
 
 def get_version() -> str:
@@ -93,3 +98,40 @@ class SpiralConfig:
                 )
 
         return cls(**filtered_params)
+
+
+def load_scaled_circles() -> Dict[str, Dict[str, models.CircleTarget]]:
+    """Load circle configurations from trails_points_scaled.json.
+
+    This function reads a JSON file containing circle target definitions for various
+    trail types and constructs CircleTarget instances for each defined circle.
+    This will be configured only once per run.
+
+    Returns:
+        A dictionary mapping each trail type to dictionaries of CircleTarget instances.
+    """
+    if not os.path.exists("src/graphomotor/utils/trails_points_scaled.json"):
+        raise FileNotFoundError(
+            "The path 'src/graphomotor/utils/trails_points_scaled.json' does not exist."
+            "Confirm that all necessary files are in place."
+        )
+
+    with open("src/graphomotor/utils/trails_points_scaled.json", "r") as f:
+        trails_data = json.load(f)
+
+        circles = {}
+        for trail_screen, trail_points in trails_data.items():
+            trail_circles = {}
+            for idx, point in enumerate(trail_points):
+                order = idx + 1
+                circle = models.CircleTarget(
+                    order=order,
+                    cx=point["x"],
+                    cy=point["y"],
+                    label=str(point["label"]),
+                    radius=point["radius"],
+                )
+                trail_circles[circle.label] = circle
+
+            circles[trail_screen] = trail_circles
+    return circles
