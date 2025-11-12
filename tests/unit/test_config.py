@@ -9,7 +9,7 @@ import typing
 import numpy as np
 import pytest
 
-from graphomotor.core import config
+from graphomotor.core import config, models
 
 
 @pytest.mark.parametrize(
@@ -259,3 +259,63 @@ def test_multiple_missing_fields_raises_key_error(json_file_path: str) -> None:
         KeyError, match=r"Missing required field\(s\) \['y', 'label', 'radius'\]"
     ):
         config.load_scaled_circles(json_file_path)
+
+
+@pytest.mark.parametrize(
+    "circles,expected",
+    [
+        (
+            {
+                "1": {
+                    "1": models.CircleTarget(1, "1", 0.3, 0.4, radius=10),
+                    "2": models.CircleTarget(2, "2", 0.5, 0.6, radius=12),
+                }
+            },
+            {
+                "1": {
+                    "items": [
+                        {"order": 1, "center_x": 0.3, "center_y": 0.4, "label": "1"},
+                        {"order": 2, "center_x": 0.5, "center_y": 0.6, "label": "2"},
+                    ]
+                }
+            },
+        ),
+        (
+            {
+                "1": {"1": models.CircleTarget(1, "1", 0.1, 0.2, radius=8)},
+                "2": {"1": models.CircleTarget(1, "1", 0.9, 0.8, radius=9)},
+            },
+            {
+                "1": {
+                    "items": [
+                        {"order": 1, "center_x": 0.1, "center_y": 0.2, "label": "1"}
+                    ]
+                },
+                "2": {
+                    "items": [
+                        {"order": 1, "center_x": 0.9, "center_y": 0.8, "label": "1"}
+                    ]
+                },
+            },
+        ),
+        ({"3": {}}, {"3": {"items": []}}),
+        ({}, {}),
+        (
+            {"4": {"1": models.CircleTarget(1, "1", 0.7, 0.8, radius=20)}},
+            {
+                "4": {
+                    "items": [
+                        {"order": 1, "center_x": 0.7, "center_y": 0.8, "label": "1"}
+                    ]
+                }
+            },
+        ),
+    ],
+)
+def test_create_config_from_circles(
+    circles: typing.Dict[str, typing.Dict[str, models.CircleTarget]],
+    expected: typing.Dict[str, typing.Dict[str, typing.Any]],
+) -> None:
+    """Test create_config_from_circles for multiple numbered trails and circles."""
+    result = config.create_config_from_circles(circles)
+    assert result == expected
