@@ -2,7 +2,6 @@
 
 import json
 import logging
-import pathlib
 import shutil
 import tempfile
 import typing
