@@ -36,15 +36,13 @@ def test_multiple_unique_paths(
     circles: typing.Dict[str, typing.Dict[str, models.CircleTarget]],
 ) -> None:
     """Multiple unique actual_path values produce correct segments."""
-    df: pd.DataFrame = pd.DataFrame(
-        {
-            "actual_path": ["1 ~ 2", "2 ~ 1"],
-            "line_number": [0, 1],
-            "is_error": [False, True],
-            "x": [0, 1],
-            "y": [0, 1],
-        }
-    )
+    df: pd.DataFrame = pd.DataFrame({
+        "actual_path": ["1 ~ 2", "2 ~ 1"],
+        "line_number": [0, 1],
+        "is_error": [False, True],
+        "x": [0, 1],
+        "y": [0, 1],
+    })
     segments: typing.List[models.LineSegment] = trails_utils.segment_lines(
         df, "trail2", circles
     )
@@ -63,15 +61,13 @@ def test_single_path_fallback_line_number(
     circles: typing.Dict[str, typing.Dict[str, models.CircleTarget]],
 ) -> None:
     """Single unique path falls back to line_number segmentation."""
-    df: pd.DataFrame = pd.DataFrame(
-        {
-            "actual_path": ["1 ~ 2", "1 ~ 2"],
-            "line_number": [0, 1],
-            "is_error": [False, False],
-            "x": [0, 1],
-            "y": [0, 1],
-        }
-    )
+    df: pd.DataFrame = pd.DataFrame({
+        "actual_path": ["1 ~ 2", "1 ~ 2"],
+        "line_number": [0, 1],
+        "is_error": [False, False],
+        "x": [0, 1],
+        "y": [0, 1],
+    })
     segments: typing.List[models.LineSegment] = trails_utils.segment_lines(
         df, "trail2", circles
     )
@@ -100,32 +96,30 @@ def test_invalid_trail_id(
     circles: typing.Dict[str, typing.Dict[str, models.CircleTarget]],
 ) -> None:
     """Passing an invalid trail_id raises KeyError."""
-    df: pd.DataFrame = pd.DataFrame(
-        {
-            "actual_path": ["1 ~ 2"],
-            "line_number": [0],
-            "is_error": [False],
-        }
-    )
-    with pytest.raises(KeyError, match="Trail ID 'invalid' not found"):
+    df: pd.DataFrame = pd.DataFrame({
+        "x": [0],
+        "y": [0],
+        "actual_path": ["1 ~ 2"],
+        "line_number": [0],
+        "is_error": [False],
+    })
+    with pytest.raises(KeyError, match="Trail ID not found in circles dictionary."):
         trails_utils.segment_lines(df, "invalid", circles)
 
 
 @pytest.mark.parametrize(
     "df_data, match_msg",
     [
-        # Invalid actual_path (no "~") triggers ValueError
         (
             {
-                "actual_path": ["invalid"],
-                "line_number": [0],
-                "is_error": [False],
-                "x": [0],
-                "y": [0],
+                "actual_path": ["invalid", None],
+                "line_number": [0, 1],
+                "is_error": [False, True],
+                "x": [0, 1],
+                "y": [0, 1],
             },
-            "Invalid path value 'invalid' encountered",
+            "Invalid actual_path value encountered",
         ),
-        # Invalid actual_path (None) triggers ValueError
         (
             {
                 "actual_path": [None],
@@ -134,7 +128,7 @@ def test_invalid_trail_id(
                 "x": [0],
                 "y": [0],
             },
-            "Invalid path value 'None' encountered",
+            "Invalid actual_path value encountered",
         ),
     ],
 )

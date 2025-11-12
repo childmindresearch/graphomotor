@@ -27,7 +27,7 @@ def segment_lines(
         List of LineSegment objects
     """
     if trail_id not in circles:
-        raise KeyError(f"Trail ID '{trail_id}' not found in circles dictionary.")
+        raise KeyError("Trail ID not found in circles dictionary.")
 
     segments = []
     unique_paths = df["actual_path"].unique()
@@ -36,7 +36,7 @@ def segment_lines(
         segment_counter = 0
         for path in unique_paths:
             if pd.isna(path) or "~" not in path:
-                raise ValueError(f"Invalid path value '{path}' encountered.")
+                raise ValueError("Invalid actual_path value encountered.")
 
             path_data = df[df["actual_path"] == path].copy()
             if path_data.empty:
@@ -56,12 +56,9 @@ def segment_lines(
     else:
         for line_num in df["line_number"].unique():
             line_data = df[df["line_number"] == line_num].copy()
-            if line_data.empty:
-                raise ValueError(f"No rows found for line number '{line_num}'.")
-
             path = line_data["actual_path"].iloc[0]
             if pd.isna(path) or "~" not in path:
-                raise ValueError(f"Invalid path value '{path}' encountered.")
+                raise ValueError("Invalid actual_path value encountered.")
 
             start_label, end_label = path.split(" ~ ")
             segments.append(
