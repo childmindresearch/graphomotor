@@ -39,9 +39,6 @@ def segment_lines(
                 raise ValueError("Invalid actual_path value encountered.")
 
             path_data = df[df["actual_path"] == path].copy()
-            if path_data.empty:
-                raise ValueError(f"No rows found for path '{path}'.")
-
             start_label, end_label = path.split(" ~ ")
             segments.append(
                 models.LineSegment(
