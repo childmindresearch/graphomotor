@@ -173,3 +173,30 @@ def load_scaled_circles(filepath: str) -> Dict[str, Dict[str, models.CircleTarge
 
             circles[trail_screen] = trail_circles
     return circles
+
+
+def create_config_from_circles(
+    circles: Dict[str, Dict[str, models.CircleTarget]],
+) -> Dict:
+    """Create a config dict from circles for compatibility.
+
+    Args:
+        circles: Dictionary of circle targets per trail.
+
+    Returns:
+        Configuration dictionary.
+    """
+    config = {}
+    for trail_id, trail_circles in circles.items():
+        config[trail_id] = {
+            "items": [
+                {
+                    "order": circle.order,
+                    "center_x": circle.center_x,
+                    "center_y": circle.center_y,
+                    "label": circle.label,
+                }
+                for circle in trail_circles.values()
+            ]
+        }
+    return config
