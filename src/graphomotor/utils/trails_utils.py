@@ -42,10 +42,8 @@ def segment_lines(
             if len(path_data) == 0:
                 continue
 
-            # Get line endpoints
             start_label, end_label = path.split(" ~ ")
 
-            # Create line segment
             segment = models.LineSegment(
                 start_label=start_label.strip(),
                 end_label=end_label.strip(),
