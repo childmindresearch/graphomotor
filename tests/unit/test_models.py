@@ -59,3 +59,39 @@ def test_invalid_metadata_values(
         models.Drawing(
             data=valid_spiral_data, task_name="spiral", metadata=invalid_metadata
         )
+
+
+@pytest.fixture
+def circle() -> models.CircleTarget:
+    """Create a standard circle at origin with radius 10."""
+    return models.CircleTarget(
+        order=1, label="test_circle", center_x=0.0, center_y=0.0, radius=10.0
+    )
+
+
+@pytest.mark.parametrize(
+    "x,y,description",
+    [
+        (0.0, 0.0, "center"),
+        (10.0, 0.0, "right edge"),
+        (0.0, 10.0, "top edge"),
+        (-10.0, 0.0, "left edge"),
+        (0.0, -10.0, "bottom edge"),
+        (5.0, 0.0, "inside horizontally"),
+        (0.0, 5.0, "inside vertically"),
+    ],
+)
+def test_point_inside_circle(
+    circle: models.CircleTarget,
+    x: float,
+    y: float,
+    description: str,
+) -> None:
+    """Point at center, on edge, or just inside should be contained."""
+    assert circle.contains_point(x, y)
+
+
+def test_point_outside_with_default_tolerance(circle: models.CircleTarget) -> None:
+    """Point outside default tolerance boundary should not be contained."""
+    assert not circle.contains_point(16.0, 0.0)
+    assert not circle.contains_point(0.0, 16.0)
