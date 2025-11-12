@@ -10,7 +10,7 @@ from graphomotor.core import models
 def segment_lines(
     df: pd.DataFrame,
     trail_id: str,
-    circles: typing.Dict[str, typing.Dict[str, models.CircleTarget]],
+    circles: typing.Dict[str, typing.List[models.CircleTarget]],
 ) -> typing.List[models.LineSegment]:
     """Segment data into individual lines drawn between circles.
 
@@ -26,55 +26,52 @@ def segment_lines(
     Returns:
         List of LineSegment objects
     """
-    segments = []
-    circles = circles[trail_id]
+    if trail_id not in circles:
+        raise KeyError(f"Trail ID '{trail_id}' not found in circles dictionary.")
 
+    segments = []
     unique_paths = df["actual_path"].unique()
 
     if len(unique_paths) > 1:
         segment_counter = 0
         for path in unique_paths:
             if pd.isna(path) or "~" not in path:
-                continue
+                raise ValueError(f"Invalid path value '{path}' encountered.")
 
             path_data = df[df["actual_path"] == path].copy()
-
-            if len(path_data) == 0:
-                continue
+            if path_data.empty:
+                raise ValueError(f"No rows found for path '{path}'.")
 
             start_label, end_label = path.split(" ~ ")
-
-            segment = models.LineSegment(
-                start_label=start_label.strip(),
-                end_label=end_label.strip(),
-                points=path_data,
-                is_error=path_data["is_error"].iloc[0],
-                line_number=segment_counter,
+            segments.append(
+                models.LineSegment(
+                    start_label=start_label.strip(),
+                    end_label=end_label.strip(),
+                    points=path_data,
+                    is_error=path_data["is_error"].iloc[0],
+                    line_number=segment_counter,
+                )
             )
-
-            segments.append(segment)
             segment_counter += 1
     else:
         for line_num in df["line_number"].unique():
             line_data = df[df["line_number"] == line_num].copy()
-
-            if len(line_data) == 0:
-                continue
+            if line_data.empty:
+                raise ValueError(f"No rows found for line number '{line_num}'.")
 
             path = line_data["actual_path"].iloc[0]
             if pd.isna(path) or "~" not in path:
-                continue
+                raise ValueError(f"Invalid path value '{path}' encountered.")
 
             start_label, end_label = path.split(" ~ ")
-
-            segment = models.LineSegment(
-                start_label=start_label.strip(),
-                end_label=end_label.strip(),
-                points=line_data,
-                is_error=line_data["is_error"].iloc[0],
-                line_number=int(line_num),
+            segments.append(
+                models.LineSegment(
+                    start_label=start_label.strip(),
+                    end_label=end_label.strip(),
+                    points=line_data,
+                    is_error=line_data["is_error"].iloc[0],
+                    line_number=int(line_num),
+                )
             )
-
-            segments.append(segment)
 
     return segments
