@@ -10,31 +10,41 @@ from graphomotor.utils import trails_utils
 
 
 @pytest.fixture
-def circles() -> typing.Dict[str, typing.List[models.CircleTarget]]:
+def circles() -> typing.Dict[str, typing.Dict[str, models.CircleTarget]]:
     """Return a minimal set of CircleTarget lists for each trail."""
     return {
-        "trail2": [
-            models.CircleTarget(order=1, label="1", center_x=0, center_y=0, radius=10),
-            models.CircleTarget(order=2, label="2", center_x=1, center_y=0, radius=10),
-        ],
-        "trail4": [
-            models.CircleTarget(order=1, label="1", center_x=0, center_y=0, radius=10),
-            models.CircleTarget(order=2, label="2", center_x=1, center_y=0, radius=10),
-        ],
+        "trail2": {
+            "1": models.CircleTarget(
+                order=1, label="1", center_x=0, center_y=0, radius=10
+            ),
+            "2": models.CircleTarget(
+                order=2, label="2", center_x=1, center_y=0, radius=10
+            ),
+        },
+        "trail4": {
+            "1": models.CircleTarget(
+                order=1, label="1", center_x=0, center_y=0, radius=10
+            ),
+            "2": models.CircleTarget(
+                order=2, label="2", center_x=1, center_y=0, radius=10
+            ),
+        },
     }
 
 
 def test_multiple_unique_paths(
-    circles: typing.Dict[str, typing.List[models.CircleTarget]],
+    circles: typing.Dict[str, typing.Dict[str, models.CircleTarget]],
 ) -> None:
     """Test segmentation when df has multiple unique actual_path values."""
-    df = pd.DataFrame({
-        "actual_path": ["1 ~ 2", "2 ~ 1"],
-        "line_number": [0, 1],
-        "is_error": [False, True],
-        "x": [0, 1],
-        "y": [0, 1],
-    })
+    df = pd.DataFrame(
+        {
+            "actual_path": ["1 ~ 2", "2 ~ 1"],
+            "line_number": [0, 1],
+            "is_error": [False, True],
+            "x": [0, 1],
+            "y": [0, 1],
+        }
+    )
 
     segments = trails_utils.segment_lines(df, "trail2", circles)
 
@@ -51,16 +61,18 @@ def test_multiple_unique_paths(
 
 
 def test_single_path_fallback_line_number(
-    circles: typing.Dict[str, typing.List[models.CircleTarget]],
+    circles: typing.Dict[str, typing.Dict[str, models.CircleTarget]],
 ) -> None:
     """Test fallback segmentation when only one unique actual_path exists."""
-    df = pd.DataFrame({
-        "actual_path": ["1 ~ 2", "1 ~ 2"],
-        "line_number": [0, 1],
-        "is_error": [False, False],
-        "x": [0, 1],
-        "y": [0, 1],
-    })
+    df = pd.DataFrame(
+        {
+            "actual_path": ["1 ~ 2", "1 ~ 2"],
+            "line_number": [0, 1],
+            "is_error": [False, False],
+            "x": [0, 1],
+            "y": [0, 1],
+        }
+    )
 
     segments = trails_utils.segment_lines(df, "trail2", circles)
 
@@ -73,7 +85,7 @@ def test_single_path_fallback_line_number(
 
 
 def test_empty_dataframe(
-    circles: typing.Dict[str, typing.List[models.CircleTarget]],
+    circles: typing.Dict[str, typing.Dict[str, models.CircleTarget]],
 ) -> None:
     """Empty DataFrame should produce no segments."""
     df = pd.DataFrame(columns=["actual_path", "line_number", "is_error", "x", "y"])
@@ -82,16 +94,18 @@ def test_empty_dataframe(
 
 
 def test_invalid_paths_skipped(
-    circles: typing.Dict[str, typing.List[models.CircleTarget]],
+    circles: typing.Dict[str, typing.Dict[str, models.CircleTarget]],
 ) -> None:
     """Rows with invalid paths should be skipped."""
-    df = pd.DataFrame({
-        "actual_path": ["invalid", None, "1 ~ 2"],
-        "line_number": [0, 1, 2],
-        "is_error": [False, True, False],
-        "x": [0, 1, 2],
-        "y": [0, 1, 2],
-    })
+    df = pd.DataFrame(
+        {
+            "actual_path": ["invalid", None, "1 ~ 2"],
+            "line_number": [0, 1, 2],
+            "is_error": [False, True, False],
+            "x": [0, 1, 2],
+            "y": [0, 1, 2],
+        }
+    )
 
     segments = trails_utils.segment_lines(df, "trail2", circles)
 
