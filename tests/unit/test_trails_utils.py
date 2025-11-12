@@ -41,12 +41,12 @@ def test_multiple_unique_paths(
     assert len(segments) == 2
     assert segments[0].start_label == "1"
     assert segments[0].end_label == "2"
-    assert segments[0].is_error is False
+    assert not segments[0].is_error
     assert segments[0].line_number == 0
 
     assert segments[1].start_label == "2"
     assert segments[1].end_label == "1"
-    assert segments[1].is_error is True
+    assert segments[1].is_error
     assert segments[1].line_number == 1
 
 
@@ -69,7 +69,7 @@ def test_single_path_fallback_line_number(
         assert seg.start_label == "1"
         assert seg.end_label == "2"
         assert seg.line_number == idx
-        assert seg.is_error is False
+        assert not seg.is_error
 
 
 def test_empty_dataframe(
@@ -101,4 +101,4 @@ def test_invalid_paths_skipped(
     assert seg.start_label == "1"
     assert seg.end_label == "2"
     assert seg.line_number == 0
-    assert seg.is_error is False
+    assert not seg.is_error
