@@ -128,78 +128,6 @@ def load_scaled_circles(filepath: str) -> Dict[str, Dict[str, models.CircleTarge
     with open(filepath, "r") as f:
         trails_data = json.load(f)
 
-        if not isinstance(trails_data, dict):
-            raise TypeError(
-                "Expected trails_data to be a dictionary, "
-                f"got {type(trails_data).__name__}"
-            )
-
-        circles = {}
-        for trail_screen, trail_points in trails_data.items():
-            if not isinstance(trail_points, list):
-                raise TypeError(
-                    f"Expected trail_points for '{trail_screen}' to be a list, "
-                    f"got {type(trail_points).__name__}"
-                )
-
-            trail_circles = {}
-            for idx, point in enumerate(trail_points):
-                if not isinstance(point, dict):
-                    raise TypeError(
-                        f"Expected point at index {idx} in '{trail_screen}' to be a "
-                        f"dictionary, got {type(point).__name__}"
-                    )
-
-                # Validate required fields
-                required_fields = ["x", "y", "label", "radius"]
-                missing_fields = [
-                    field for field in required_fields if field not in point
-                ]
-                if missing_fields:
-                    raise KeyError(
-                        f"Missing required field(s) {missing_fields} at index {idx} "
-                        f"of trail '{trail_screen}'"
-                    )
-
-                order = idx + 1
-                circle = models.CircleTarget(
-                    order=order,
-                    center_x=point["x"],
-                    center_y=point["y"],
-                    label=str(point["label"]),
-                    radius=point["radius"],
-                )
-                trail_circles[circle.label] = circle
-
-            circles[trail_screen] = trail_circles
-    return circles
-
-
-def create_config_from_circles(
-    circles: Dict[str, Dict[str, models.CircleTarget]],
-) -> Dict:
-    """Create a config dict from circles for compatibility.
-
-    Args:
-        circles: Dictionary of circle targets per trail.
-
-    Returns:
-        Configuration dictionary.
-    """
-    config = {}
-    for trail_id, trail_circles in circles.items():
-        config[trail_id] = {
-            "items": [
-                {
-                    "order": circle.order,
-                    "center_x": circle.center_x,
-                    "center_y": circle.center_y,
-                    "label": circle.label,
-                }
-                for circle in trail_circles.values()
-            ]
-        }
-    return config
     if not isinstance(trails_data, dict):
         raise TypeError(
             f"Expected trails_data to be a dictionary, got {type(trails_data).__name__}"
@@ -243,3 +171,30 @@ def create_config_from_circles(
 
         circles[trail_task_number] = trail_circles
     return circles
+
+
+def create_config_from_circles(
+    circles: Dict[str, Dict[str, models.CircleTarget]],
+) -> Dict:
+    """Create a config dict from circles for compatibility.
+
+    Args:
+        circles: Dictionary of circle targets per trail.
+
+    Returns:
+        Configuration dictionary.
+    """
+    config = {}
+    for trail_id, trail_circles in circles.items():
+        config[trail_id] = {
+            "items": [
+                {
+                    "order": circle.order,
+                    "center_x": circle.center_x,
+                    "center_y": circle.center_y,
+                    "label": circle.label,
+                }
+                for circle in trail_circles.values()
+            ]
+        }
+    return config
