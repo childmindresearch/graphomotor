@@ -145,6 +145,7 @@ def test_successful_load_with_valid_data(json_file_path: str) -> None:
         json.dump(json_data, f)
 
     result = config.load_scaled_circles(json_file_path)
+    circle = result["trail_1"]["1"]
 
     assert isinstance(result, dict)
     assert len(result) == 2
@@ -154,7 +155,6 @@ def test_successful_load_with_valid_data(json_file_path: str) -> None:
     assert len(result["trail_1"]) == 3
     assert len(result["trail_2"]) == 1
 
-    circle = result["trail_1"]["1"]
     assert circle.order == 1
     assert circle.center_x == 100
     assert circle.center_y == 200
