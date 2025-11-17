@@ -5,7 +5,6 @@ import logging
 import shutil
 import tempfile
 import typing
-from unittest import result
 
 import numpy as np
 import pytest
