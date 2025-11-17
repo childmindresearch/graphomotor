@@ -134,10 +134,11 @@ def load_scaled_circles(filepath: str) -> Dict[str, Dict[str, models.CircleTarge
         )
 
     circles = {}
-    for trail_screen, trail_points in trails_data.items():
+    required_fields = ["x", "y", "label", "radius"]
+    for trail_task_number, trail_points in trails_data.items():
         if not isinstance(trail_points, list):
             raise TypeError(
-                f"Expected trail_points for '{trail_screen}' to be a list, "
+                f"Expected trail_points for '{trail_task_number}' to be a list, "
                 f"got {type(trail_points).__name__}"
             )
 
@@ -145,17 +146,16 @@ def load_scaled_circles(filepath: str) -> Dict[str, Dict[str, models.CircleTarge
         for idx, point in enumerate(trail_points):
             if not isinstance(point, dict):
                 raise TypeError(
-                    f"Expected point at index {idx} in '{trail_screen}' to be a "
+                    f"Expected point at index {idx} in '{trail_task_number}' to be a "
                     f"dictionary, got {type(point).__name__}"
                 )
 
             # Validate required fields
-            required_fields = ["x", "y", "label", "radius"]
             missing_fields = [field for field in required_fields if field not in point]
             if missing_fields:
                 raise KeyError(
                     f"Missing required field(s) {missing_fields} at index {idx} "
-                    f"of trail '{trail_screen}'"
+                    f"of trail '{trail_task_number}'"
                 )
 
             order = idx + 1
@@ -168,5 +168,5 @@ def load_scaled_circles(filepath: str) -> Dict[str, Dict[str, models.CircleTarge
             )
             trail_circles[circle.label] = circle
 
-        circles[trail_screen] = trail_circles
+        circles[trail_task_number] = trail_circles
     return circles
