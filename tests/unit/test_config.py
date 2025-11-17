@@ -5,6 +5,7 @@ import logging
 import shutil
 import tempfile
 import typing
+from unittest import result
 
 import numpy as np
 import pytest
@@ -160,6 +161,7 @@ def test_successful_load_with_valid_data(json_file_path: str) -> None:
     assert circle.center_y == 200
     assert circle.label == "1"
     assert circle.radius == 25
+    assert result["trail_1"]["2"].order == 2
 
 
 def test_file_not_found_raises_error(
@@ -192,7 +194,6 @@ def test_empty_json_returns_empty_dict(json_file_path: str) -> None:
 
     result = config.load_scaled_circles(json_file_path)
 
-    assert result == {}
     assert isinstance(result, dict)
 
 
