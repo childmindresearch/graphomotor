@@ -1,11 +1,16 @@
 """Configuration module for graphomotor."""
 
 import dataclasses
+import json
 import logging
+import os
 import typing
 from importlib import metadata
+from typing import Dict
 
 import numpy as np
+
+from graphomotor.core import models
 
 
 def get_version() -> str:
@@ -93,3 +98,76 @@ class SpiralConfig:
                 )
 
         return cls(**filtered_params)
+
+
+def load_scaled_circles(filepath: str) -> Dict[str, Dict[str, models.CircleTarget]]:
+    """Load circle configurations from trails_points_scaled.json.
+
+    This function reads a JSON file containing circle target definitions for various
+    trail types and constructs CircleTarget instances for each defined circle.
+    This will be configured only once per run.
+
+    Args:
+        filepath: Path to the JSON file containing circle configurations.
+
+    Returns:
+        A dictionary mapping each trail type to dictionaries of CircleTarget instances.
+
+    Raises:
+        FileNotFoundError: If the specified filepath does not exist.
+        json.JSONDecodeError: If the file contains invalid JSON.
+        KeyError: If required fields (x, y, label, radius) are missing from circle data.
+        TypeError: If trails_data is not a dictionary or trail_points is not a list.
+    """
+    if not os.path.exists(filepath):
+        raise FileNotFoundError(
+            f"The path '{filepath}' does not exist. "
+            "Confirm that all necessary files are in place."
+        )
+
+    with open(filepath, "r") as f:
+        trails_data = json.load(f)
+
+    if not isinstance(trails_data, dict):
+        raise TypeError(
+            f"Expected trails_data to be a dictionary, got {type(trails_data).__name__}"
+        )
+
+    circles = {}
+    required_fields = ["x", "y", "label", "radius"]
+    for trail_task_number, trail_points in trails_data.items():
+        if not isinstance(trail_points, list):
+            raise TypeError(
+                f"Expected trail_points for '{trail_task_number}' to be a list, "
+                f"got {type(trail_points).__name__}"
+            )
+
+        trail_circles = {}
+        for idx, point_dict in enumerate(trail_points):
+            if not isinstance(point_dict, dict):
+                raise TypeError(
+                    f"Expected point at index {idx} in '{trail_task_number}' to be a "
+                    f"dictionary, got {type(point_dict).__name__}"
+                )
+
+            missing_fields = [
+                field for field in required_fields if field not in point_dict
+            ]
+            if missing_fields:
+                raise KeyError(
+                    f"Missing required field(s) {missing_fields} at index {idx} "
+                    f"of trail '{trail_task_number}'"
+                )
+
+            order = idx + 1
+            circle = models.CircleTarget(
+                order=order,
+                center_x=point_dict["x"],
+                center_y=point_dict["y"],
+                label=str(point_dict["label"]),
+                radius=point_dict["radius"],
+            )
+            trail_circles[circle.label] = circle
+
+        circles[trail_task_number] = trail_circles
+    return circles
