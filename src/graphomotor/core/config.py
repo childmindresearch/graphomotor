@@ -150,7 +150,6 @@ def load_scaled_circles(filepath: str) -> Dict[str, Dict[str, models.CircleTarge
                     f"dictionary, got {type(point_dict).__name__}"
                 )
 
-            # Validate required fields
             missing_fields = [
                 field for field in required_fields if field not in point_dict
             ]
