@@ -145,6 +145,7 @@ def test_successful_load_with_valid_data(json_file_path: str) -> None:
         json.dump(json_data, f)
 
     result = config.load_scaled_circles(json_file_path)
+    circle = result["trail_1"]["1"]
 
     assert isinstance(result, dict)
     assert len(result) == 2
@@ -160,6 +161,7 @@ def test_successful_load_with_valid_data(json_file_path: str) -> None:
     assert circle.center_y == 200
     assert circle.label == "1"
     assert circle.radius == 25
+    assert result["trail_1"]["2"].order == 2
 
 
 def test_file_not_found_raises_error(
