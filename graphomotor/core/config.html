@@ -78,6 +78,9 @@
             <li>
                     <a class="function" href="#load_scaled_circles">load_scaled_circles</a>
             </li>
+            <li>
+                    <a class="function" href="#create_config_from_circles">create_config_from_circles</a>
+            </li>
     </ul>
 
 
@@ -274,6 +277,35 @@
 </span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a>
 </span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a>        <span class="n">circles</span><span class="p">[</span><span class="n">trail_task_number</span><span class="p">]</span> <span class="o">=</span> <span class="n">trail_circles</span>
 </span><span id="L-173"><a href="#L-173"><span class="linenos">173</span></a>    <span class="k">return</span> <span class="n">circles</span>
+</span><span id="L-174"><a href="#L-174"><span class="linenos">174</span></a>
+</span><span id="L-175"><a href="#L-175"><span class="linenos">175</span></a>
+</span><span id="L-176"><a href="#L-176"><span class="linenos">176</span></a><span class="k">def</span><span class="w"> </span><span class="nf">create_config_from_circles</span><span class="p">(</span>
+</span><span id="L-177"><a href="#L-177"><span class="linenos">177</span></a>    <span class="n">circles</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">models</span><span class="o">.</span><span class="n">CircleTarget</span><span class="p">]],</span>
+</span><span id="L-178"><a href="#L-178"><span class="linenos">178</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+</span><span id="L-179"><a href="#L-179"><span class="linenos">179</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a config dict from circles for compatibility.</span>
+</span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a>
+</span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a><span class="sd">    Args:</span>
+</span><span id="L-182"><a href="#L-182"><span class="linenos">182</span></a><span class="sd">        circles: Dictionary of circle targets per trail. Each circle target contains</span>
+</span><span id="L-183"><a href="#L-183"><span class="linenos">183</span></a><span class="sd">            order, center_x, center_y, label, and radius following the format from</span>
+</span><span id="L-184"><a href="#L-184"><span class="linenos">184</span></a><span class="sd">            load_scaled_circles.</span>
+</span><span id="L-185"><a href="#L-185"><span class="linenos">185</span></a>
+</span><span id="L-186"><a href="#L-186"><span class="linenos">186</span></a><span class="sd">    Returns:</span>
+</span><span id="L-187"><a href="#L-187"><span class="linenos">187</span></a><span class="sd">        Configuration dictionary.</span>
+</span><span id="L-188"><a href="#L-188"><span class="linenos">188</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-189"><a href="#L-189"><span class="linenos">189</span></a>    <span class="n">config</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span id="L-190"><a href="#L-190"><span class="linenos">190</span></a>    <span class="k">for</span> <span class="n">trail_id</span><span class="p">,</span> <span class="n">trail_circles</span> <span class="ow">in</span> <span class="n">circles</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+</span><span id="L-191"><a href="#L-191"><span class="linenos">191</span></a>        <span class="n">config</span><span class="p">[</span><span class="n">trail_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="L-192"><a href="#L-192"><span class="linenos">192</span></a>            <span class="s2">&quot;items&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span id="L-193"><a href="#L-193"><span class="linenos">193</span></a>                <span class="p">{</span>
+</span><span id="L-194"><a href="#L-194"><span class="linenos">194</span></a>                    <span class="s2">&quot;order&quot;</span><span class="p">:</span> <span class="n">circle</span><span class="o">.</span><span class="n">order</span><span class="p">,</span>
+</span><span id="L-195"><a href="#L-195"><span class="linenos">195</span></a>                    <span class="s2">&quot;center_x&quot;</span><span class="p">:</span> <span class="n">circle</span><span class="o">.</span><span class="n">center_x</span><span class="p">,</span>
+</span><span id="L-196"><a href="#L-196"><span class="linenos">196</span></a>                    <span class="s2">&quot;center_y&quot;</span><span class="p">:</span> <span class="n">circle</span><span class="o">.</span><span class="n">center_y</span><span class="p">,</span>
+</span><span id="L-197"><a href="#L-197"><span class="linenos">197</span></a>                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="n">circle</span><span class="o">.</span><span class="n">label</span><span class="p">,</span>
+</span><span id="L-198"><a href="#L-198"><span class="linenos">198</span></a>                <span class="p">}</span>
+</span><span id="L-199"><a href="#L-199"><span class="linenos">199</span></a>                <span class="k">for</span> <span class="n">circle</span> <span class="ow">in</span> <span class="n">trail_circles</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+</span><span id="L-200"><a href="#L-200"><span class="linenos">200</span></a>            <span class="p">]</span>
+</span><span id="L-201"><a href="#L-201"><span class="linenos">201</span></a>        <span class="p">}</span>
+</span><span id="L-202"><a href="#L-202"><span class="linenos">202</span></a>    <span class="k">return</span> <span class="n">config</span>
 </span></pre></div>
 
 
@@ -717,6 +749,66 @@ This will be configured only once per run.</p>
 <li><strong>KeyError:</strong>  If required fields (x, y, label, radius) are missing from circle data.</li>
 <li><strong>TypeError:</strong>  If trails_data is not a dictionary or trail_points is not a list.</li>
 </ul>
+</div>
+
+
+                </section>
+                <section id="create_config_from_circles">
+                            <input id="create_config_from_circles-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">create_config_from_circles</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">circles</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n"><a href="models.html#CircleTarget">graphomotor.core.models.CircleTarget</a></span><span class="p">]]</span></span><span class="return-annotation">) -> <span class="n">Dict</span>:</span></span>
+
+                <label class="view-source-button" for="create_config_from_circles-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#create_config_from_circles"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="create_config_from_circles-177"><a href="#create_config_from_circles-177"><span class="linenos">177</span></a><span class="k">def</span><span class="w"> </span><span class="nf">create_config_from_circles</span><span class="p">(</span>
+</span><span id="create_config_from_circles-178"><a href="#create_config_from_circles-178"><span class="linenos">178</span></a>    <span class="n">circles</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">models</span><span class="o">.</span><span class="n">CircleTarget</span><span class="p">]],</span>
+</span><span id="create_config_from_circles-179"><a href="#create_config_from_circles-179"><span class="linenos">179</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+</span><span id="create_config_from_circles-180"><a href="#create_config_from_circles-180"><span class="linenos">180</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a config dict from circles for compatibility.</span>
+</span><span id="create_config_from_circles-181"><a href="#create_config_from_circles-181"><span class="linenos">181</span></a>
+</span><span id="create_config_from_circles-182"><a href="#create_config_from_circles-182"><span class="linenos">182</span></a><span class="sd">    Args:</span>
+</span><span id="create_config_from_circles-183"><a href="#create_config_from_circles-183"><span class="linenos">183</span></a><span class="sd">        circles: Dictionary of circle targets per trail. Each circle target contains</span>
+</span><span id="create_config_from_circles-184"><a href="#create_config_from_circles-184"><span class="linenos">184</span></a><span class="sd">            order, center_x, center_y, label, and radius following the format from</span>
+</span><span id="create_config_from_circles-185"><a href="#create_config_from_circles-185"><span class="linenos">185</span></a><span class="sd">            load_scaled_circles.</span>
+</span><span id="create_config_from_circles-186"><a href="#create_config_from_circles-186"><span class="linenos">186</span></a>
+</span><span id="create_config_from_circles-187"><a href="#create_config_from_circles-187"><span class="linenos">187</span></a><span class="sd">    Returns:</span>
+</span><span id="create_config_from_circles-188"><a href="#create_config_from_circles-188"><span class="linenos">188</span></a><span class="sd">        Configuration dictionary.</span>
+</span><span id="create_config_from_circles-189"><a href="#create_config_from_circles-189"><span class="linenos">189</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="create_config_from_circles-190"><a href="#create_config_from_circles-190"><span class="linenos">190</span></a>    <span class="n">config</span> <span class="o">=</span> <span class="p">{}</span>
+</span><span id="create_config_from_circles-191"><a href="#create_config_from_circles-191"><span class="linenos">191</span></a>    <span class="k">for</span> <span class="n">trail_id</span><span class="p">,</span> <span class="n">trail_circles</span> <span class="ow">in</span> <span class="n">circles</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+</span><span id="create_config_from_circles-192"><a href="#create_config_from_circles-192"><span class="linenos">192</span></a>        <span class="n">config</span><span class="p">[</span><span class="n">trail_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="create_config_from_circles-193"><a href="#create_config_from_circles-193"><span class="linenos">193</span></a>            <span class="s2">&quot;items&quot;</span><span class="p">:</span> <span class="p">[</span>
+</span><span id="create_config_from_circles-194"><a href="#create_config_from_circles-194"><span class="linenos">194</span></a>                <span class="p">{</span>
+</span><span id="create_config_from_circles-195"><a href="#create_config_from_circles-195"><span class="linenos">195</span></a>                    <span class="s2">&quot;order&quot;</span><span class="p">:</span> <span class="n">circle</span><span class="o">.</span><span class="n">order</span><span class="p">,</span>
+</span><span id="create_config_from_circles-196"><a href="#create_config_from_circles-196"><span class="linenos">196</span></a>                    <span class="s2">&quot;center_x&quot;</span><span class="p">:</span> <span class="n">circle</span><span class="o">.</span><span class="n">center_x</span><span class="p">,</span>
+</span><span id="create_config_from_circles-197"><a href="#create_config_from_circles-197"><span class="linenos">197</span></a>                    <span class="s2">&quot;center_y&quot;</span><span class="p">:</span> <span class="n">circle</span><span class="o">.</span><span class="n">center_y</span><span class="p">,</span>
+</span><span id="create_config_from_circles-198"><a href="#create_config_from_circles-198"><span class="linenos">198</span></a>                    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="n">circle</span><span class="o">.</span><span class="n">label</span><span class="p">,</span>
+</span><span id="create_config_from_circles-199"><a href="#create_config_from_circles-199"><span class="linenos">199</span></a>                <span class="p">}</span>
+</span><span id="create_config_from_circles-200"><a href="#create_config_from_circles-200"><span class="linenos">200</span></a>                <span class="k">for</span> <span class="n">circle</span> <span class="ow">in</span> <span class="n">trail_circles</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+</span><span id="create_config_from_circles-201"><a href="#create_config_from_circles-201"><span class="linenos">201</span></a>            <span class="p">]</span>
+</span><span id="create_config_from_circles-202"><a href="#create_config_from_circles-202"><span class="linenos">202</span></a>        <span class="p">}</span>
+</span><span id="create_config_from_circles-203"><a href="#create_config_from_circles-203"><span class="linenos">203</span></a>    <span class="k">return</span> <span class="n">config</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Create a config dict from circles for compatibility.</p>
+
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>circles:</strong>  Dictionary of circle targets per trail. Each circle target contains
+order, center_x, center_y, label, and radius following the format from
+load_scaled_circles.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>Configuration dictionary.</p>
+</blockquote>
 </div>
 
 
