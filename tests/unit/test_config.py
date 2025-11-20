@@ -4,12 +4,12 @@ import json
 import logging
 import shutil
 import tempfile
-import typing
+from typing import Any, Dict, Generator
 
 import numpy as np
 import pytest
 
-from graphomotor.core import config
+from graphomotor.core import config, models
 
 
 @pytest.mark.parametrize(
@@ -116,7 +116,7 @@ def test_get_logger_second_call() -> None:
 
 
 @pytest.fixture
-def temp_dir() -> typing.Generator[str, None, None]:
+def temp_dir() -> Generator[str, None, None]:
     """Create a temporary directory for test files."""
     temp_path = tempfile.mkdtemp()
     yield temp_path
@@ -155,6 +155,7 @@ def test_successful_load_with_valid_data(json_file_path: str) -> None:
     assert len(result["trail_1"]) == 3
     assert len(result["trail_2"]) == 1
 
+    circle = result["trail_1"]["1"]
     assert circle.order == 1
     assert circle.center_x == 100
     assert circle.center_y == 200
@@ -193,6 +194,7 @@ def test_empty_json_returns_empty_dict(json_file_path: str) -> None:
 
     result = config.load_scaled_circles(json_file_path)
 
+    assert result == {}
     assert isinstance(result, dict)
 
 
@@ -259,3 +261,63 @@ def test_multiple_missing_fields_raises_key_error(json_file_path: str) -> None:
         KeyError, match=r"Missing required field\(s\) \['y', 'label', 'radius'\]"
     ):
         config.load_scaled_circles(json_file_path)
+
+
+@pytest.mark.parametrize(
+    "circles,expected",
+    [
+        (
+            {
+                "1": {
+                    "1": models.CircleTarget(1, "1", 0.3, 0.4, radius=10),
+                    "2": models.CircleTarget(2, "2", 0.5, 0.6, radius=12),
+                }
+            },
+            {
+                "1": {
+                    "items": [
+                        {"order": 1, "center_x": 0.3, "center_y": 0.4, "label": "1"},
+                        {"order": 2, "center_x": 0.5, "center_y": 0.6, "label": "2"},
+                    ]
+                }
+            },
+        ),
+        (
+            {
+                "1": {"1": models.CircleTarget(1, "1", 0.1, 0.2, radius=8)},
+                "2": {"1": models.CircleTarget(1, "1", 0.9, 0.8, radius=9)},
+            },
+            {
+                "1": {
+                    "items": [
+                        {"order": 1, "center_x": 0.1, "center_y": 0.2, "label": "1"}
+                    ]
+                },
+                "2": {
+                    "items": [
+                        {"order": 1, "center_x": 0.9, "center_y": 0.8, "label": "1"}
+                    ]
+                },
+            },
+        ),
+        ({"3": {}}, {"3": {"items": []}}),
+        ({}, {}),
+        (
+            {"4": {"1": models.CircleTarget(1, "1", 0.7, 0.8, radius=20)}},
+            {
+                "4": {
+                    "items": [
+                        {"order": 1, "center_x": 0.7, "center_y": 0.8, "label": "1"}
+                    ]
+                }
+            },
+        ),
+    ],
+)
+def test_create_config_from_circles(
+    circles: Dict[str, Dict[str, models.CircleTarget]],
+    expected: Dict[str, Dict[str, Any]],
+) -> None:
+    """Test create_config_from_circles for multiple numbered trails and circles."""
+    result = config.create_config_from_circles(circles)
+    assert result == expected
