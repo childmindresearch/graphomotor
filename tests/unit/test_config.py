@@ -4,7 +4,7 @@ import json
 import logging
 import shutil
 import tempfile
-import typing
+from typing import Any, Dict, Generator
 
 import numpy as np
 import pytest
@@ -116,7 +116,7 @@ def test_get_logger_second_call() -> None:
 
 
 @pytest.fixture
-def temp_dir() -> typing.Generator[str, None, None]:
+def temp_dir() -> Generator[str, None, None]:
     """Create a temporary directory for test files."""
     temp_path = tempfile.mkdtemp()
     yield temp_path
@@ -315,8 +315,8 @@ def test_multiple_missing_fields_raises_key_error(json_file_path: str) -> None:
     ],
 )
 def test_create_config_from_circles(
-    circles: typing.Dict[str, typing.Dict[str, models.CircleTarget]],
-    expected: typing.Dict[str, typing.Dict[str, typing.Any]],
+    circles: Dict[str, Dict[str, models.CircleTarget]],
+    expected: Dict[str, Dict[str, Any]],
 ) -> None:
     """Test create_config_from_circles for multiple numbered trails and circles."""
     result = config.create_config_from_circles(circles)

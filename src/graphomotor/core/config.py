@@ -179,7 +179,9 @@ def create_config_from_circles(
     """Create a config dict from circles for compatibility.
 
     Args:
-        circles: Dictionary of circle targets per trail.
+        circles: Dictionary of circle targets per trail. Each circle target contains
+            order, center_x, center_y, label, and radius following the format from
+            load_scaled_circles.
 
     Returns:
         Configuration dictionary.
