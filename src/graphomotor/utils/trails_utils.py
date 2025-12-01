@@ -8,7 +8,7 @@ from graphomotor.core import models
 
 
 def segment_lines(
-    df: pd.DataFrame,
+    trail_data: pd.DataFrame,
     trail_id: str,
     circles: Dict[str, Dict[str, models.CircleTarget]],
 ) -> List[models.LineSegment]:
@@ -19,7 +19,7 @@ def segment_lines(
     If only one unique path exists, it falls back to grouping by line numbers.
 
     Args:
-        df: Participant data DataFrame
+        trail_data: Participant data DataFrame
         trail_id: 'trail2' or 'trail4'
         circles: Dictionary mapping trail IDs to lists of CircleTarget objects
 
@@ -30,7 +30,7 @@ def segment_lines(
         raise KeyError("Trail ID not found in circles dictionary.")
 
     segments = []
-    unique_paths = df["actual_path"].unique()
+    unique_paths = trail_data["actual_path"].unique()
 
     if len(unique_paths) > 1:
         segment_counter = 0
@@ -38,7 +38,7 @@ def segment_lines(
             if pd.isna(path) or "~" not in path:
                 raise ValueError("Invalid actual_path value encountered.")
 
-            path_data = df[df["actual_path"] == path].copy()
+            path_data = trail_data[trail_data["actual_path"] == path].copy()
             start_label, end_label = path.split(" ~ ")
             segments.append(
                 models.LineSegment(
@@ -51,8 +51,8 @@ def segment_lines(
             )
             segment_counter += 1
     else:
-        for line_num in df["line_number"].unique():
-            line_data = df[df["line_number"] == line_num].copy()
+        for line_num in trail_data["line_number"].unique():
+            line_data = trail_data[trail_data["line_number"] == line_num].copy()
             path = line_data["actual_path"].iloc[0]
             if pd.isna(path) or "~" not in path:
                 raise ValueError("Invalid actual_path value encountered.")
