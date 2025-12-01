@@ -25,6 +25,10 @@ def segment_lines(
 
     Returns:
         List of LineSegment objects
+
+    Raises:
+        KeyError: If trail_id is not found in circles dictionary.
+        ValueError: If actual_path values are invalid.
     """
     if trail_id not in circles:
         raise KeyError("Trail ID not found in circles dictionary.")
