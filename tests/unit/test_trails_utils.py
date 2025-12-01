@@ -36,16 +36,14 @@ def test_multiple_unique_paths(
     circles: Dict[str, Dict[str, models.CircleTarget]],
 ) -> None:
     """Multiple unique actual_path values produce correct segments."""
-    df: pd.DataFrame = pd.DataFrame({
+    df = pd.DataFrame({
         "actual_path": ["1 ~ 2", "2 ~ 1"],
         "line_number": [0, 1],
         "is_error": [False, True],
         "x": [0, 1],
         "y": [0, 1],
     })
-    segments: List[models.LineSegment] = trails_utils.segment_lines(
-        df, "trail2", circles
-    )
+    segments = trails_utils.segment_lines(df, "trail2", circles)
     assert len(segments) == 2
     assert segments[0].start_label == "1"
     assert segments[0].end_label == "2"
@@ -61,16 +59,14 @@ def test_single_path_fallback_line_number(
     circles: Dict[str, Dict[str, models.CircleTarget]],
 ) -> None:
     """Single unique path falls back to line_number segmentation."""
-    df: pd.DataFrame = pd.DataFrame({
+    df = pd.DataFrame({
         "actual_path": ["1 ~ 2", "1 ~ 2"],
         "line_number": [0, 1],
         "is_error": [False, False],
         "x": [0, 1],
         "y": [0, 1],
     })
-    segments: List[models.LineSegment] = trails_utils.segment_lines(
-        df, "trail2", circles
-    )
+    segments = trails_utils.segment_lines(df, "trail2", circles)
     assert len(segments) == 2
     for idx, seg in enumerate(segments):
         assert seg.start_label == "1"
@@ -83,12 +79,8 @@ def test_empty_dataframe(
     circles: Dict[str, Dict[str, models.CircleTarget]],
 ) -> None:
     """Empty DataFrame produces no segments."""
-    df: pd.DataFrame = pd.DataFrame(
-        columns=["actual_path", "line_number", "is_error", "x", "y"]
-    )
-    segments: List[models.LineSegment] = trails_utils.segment_lines(
-        df, "trail2", circles
-    )
+    df = pd.DataFrame(columns=["actual_path", "line_number", "is_error", "x", "y"])
+    segments = trails_utils.segment_lines(df, "trail2", circles)
     assert segments == []
 
 
@@ -96,7 +88,7 @@ def test_invalid_trail_id(
     circles: Dict[str, Dict[str, models.CircleTarget]],
 ) -> None:
     """Passing an invalid trail_id raises KeyError."""
-    df: pd.DataFrame = pd.DataFrame({
+    df = pd.DataFrame({
         "x": [0],
         "y": [0],
         "actual_path": ["1 ~ 2"],
@@ -138,6 +130,6 @@ def test_invalid_paths_raise(
     circles: Dict[str, Dict[str, models.CircleTarget]],
 ) -> None:
     """Invalid actual_path values trigger ValueError."""
-    df: pd.DataFrame = pd.DataFrame(df_data)
+    df = pd.DataFrame(df_data)
     with pytest.raises(ValueError, match=match_msg):
         trails_utils.segment_lines(df, "trail2", circles)
