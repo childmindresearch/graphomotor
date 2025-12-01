@@ -1,6 +1,6 @@
 """Utility functions for trails management."""
 
-import typing
+from typing import Dict, List
 
 import pandas as pd
 
@@ -10,8 +10,8 @@ from graphomotor.core import models
 def segment_lines(
     df: pd.DataFrame,
     trail_id: str,
-    circles: typing.Dict[str, typing.Dict[str, models.CircleTarget]],
-) -> typing.List[models.LineSegment]:
+    circles: Dict[str, Dict[str, models.CircleTarget]],
+) -> List[models.LineSegment]:
     """Segment data into individual lines drawn between circles.
 
     This function first tries to segment lines based on unique actual paths.
