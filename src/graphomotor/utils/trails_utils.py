@@ -42,7 +42,7 @@ def segment_lines(
             if pd.isna(path) or "~" not in path:
                 raise ValueError("Invalid actual_path value encountered.")
 
-            path_data = trail_data[trail_data["actual_path"] == path]
+            path_data = trail_data[trail_data["actual_path"] == path].copy()
             start_label, end_label = path.split(" ~ ")
             segments.append(
                 models.LineSegment(
@@ -56,7 +56,7 @@ def segment_lines(
             segment_counter += 1
     else:
         for line_num in trail_data["line_number"].unique():
-            line_data = trail_data[trail_data["line_number"] == line_num]
+            line_data = trail_data[trail_data["line_number"] == line_num].copy()
             path = line_data["actual_path"].iloc[0]
             if pd.isna(path) or "~" not in path:
                 raise ValueError("Invalid actual_path value encountered.")
