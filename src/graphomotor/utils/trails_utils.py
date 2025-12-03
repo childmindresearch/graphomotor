@@ -19,7 +19,8 @@ def segment_lines(
     If only one unique path exists, it falls back to grouping by line numbers.
 
     Args:
-        trail_data: Participant data DataFrame
+        trail_data: Participant data DataFrame. actual_path assumes the Curious
+            output format of "CircleX ~ CircleY".
         trail_id: 'trail2' or 'trail4'
         circles: Dictionary mapping trail IDs to lists of CircleTarget objects
 
@@ -29,7 +30,7 @@ def segment_lines(
     Raises:
         KeyError: If trail_id is not found in circles dictionary.
         ValueError: If actual_path values are invalid.
-    """
+    """  # noqa: E501
     if trail_id not in circles:
         raise KeyError("Trail ID not found in circles dictionary.")
 
