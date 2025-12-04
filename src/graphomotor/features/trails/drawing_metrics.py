@@ -12,8 +12,4 @@ def detect_pen_lifts(drawing: models.Drawing) -> int:
     Returns:
         Integer count of pen lifts detected.
     """
-    return (
-        (drawing.data["line_number"] != drawing.data["line_number"].shift())
-        .iloc[1:]
-        .sum()
-    )
+    return len(drawing.data["line_number"].unique()) - 1
