@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from graphomotor.core import models
-from graphomotor.features import distance
+from graphomotor.features.spiral import distance
 
 
 def test_segment_data_valid() -> None:
