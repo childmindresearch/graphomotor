@@ -31,6 +31,9 @@
             <h2>API Documentation</h2>
                 <ul class="memberlist">
             <li>
+                    <a class="function" href="#valid_ink_trajectory">valid_ink_trajectory</a>
+            </li>
+            <li>
                     <a class="function" href="#segment_lines">segment_lines</a>
             </li>
     </ul>
@@ -56,86 +59,214 @@
 
                         <label class="view-source-button" for="mod-trails_utils-view-source"><span>View Source</span></label>
 
-                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="sd">&quot;&quot;&quot;Utility functions for trails management.&quot;&quot;&quot;</span>
-</span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a>
-</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a>
-</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a>
-</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">graphomotor.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">models</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>
-</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a>
-</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a><span class="k">def</span><span class="w"> </span><span class="nf">segment_lines</span><span class="p">(</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>    <span class="n">trail_data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
-</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>    <span class="n">trail_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>    <span class="n">circles</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">models</span><span class="o">.</span><span class="n">CircleTarget</span><span class="p">]],</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">models</span><span class="o">.</span><span class="n">LineSegment</span><span class="p">]:</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Segment data into individual lines drawn between circles.</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>
-</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a><span class="sd">    This function first tries to segment lines based on unique actual paths.</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a><span class="sd">    If multiple unique paths are found, it creates segments for each path.</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a><span class="sd">    If only one unique path exists, it falls back to grouping by line numbers.</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a>
-</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a><span class="sd">    Args:</span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a><span class="sd">        trail_data: Participant data DataFrame. actual_path assumes the Curious</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a><span class="sd">            output format of &quot;CircleX ~ CircleY&quot;.</span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a><span class="sd">        trail_id: &#39;trail2&#39; or &#39;trail4&#39;</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a><span class="sd">        circles: Dictionary mapping trail IDs to lists of CircleTarget objects</span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>
-</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a><span class="sd">    Returns:</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a><span class="sd">        List of LineSegment objects</span>
-</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a>
-</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a><span class="sd">    Raises:</span>
-</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a><span class="sd">        KeyError: If trail_id is not found in circles dictionary.</span>
-</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a><span class="sd">        ValueError: If actual_path values are invalid.</span>
-</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a><span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
-</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>    <span class="k">if</span> <span class="n">trail_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">circles</span><span class="p">:</span>
-</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a>        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Trail ID not found in circles dictionary.&quot;</span><span class="p">)</span>
-</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a>
-</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>    <span class="n">segments</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a>    <span class="n">unique_paths</span> <span class="o">=</span> <span class="n">trail_data</span><span class="p">[</span><span class="s2">&quot;actual_path&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
-</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a>
-</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_paths</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>        <span class="n">segment_counter</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a>        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">unique_paths</span><span class="p">:</span>
-</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a>            <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;~&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">path</span><span class="p">:</span>
-</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a>                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid actual_path value encountered.&quot;</span><span class="p">)</span>
-</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a>
-</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a>            <span class="n">path_data</span> <span class="o">=</span> <span class="n">trail_data</span><span class="p">[</span><span class="n">trail_data</span><span class="p">[</span><span class="s2">&quot;actual_path&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">path</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a>            <span class="n">start_label</span><span class="p">,</span> <span class="n">end_label</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; ~ &quot;</span><span class="p">)</span>
-</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a>            <span class="n">segments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a>                <span class="n">models</span><span class="o">.</span><span class="n">LineSegment</span><span class="p">(</span>
-</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a>                    <span class="n">start_label</span><span class="o">=</span><span class="n">start_label</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
-</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a>                    <span class="n">end_label</span><span class="o">=</span><span class="n">end_label</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
-</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a>                    <span class="n">points</span><span class="o">=</span><span class="n">path_data</span><span class="p">,</span>
-</span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a>                    <span class="n">is_error</span><span class="o">=</span><span class="n">path_data</span><span class="p">[</span><span class="s2">&quot;is_error&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-</span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a>                    <span class="n">line_number</span><span class="o">=</span><span class="n">segment_counter</span><span class="p">,</span>
-</span><span id="L-55"><a href="#L-55"><span class="linenos">55</span></a>                <span class="p">)</span>
-</span><span id="L-56"><a href="#L-56"><span class="linenos">56</span></a>            <span class="p">)</span>
-</span><span id="L-57"><a href="#L-57"><span class="linenos">57</span></a>            <span class="n">segment_counter</span> <span class="o">+=</span> <span class="mi">1</span>
-</span><span id="L-58"><a href="#L-58"><span class="linenos">58</span></a>    <span class="k">else</span><span class="p">:</span>
-</span><span id="L-59"><a href="#L-59"><span class="linenos">59</span></a>        <span class="k">for</span> <span class="n">line_num</span> <span class="ow">in</span> <span class="n">trail_data</span><span class="p">[</span><span class="s2">&quot;line_number&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
-</span><span id="L-60"><a href="#L-60"><span class="linenos">60</span></a>            <span class="n">line_data</span> <span class="o">=</span> <span class="n">trail_data</span><span class="p">[</span><span class="n">trail_data</span><span class="p">[</span><span class="s2">&quot;line_number&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">line_num</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-</span><span id="L-61"><a href="#L-61"><span class="linenos">61</span></a>            <span class="n">path</span> <span class="o">=</span> <span class="n">line_data</span><span class="p">[</span><span class="s2">&quot;actual_path&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-</span><span id="L-62"><a href="#L-62"><span class="linenos">62</span></a>            <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;~&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">path</span><span class="p">:</span>
-</span><span id="L-63"><a href="#L-63"><span class="linenos">63</span></a>                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid actual_path value encountered.&quot;</span><span class="p">)</span>
-</span><span id="L-64"><a href="#L-64"><span class="linenos">64</span></a>
-</span><span id="L-65"><a href="#L-65"><span class="linenos">65</span></a>            <span class="n">start_label</span><span class="p">,</span> <span class="n">end_label</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; ~ &quot;</span><span class="p">)</span>
-</span><span id="L-66"><a href="#L-66"><span class="linenos">66</span></a>            <span class="n">segments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-</span><span id="L-67"><a href="#L-67"><span class="linenos">67</span></a>                <span class="n">models</span><span class="o">.</span><span class="n">LineSegment</span><span class="p">(</span>
-</span><span id="L-68"><a href="#L-68"><span class="linenos">68</span></a>                    <span class="n">start_label</span><span class="o">=</span><span class="n">start_label</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
-</span><span id="L-69"><a href="#L-69"><span class="linenos">69</span></a>                    <span class="n">end_label</span><span class="o">=</span><span class="n">end_label</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
-</span><span id="L-70"><a href="#L-70"><span class="linenos">70</span></a>                    <span class="n">points</span><span class="o">=</span><span class="n">line_data</span><span class="p">,</span>
-</span><span id="L-71"><a href="#L-71"><span class="linenos">71</span></a>                    <span class="n">is_error</span><span class="o">=</span><span class="n">line_data</span><span class="p">[</span><span class="s2">&quot;is_error&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-</span><span id="L-72"><a href="#L-72"><span class="linenos">72</span></a>                    <span class="n">line_number</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">line_num</span><span class="p">),</span>
-</span><span id="L-73"><a href="#L-73"><span class="linenos">73</span></a>                <span class="p">)</span>
-</span><span id="L-74"><a href="#L-74"><span class="linenos">74</span></a>            <span class="p">)</span>
-</span><span id="L-75"><a href="#L-75"><span class="linenos">75</span></a>
-</span><span id="L-76"><a href="#L-76"><span class="linenos">76</span></a>    <span class="k">return</span> <span class="n">segments</span>
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="sd">&quot;&quot;&quot;Utility functions for trails management.&quot;&quot;&quot;</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a>
+</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">graphomotor.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">models</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a>
+</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a>
+</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="k">def</span><span class="w"> </span><span class="nf">valid_ink_trajectory</span><span class="p">(</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a>    <span class="n">points</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>    <span class="n">start_circle</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">CircleTarget</span><span class="p">,</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a>    <span class="n">end_circle</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">CircleTarget</span><span class="p">,</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Determine whether an ink trajectory exists from a start circle to an end circle.</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>
+</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="sd">    An &quot;ink trajectory&quot; is defined as the first contiguous sequence of points that:</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="sd">      1. Begins **after** the pen leaves the start circle, and</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="sd">      2. Ends when the pen first enters the end circle.</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a>
+</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a><span class="sd">    The function scans point-by-point in order. The ink start index is the first point</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="sd">    whose (x, y) location is *outside* the start circle. The ink end index is the first</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="sd">    subsequent point whose (x, y) location falls *inside* the end circle. If either of</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a><span class="sd">    these conditions never occurs, the trajectory is considered invalid.</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a>
+</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a><span class="sd">    Args:</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a><span class="sd">        points: DataFrame of points with &#39;x&#39; and &#39;y&#39; columns.</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a><span class="sd">        start_circle: CircleTarget representing the start circle.</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a><span class="sd">        end_circle: CircleTarget representing the end circle.</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a>
+</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a><span class="sd">    Returns:</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a><span class="sd">        Tuple of (ink_start_idx: int, ink_end_idx: int) if valid trajectory exists,</span>
+</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a><span class="sd">        else (None, None).</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a>    <span class="n">ink_start_idx</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a>    <span class="n">ink_end_idx</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a>
+</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a>    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">points</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a>        <span class="k">if</span> <span class="p">(</span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a>            <span class="ow">not</span> <span class="n">start_circle</span><span class="o">.</span><span class="n">contains_point</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">])</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a>            <span class="ow">and</span> <span class="n">ink_start_idx</span> <span class="ow">is</span> <span class="kc">None</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a>        <span class="p">):</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a>            <span class="n">ink_start_idx</span> <span class="o">=</span> <span class="n">idx</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a>
+</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a>        <span class="k">if</span> <span class="n">ink_start_idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">end_circle</span><span class="o">.</span><span class="n">contains_point</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]):</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a>            <span class="n">ink_end_idx</span> <span class="o">=</span> <span class="n">idx</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a>            <span class="k">break</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a>
+</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a>    <span class="k">return</span> <span class="n">ink_start_idx</span><span class="p">,</span> <span class="n">ink_end_idx</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a>
+</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a>
+</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a><span class="k">def</span><span class="w"> </span><span class="nf">segment_lines</span><span class="p">(</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a>    <span class="n">trail_data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>    <span class="n">trail_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a>    <span class="n">circles</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">models</span><span class="o">.</span><span class="n">CircleTarget</span><span class="p">]],</span>
+</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">models</span><span class="o">.</span><span class="n">LineSegment</span><span class="p">]:</span>
+</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Segment data into individual lines drawn between circles.</span>
+</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a>
+</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a><span class="sd">    This function first tries to segment lines based on unique actual paths.</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a><span class="sd">    If multiple unique paths are found, it creates segments for each path.</span>
+</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a><span class="sd">    If only one unique path exists, it falls back to grouping by line numbers.</span>
+</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>
+</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a><span class="sd">    Args:</span>
+</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a><span class="sd">        trail_data: Participant data DataFrame. actual_path assumes the Curious</span>
+</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a><span class="sd">            output format of &quot;CircleX ~ CircleY&quot;.</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a><span class="sd">        trail_id: &#39;trail2&#39; or &#39;trail4&#39;</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a><span class="sd">        circles: Dictionary mapping trail IDs to lists of CircleTarget objects</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>
+</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a><span class="sd">    Returns:</span>
+</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a><span class="sd">        List of LineSegment objects</span>
+</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>
+</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a><span class="sd">    Raises:</span>
+</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a><span class="sd">        KeyError: If trail_id is not found in circles dictionary.</span>
+</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a><span class="sd">        ValueError: If actual_path values are invalid.</span>
+</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>    <span class="k">if</span> <span class="n">trail_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">circles</span><span class="p">:</span>
+</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Trail ID not found in circles dictionary.&quot;</span><span class="p">)</span>
+</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>
+</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>    <span class="n">segments</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>    <span class="n">unique_paths</span> <span class="o">=</span> <span class="n">trail_data</span><span class="p">[</span><span class="s2">&quot;actual_path&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>
+</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_paths</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>        <span class="n">segment_counter</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">unique_paths</span><span class="p">:</span>
+</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>            <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;~&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">path</span><span class="p">:</span>
+</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid actual_path value encountered.&quot;</span><span class="p">)</span>
+</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>
+</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>            <span class="n">path_data</span> <span class="o">=</span> <span class="n">trail_data</span><span class="p">[</span><span class="n">trail_data</span><span class="p">[</span><span class="s2">&quot;actual_path&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">path</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a>            <span class="n">start_label</span><span class="p">,</span> <span class="n">end_label</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; ~ &quot;</span><span class="p">)</span>
+</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>            <span class="n">segments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>                <span class="n">models</span><span class="o">.</span><span class="n">LineSegment</span><span class="p">(</span>
+</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>                    <span class="n">start_label</span><span class="o">=</span><span class="n">start_label</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>                    <span class="n">end_label</span><span class="o">=</span><span class="n">end_label</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>                    <span class="n">points</span><span class="o">=</span><span class="n">path_data</span><span class="p">,</span>
+</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>                    <span class="n">is_error</span><span class="o">=</span><span class="n">path_data</span><span class="p">[</span><span class="s2">&quot;is_error&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>                    <span class="n">line_number</span><span class="o">=</span><span class="n">segment_counter</span><span class="p">,</span>
+</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>                <span class="p">)</span>
+</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>            <span class="p">)</span>
+</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>            <span class="n">segment_counter</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>        <span class="k">for</span> <span class="n">line_num</span> <span class="ow">in</span> <span class="n">trail_data</span><span class="p">[</span><span class="s2">&quot;line_number&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
+</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>            <span class="n">line_data</span> <span class="o">=</span> <span class="n">trail_data</span><span class="p">[</span><span class="n">trail_data</span><span class="p">[</span><span class="s2">&quot;line_number&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">line_num</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>            <span class="n">path</span> <span class="o">=</span> <span class="n">line_data</span><span class="p">[</span><span class="s2">&quot;actual_path&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>            <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;~&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">path</span><span class="p">:</span>
+</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid actual_path value encountered.&quot;</span><span class="p">)</span>
+</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>
+</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>            <span class="n">start_label</span><span class="p">,</span> <span class="n">end_label</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; ~ &quot;</span><span class="p">)</span>
+</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>            <span class="n">segments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>                <span class="n">models</span><span class="o">.</span><span class="n">LineSegment</span><span class="p">(</span>
+</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>                    <span class="n">start_label</span><span class="o">=</span><span class="n">start_label</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>                    <span class="n">end_label</span><span class="o">=</span><span class="n">end_label</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>                    <span class="n">points</span><span class="o">=</span><span class="n">line_data</span><span class="p">,</span>
+</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>                    <span class="n">is_error</span><span class="o">=</span><span class="n">line_data</span><span class="p">[</span><span class="s2">&quot;is_error&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>                    <span class="n">line_number</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">line_num</span><span class="p">),</span>
+</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>                <span class="p">)</span>
+</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>            <span class="p">)</span>
+</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>
+</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>    <span class="k">return</span> <span class="n">segments</span>
 </span></pre></div>
 
 
             </section>
+                <section id="valid_ink_trajectory">
+                            <input id="valid_ink_trajectory-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">valid_ink_trajectory</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">points</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">DataFrame</span>,</span><span class="param">	<span class="n">start_circle</span><span class="p">:</span> <span class="n"><a href="../core/models.html#CircleTarget">graphomotor.core.models.CircleTarget</a></span>,</span><span class="param">	<span class="n">end_circle</span><span class="p">:</span> <span class="n"><a href="../core/models.html#CircleTarget">graphomotor.core.models.CircleTarget</a></span></span><span class="return-annotation">) -> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span>:</span></span>
+
+                <label class="view-source-button" for="valid_ink_trajectory-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#valid_ink_trajectory"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="valid_ink_trajectory-11"><a href="#valid_ink_trajectory-11"><span class="linenos">11</span></a><span class="k">def</span><span class="w"> </span><span class="nf">valid_ink_trajectory</span><span class="p">(</span>
+</span><span id="valid_ink_trajectory-12"><a href="#valid_ink_trajectory-12"><span class="linenos">12</span></a>    <span class="n">points</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+</span><span id="valid_ink_trajectory-13"><a href="#valid_ink_trajectory-13"><span class="linenos">13</span></a>    <span class="n">start_circle</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">CircleTarget</span><span class="p">,</span>
+</span><span id="valid_ink_trajectory-14"><a href="#valid_ink_trajectory-14"><span class="linenos">14</span></a>    <span class="n">end_circle</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">CircleTarget</span><span class="p">,</span>
+</span><span id="valid_ink_trajectory-15"><a href="#valid_ink_trajectory-15"><span class="linenos">15</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+</span><span id="valid_ink_trajectory-16"><a href="#valid_ink_trajectory-16"><span class="linenos">16</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Determine whether an ink trajectory exists from a start circle to an end circle.</span>
+</span><span id="valid_ink_trajectory-17"><a href="#valid_ink_trajectory-17"><span class="linenos">17</span></a>
+</span><span id="valid_ink_trajectory-18"><a href="#valid_ink_trajectory-18"><span class="linenos">18</span></a><span class="sd">    An &quot;ink trajectory&quot; is defined as the first contiguous sequence of points that:</span>
+</span><span id="valid_ink_trajectory-19"><a href="#valid_ink_trajectory-19"><span class="linenos">19</span></a><span class="sd">      1. Begins **after** the pen leaves the start circle, and</span>
+</span><span id="valid_ink_trajectory-20"><a href="#valid_ink_trajectory-20"><span class="linenos">20</span></a><span class="sd">      2. Ends when the pen first enters the end circle.</span>
+</span><span id="valid_ink_trajectory-21"><a href="#valid_ink_trajectory-21"><span class="linenos">21</span></a>
+</span><span id="valid_ink_trajectory-22"><a href="#valid_ink_trajectory-22"><span class="linenos">22</span></a><span class="sd">    The function scans point-by-point in order. The ink start index is the first point</span>
+</span><span id="valid_ink_trajectory-23"><a href="#valid_ink_trajectory-23"><span class="linenos">23</span></a><span class="sd">    whose (x, y) location is *outside* the start circle. The ink end index is the first</span>
+</span><span id="valid_ink_trajectory-24"><a href="#valid_ink_trajectory-24"><span class="linenos">24</span></a><span class="sd">    subsequent point whose (x, y) location falls *inside* the end circle. If either of</span>
+</span><span id="valid_ink_trajectory-25"><a href="#valid_ink_trajectory-25"><span class="linenos">25</span></a><span class="sd">    these conditions never occurs, the trajectory is considered invalid.</span>
+</span><span id="valid_ink_trajectory-26"><a href="#valid_ink_trajectory-26"><span class="linenos">26</span></a>
+</span><span id="valid_ink_trajectory-27"><a href="#valid_ink_trajectory-27"><span class="linenos">27</span></a><span class="sd">    Args:</span>
+</span><span id="valid_ink_trajectory-28"><a href="#valid_ink_trajectory-28"><span class="linenos">28</span></a><span class="sd">        points: DataFrame of points with &#39;x&#39; and &#39;y&#39; columns.</span>
+</span><span id="valid_ink_trajectory-29"><a href="#valid_ink_trajectory-29"><span class="linenos">29</span></a><span class="sd">        start_circle: CircleTarget representing the start circle.</span>
+</span><span id="valid_ink_trajectory-30"><a href="#valid_ink_trajectory-30"><span class="linenos">30</span></a><span class="sd">        end_circle: CircleTarget representing the end circle.</span>
+</span><span id="valid_ink_trajectory-31"><a href="#valid_ink_trajectory-31"><span class="linenos">31</span></a>
+</span><span id="valid_ink_trajectory-32"><a href="#valid_ink_trajectory-32"><span class="linenos">32</span></a><span class="sd">    Returns:</span>
+</span><span id="valid_ink_trajectory-33"><a href="#valid_ink_trajectory-33"><span class="linenos">33</span></a><span class="sd">        Tuple of (ink_start_idx: int, ink_end_idx: int) if valid trajectory exists,</span>
+</span><span id="valid_ink_trajectory-34"><a href="#valid_ink_trajectory-34"><span class="linenos">34</span></a><span class="sd">        else (None, None).</span>
+</span><span id="valid_ink_trajectory-35"><a href="#valid_ink_trajectory-35"><span class="linenos">35</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="valid_ink_trajectory-36"><a href="#valid_ink_trajectory-36"><span class="linenos">36</span></a>    <span class="n">ink_start_idx</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="valid_ink_trajectory-37"><a href="#valid_ink_trajectory-37"><span class="linenos">37</span></a>    <span class="n">ink_end_idx</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="valid_ink_trajectory-38"><a href="#valid_ink_trajectory-38"><span class="linenos">38</span></a>
+</span><span id="valid_ink_trajectory-39"><a href="#valid_ink_trajectory-39"><span class="linenos">39</span></a>    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">points</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+</span><span id="valid_ink_trajectory-40"><a href="#valid_ink_trajectory-40"><span class="linenos">40</span></a>        <span class="k">if</span> <span class="p">(</span>
+</span><span id="valid_ink_trajectory-41"><a href="#valid_ink_trajectory-41"><span class="linenos">41</span></a>            <span class="ow">not</span> <span class="n">start_circle</span><span class="o">.</span><span class="n">contains_point</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">])</span>
+</span><span id="valid_ink_trajectory-42"><a href="#valid_ink_trajectory-42"><span class="linenos">42</span></a>            <span class="ow">and</span> <span class="n">ink_start_idx</span> <span class="ow">is</span> <span class="kc">None</span>
+</span><span id="valid_ink_trajectory-43"><a href="#valid_ink_trajectory-43"><span class="linenos">43</span></a>        <span class="p">):</span>
+</span><span id="valid_ink_trajectory-44"><a href="#valid_ink_trajectory-44"><span class="linenos">44</span></a>            <span class="n">ink_start_idx</span> <span class="o">=</span> <span class="n">idx</span>
+</span><span id="valid_ink_trajectory-45"><a href="#valid_ink_trajectory-45"><span class="linenos">45</span></a>
+</span><span id="valid_ink_trajectory-46"><a href="#valid_ink_trajectory-46"><span class="linenos">46</span></a>        <span class="k">if</span> <span class="n">ink_start_idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">end_circle</span><span class="o">.</span><span class="n">contains_point</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]):</span>
+</span><span id="valid_ink_trajectory-47"><a href="#valid_ink_trajectory-47"><span class="linenos">47</span></a>            <span class="n">ink_end_idx</span> <span class="o">=</span> <span class="n">idx</span>
+</span><span id="valid_ink_trajectory-48"><a href="#valid_ink_trajectory-48"><span class="linenos">48</span></a>            <span class="k">break</span>
+</span><span id="valid_ink_trajectory-49"><a href="#valid_ink_trajectory-49"><span class="linenos">49</span></a>
+</span><span id="valid_ink_trajectory-50"><a href="#valid_ink_trajectory-50"><span class="linenos">50</span></a>    <span class="k">return</span> <span class="n">ink_start_idx</span><span class="p">,</span> <span class="n">ink_end_idx</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Determine whether an ink trajectory exists from a start circle to an end circle.</p>
+
+<p>An "ink trajectory" is defined as the first contiguous sequence of points that:</p>
+
+<ol>
+<li>Begins <strong>after</strong> the pen leaves the start circle, and</li>
+<li>Ends when the pen first enters the end circle.</li>
+</ol>
+
+<p>The function scans point-by-point in order. The ink start index is the first point
+whose (x, y) location is <em>outside</em> the start circle. The ink end index is the first
+subsequent point whose (x, y) location falls <em>inside</em> the end circle. If either of
+these conditions never occurs, the trajectory is considered invalid.</p>
+
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>points:</strong>  DataFrame of points with 'x' and 'y' columns.</li>
+<li><strong>start_circle:</strong>  CircleTarget representing the start circle.</li>
+<li><strong>end_circle:</strong>  CircleTarget representing the end circle.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>Tuple of (ink_start_idx: int, ink_end_idx: int) if valid trajectory exists,
+  else (None, None).</p>
+</blockquote>
+</div>
+
+
+                </section>
                 <section id="segment_lines">
                             <input id="segment_lines-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
@@ -147,73 +278,73 @@
 
     </div>
     <a class="headerlink" href="#segment_lines"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="segment_lines-11"><a href="#segment_lines-11"><span class="linenos">11</span></a><span class="k">def</span><span class="w"> </span><span class="nf">segment_lines</span><span class="p">(</span>
-</span><span id="segment_lines-12"><a href="#segment_lines-12"><span class="linenos">12</span></a>    <span class="n">trail_data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
-</span><span id="segment_lines-13"><a href="#segment_lines-13"><span class="linenos">13</span></a>    <span class="n">trail_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-</span><span id="segment_lines-14"><a href="#segment_lines-14"><span class="linenos">14</span></a>    <span class="n">circles</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">models</span><span class="o">.</span><span class="n">CircleTarget</span><span class="p">]],</span>
-</span><span id="segment_lines-15"><a href="#segment_lines-15"><span class="linenos">15</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">models</span><span class="o">.</span><span class="n">LineSegment</span><span class="p">]:</span>
-</span><span id="segment_lines-16"><a href="#segment_lines-16"><span class="linenos">16</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Segment data into individual lines drawn between circles.</span>
-</span><span id="segment_lines-17"><a href="#segment_lines-17"><span class="linenos">17</span></a>
-</span><span id="segment_lines-18"><a href="#segment_lines-18"><span class="linenos">18</span></a><span class="sd">    This function first tries to segment lines based on unique actual paths.</span>
-</span><span id="segment_lines-19"><a href="#segment_lines-19"><span class="linenos">19</span></a><span class="sd">    If multiple unique paths are found, it creates segments for each path.</span>
-</span><span id="segment_lines-20"><a href="#segment_lines-20"><span class="linenos">20</span></a><span class="sd">    If only one unique path exists, it falls back to grouping by line numbers.</span>
-</span><span id="segment_lines-21"><a href="#segment_lines-21"><span class="linenos">21</span></a>
-</span><span id="segment_lines-22"><a href="#segment_lines-22"><span class="linenos">22</span></a><span class="sd">    Args:</span>
-</span><span id="segment_lines-23"><a href="#segment_lines-23"><span class="linenos">23</span></a><span class="sd">        trail_data: Participant data DataFrame. actual_path assumes the Curious</span>
-</span><span id="segment_lines-24"><a href="#segment_lines-24"><span class="linenos">24</span></a><span class="sd">            output format of &quot;CircleX ~ CircleY&quot;.</span>
-</span><span id="segment_lines-25"><a href="#segment_lines-25"><span class="linenos">25</span></a><span class="sd">        trail_id: &#39;trail2&#39; or &#39;trail4&#39;</span>
-</span><span id="segment_lines-26"><a href="#segment_lines-26"><span class="linenos">26</span></a><span class="sd">        circles: Dictionary mapping trail IDs to lists of CircleTarget objects</span>
-</span><span id="segment_lines-27"><a href="#segment_lines-27"><span class="linenos">27</span></a>
-</span><span id="segment_lines-28"><a href="#segment_lines-28"><span class="linenos">28</span></a><span class="sd">    Returns:</span>
-</span><span id="segment_lines-29"><a href="#segment_lines-29"><span class="linenos">29</span></a><span class="sd">        List of LineSegment objects</span>
-</span><span id="segment_lines-30"><a href="#segment_lines-30"><span class="linenos">30</span></a>
-</span><span id="segment_lines-31"><a href="#segment_lines-31"><span class="linenos">31</span></a><span class="sd">    Raises:</span>
-</span><span id="segment_lines-32"><a href="#segment_lines-32"><span class="linenos">32</span></a><span class="sd">        KeyError: If trail_id is not found in circles dictionary.</span>
-</span><span id="segment_lines-33"><a href="#segment_lines-33"><span class="linenos">33</span></a><span class="sd">        ValueError: If actual_path values are invalid.</span>
-</span><span id="segment_lines-34"><a href="#segment_lines-34"><span class="linenos">34</span></a><span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
-</span><span id="segment_lines-35"><a href="#segment_lines-35"><span class="linenos">35</span></a>    <span class="k">if</span> <span class="n">trail_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">circles</span><span class="p">:</span>
-</span><span id="segment_lines-36"><a href="#segment_lines-36"><span class="linenos">36</span></a>        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Trail ID not found in circles dictionary.&quot;</span><span class="p">)</span>
-</span><span id="segment_lines-37"><a href="#segment_lines-37"><span class="linenos">37</span></a>
-</span><span id="segment_lines-38"><a href="#segment_lines-38"><span class="linenos">38</span></a>    <span class="n">segments</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="segment_lines-39"><a href="#segment_lines-39"><span class="linenos">39</span></a>    <span class="n">unique_paths</span> <span class="o">=</span> <span class="n">trail_data</span><span class="p">[</span><span class="s2">&quot;actual_path&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
-</span><span id="segment_lines-40"><a href="#segment_lines-40"><span class="linenos">40</span></a>
-</span><span id="segment_lines-41"><a href="#segment_lines-41"><span class="linenos">41</span></a>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_paths</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-</span><span id="segment_lines-42"><a href="#segment_lines-42"><span class="linenos">42</span></a>        <span class="n">segment_counter</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="segment_lines-43"><a href="#segment_lines-43"><span class="linenos">43</span></a>        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">unique_paths</span><span class="p">:</span>
-</span><span id="segment_lines-44"><a href="#segment_lines-44"><span class="linenos">44</span></a>            <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;~&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">path</span><span class="p">:</span>
-</span><span id="segment_lines-45"><a href="#segment_lines-45"><span class="linenos">45</span></a>                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid actual_path value encountered.&quot;</span><span class="p">)</span>
-</span><span id="segment_lines-46"><a href="#segment_lines-46"><span class="linenos">46</span></a>
-</span><span id="segment_lines-47"><a href="#segment_lines-47"><span class="linenos">47</span></a>            <span class="n">path_data</span> <span class="o">=</span> <span class="n">trail_data</span><span class="p">[</span><span class="n">trail_data</span><span class="p">[</span><span class="s2">&quot;actual_path&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">path</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-</span><span id="segment_lines-48"><a href="#segment_lines-48"><span class="linenos">48</span></a>            <span class="n">start_label</span><span class="p">,</span> <span class="n">end_label</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; ~ &quot;</span><span class="p">)</span>
-</span><span id="segment_lines-49"><a href="#segment_lines-49"><span class="linenos">49</span></a>            <span class="n">segments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-</span><span id="segment_lines-50"><a href="#segment_lines-50"><span class="linenos">50</span></a>                <span class="n">models</span><span class="o">.</span><span class="n">LineSegment</span><span class="p">(</span>
-</span><span id="segment_lines-51"><a href="#segment_lines-51"><span class="linenos">51</span></a>                    <span class="n">start_label</span><span class="o">=</span><span class="n">start_label</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
-</span><span id="segment_lines-52"><a href="#segment_lines-52"><span class="linenos">52</span></a>                    <span class="n">end_label</span><span class="o">=</span><span class="n">end_label</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
-</span><span id="segment_lines-53"><a href="#segment_lines-53"><span class="linenos">53</span></a>                    <span class="n">points</span><span class="o">=</span><span class="n">path_data</span><span class="p">,</span>
-</span><span id="segment_lines-54"><a href="#segment_lines-54"><span class="linenos">54</span></a>                    <span class="n">is_error</span><span class="o">=</span><span class="n">path_data</span><span class="p">[</span><span class="s2">&quot;is_error&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-</span><span id="segment_lines-55"><a href="#segment_lines-55"><span class="linenos">55</span></a>                    <span class="n">line_number</span><span class="o">=</span><span class="n">segment_counter</span><span class="p">,</span>
-</span><span id="segment_lines-56"><a href="#segment_lines-56"><span class="linenos">56</span></a>                <span class="p">)</span>
-</span><span id="segment_lines-57"><a href="#segment_lines-57"><span class="linenos">57</span></a>            <span class="p">)</span>
-</span><span id="segment_lines-58"><a href="#segment_lines-58"><span class="linenos">58</span></a>            <span class="n">segment_counter</span> <span class="o">+=</span> <span class="mi">1</span>
-</span><span id="segment_lines-59"><a href="#segment_lines-59"><span class="linenos">59</span></a>    <span class="k">else</span><span class="p">:</span>
-</span><span id="segment_lines-60"><a href="#segment_lines-60"><span class="linenos">60</span></a>        <span class="k">for</span> <span class="n">line_num</span> <span class="ow">in</span> <span class="n">trail_data</span><span class="p">[</span><span class="s2">&quot;line_number&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
-</span><span id="segment_lines-61"><a href="#segment_lines-61"><span class="linenos">61</span></a>            <span class="n">line_data</span> <span class="o">=</span> <span class="n">trail_data</span><span class="p">[</span><span class="n">trail_data</span><span class="p">[</span><span class="s2">&quot;line_number&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">line_num</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-</span><span id="segment_lines-62"><a href="#segment_lines-62"><span class="linenos">62</span></a>            <span class="n">path</span> <span class="o">=</span> <span class="n">line_data</span><span class="p">[</span><span class="s2">&quot;actual_path&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-</span><span id="segment_lines-63"><a href="#segment_lines-63"><span class="linenos">63</span></a>            <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;~&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">path</span><span class="p">:</span>
-</span><span id="segment_lines-64"><a href="#segment_lines-64"><span class="linenos">64</span></a>                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid actual_path value encountered.&quot;</span><span class="p">)</span>
-</span><span id="segment_lines-65"><a href="#segment_lines-65"><span class="linenos">65</span></a>
-</span><span id="segment_lines-66"><a href="#segment_lines-66"><span class="linenos">66</span></a>            <span class="n">start_label</span><span class="p">,</span> <span class="n">end_label</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; ~ &quot;</span><span class="p">)</span>
-</span><span id="segment_lines-67"><a href="#segment_lines-67"><span class="linenos">67</span></a>            <span class="n">segments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-</span><span id="segment_lines-68"><a href="#segment_lines-68"><span class="linenos">68</span></a>                <span class="n">models</span><span class="o">.</span><span class="n">LineSegment</span><span class="p">(</span>
-</span><span id="segment_lines-69"><a href="#segment_lines-69"><span class="linenos">69</span></a>                    <span class="n">start_label</span><span class="o">=</span><span class="n">start_label</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
-</span><span id="segment_lines-70"><a href="#segment_lines-70"><span class="linenos">70</span></a>                    <span class="n">end_label</span><span class="o">=</span><span class="n">end_label</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
-</span><span id="segment_lines-71"><a href="#segment_lines-71"><span class="linenos">71</span></a>                    <span class="n">points</span><span class="o">=</span><span class="n">line_data</span><span class="p">,</span>
-</span><span id="segment_lines-72"><a href="#segment_lines-72"><span class="linenos">72</span></a>                    <span class="n">is_error</span><span class="o">=</span><span class="n">line_data</span><span class="p">[</span><span class="s2">&quot;is_error&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-</span><span id="segment_lines-73"><a href="#segment_lines-73"><span class="linenos">73</span></a>                    <span class="n">line_number</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">line_num</span><span class="p">),</span>
-</span><span id="segment_lines-74"><a href="#segment_lines-74"><span class="linenos">74</span></a>                <span class="p">)</span>
-</span><span id="segment_lines-75"><a href="#segment_lines-75"><span class="linenos">75</span></a>            <span class="p">)</span>
-</span><span id="segment_lines-76"><a href="#segment_lines-76"><span class="linenos">76</span></a>
-</span><span id="segment_lines-77"><a href="#segment_lines-77"><span class="linenos">77</span></a>    <span class="k">return</span> <span class="n">segments</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="segment_lines-53"><a href="#segment_lines-53"><span class="linenos"> 53</span></a><span class="k">def</span><span class="w"> </span><span class="nf">segment_lines</span><span class="p">(</span>
+</span><span id="segment_lines-54"><a href="#segment_lines-54"><span class="linenos"> 54</span></a>    <span class="n">trail_data</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+</span><span id="segment_lines-55"><a href="#segment_lines-55"><span class="linenos"> 55</span></a>    <span class="n">trail_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="segment_lines-56"><a href="#segment_lines-56"><span class="linenos"> 56</span></a>    <span class="n">circles</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">models</span><span class="o">.</span><span class="n">CircleTarget</span><span class="p">]],</span>
+</span><span id="segment_lines-57"><a href="#segment_lines-57"><span class="linenos"> 57</span></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">models</span><span class="o">.</span><span class="n">LineSegment</span><span class="p">]:</span>
+</span><span id="segment_lines-58"><a href="#segment_lines-58"><span class="linenos"> 58</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Segment data into individual lines drawn between circles.</span>
+</span><span id="segment_lines-59"><a href="#segment_lines-59"><span class="linenos"> 59</span></a>
+</span><span id="segment_lines-60"><a href="#segment_lines-60"><span class="linenos"> 60</span></a><span class="sd">    This function first tries to segment lines based on unique actual paths.</span>
+</span><span id="segment_lines-61"><a href="#segment_lines-61"><span class="linenos"> 61</span></a><span class="sd">    If multiple unique paths are found, it creates segments for each path.</span>
+</span><span id="segment_lines-62"><a href="#segment_lines-62"><span class="linenos"> 62</span></a><span class="sd">    If only one unique path exists, it falls back to grouping by line numbers.</span>
+</span><span id="segment_lines-63"><a href="#segment_lines-63"><span class="linenos"> 63</span></a>
+</span><span id="segment_lines-64"><a href="#segment_lines-64"><span class="linenos"> 64</span></a><span class="sd">    Args:</span>
+</span><span id="segment_lines-65"><a href="#segment_lines-65"><span class="linenos"> 65</span></a><span class="sd">        trail_data: Participant data DataFrame. actual_path assumes the Curious</span>
+</span><span id="segment_lines-66"><a href="#segment_lines-66"><span class="linenos"> 66</span></a><span class="sd">            output format of &quot;CircleX ~ CircleY&quot;.</span>
+</span><span id="segment_lines-67"><a href="#segment_lines-67"><span class="linenos"> 67</span></a><span class="sd">        trail_id: &#39;trail2&#39; or &#39;trail4&#39;</span>
+</span><span id="segment_lines-68"><a href="#segment_lines-68"><span class="linenos"> 68</span></a><span class="sd">        circles: Dictionary mapping trail IDs to lists of CircleTarget objects</span>
+</span><span id="segment_lines-69"><a href="#segment_lines-69"><span class="linenos"> 69</span></a>
+</span><span id="segment_lines-70"><a href="#segment_lines-70"><span class="linenos"> 70</span></a><span class="sd">    Returns:</span>
+</span><span id="segment_lines-71"><a href="#segment_lines-71"><span class="linenos"> 71</span></a><span class="sd">        List of LineSegment objects</span>
+</span><span id="segment_lines-72"><a href="#segment_lines-72"><span class="linenos"> 72</span></a>
+</span><span id="segment_lines-73"><a href="#segment_lines-73"><span class="linenos"> 73</span></a><span class="sd">    Raises:</span>
+</span><span id="segment_lines-74"><a href="#segment_lines-74"><span class="linenos"> 74</span></a><span class="sd">        KeyError: If trail_id is not found in circles dictionary.</span>
+</span><span id="segment_lines-75"><a href="#segment_lines-75"><span class="linenos"> 75</span></a><span class="sd">        ValueError: If actual_path values are invalid.</span>
+</span><span id="segment_lines-76"><a href="#segment_lines-76"><span class="linenos"> 76</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="segment_lines-77"><a href="#segment_lines-77"><span class="linenos"> 77</span></a>    <span class="k">if</span> <span class="n">trail_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">circles</span><span class="p">:</span>
+</span><span id="segment_lines-78"><a href="#segment_lines-78"><span class="linenos"> 78</span></a>        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Trail ID not found in circles dictionary.&quot;</span><span class="p">)</span>
+</span><span id="segment_lines-79"><a href="#segment_lines-79"><span class="linenos"> 79</span></a>
+</span><span id="segment_lines-80"><a href="#segment_lines-80"><span class="linenos"> 80</span></a>    <span class="n">segments</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="segment_lines-81"><a href="#segment_lines-81"><span class="linenos"> 81</span></a>    <span class="n">unique_paths</span> <span class="o">=</span> <span class="n">trail_data</span><span class="p">[</span><span class="s2">&quot;actual_path&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+</span><span id="segment_lines-82"><a href="#segment_lines-82"><span class="linenos"> 82</span></a>
+</span><span id="segment_lines-83"><a href="#segment_lines-83"><span class="linenos"> 83</span></a>    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unique_paths</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+</span><span id="segment_lines-84"><a href="#segment_lines-84"><span class="linenos"> 84</span></a>        <span class="n">segment_counter</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="segment_lines-85"><a href="#segment_lines-85"><span class="linenos"> 85</span></a>        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">unique_paths</span><span class="p">:</span>
+</span><span id="segment_lines-86"><a href="#segment_lines-86"><span class="linenos"> 86</span></a>            <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;~&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">path</span><span class="p">:</span>
+</span><span id="segment_lines-87"><a href="#segment_lines-87"><span class="linenos"> 87</span></a>                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid actual_path value encountered.&quot;</span><span class="p">)</span>
+</span><span id="segment_lines-88"><a href="#segment_lines-88"><span class="linenos"> 88</span></a>
+</span><span id="segment_lines-89"><a href="#segment_lines-89"><span class="linenos"> 89</span></a>            <span class="n">path_data</span> <span class="o">=</span> <span class="n">trail_data</span><span class="p">[</span><span class="n">trail_data</span><span class="p">[</span><span class="s2">&quot;actual_path&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">path</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+</span><span id="segment_lines-90"><a href="#segment_lines-90"><span class="linenos"> 90</span></a>            <span class="n">start_label</span><span class="p">,</span> <span class="n">end_label</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; ~ &quot;</span><span class="p">)</span>
+</span><span id="segment_lines-91"><a href="#segment_lines-91"><span class="linenos"> 91</span></a>            <span class="n">segments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+</span><span id="segment_lines-92"><a href="#segment_lines-92"><span class="linenos"> 92</span></a>                <span class="n">models</span><span class="o">.</span><span class="n">LineSegment</span><span class="p">(</span>
+</span><span id="segment_lines-93"><a href="#segment_lines-93"><span class="linenos"> 93</span></a>                    <span class="n">start_label</span><span class="o">=</span><span class="n">start_label</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+</span><span id="segment_lines-94"><a href="#segment_lines-94"><span class="linenos"> 94</span></a>                    <span class="n">end_label</span><span class="o">=</span><span class="n">end_label</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+</span><span id="segment_lines-95"><a href="#segment_lines-95"><span class="linenos"> 95</span></a>                    <span class="n">points</span><span class="o">=</span><span class="n">path_data</span><span class="p">,</span>
+</span><span id="segment_lines-96"><a href="#segment_lines-96"><span class="linenos"> 96</span></a>                    <span class="n">is_error</span><span class="o">=</span><span class="n">path_data</span><span class="p">[</span><span class="s2">&quot;is_error&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+</span><span id="segment_lines-97"><a href="#segment_lines-97"><span class="linenos"> 97</span></a>                    <span class="n">line_number</span><span class="o">=</span><span class="n">segment_counter</span><span class="p">,</span>
+</span><span id="segment_lines-98"><a href="#segment_lines-98"><span class="linenos"> 98</span></a>                <span class="p">)</span>
+</span><span id="segment_lines-99"><a href="#segment_lines-99"><span class="linenos"> 99</span></a>            <span class="p">)</span>
+</span><span id="segment_lines-100"><a href="#segment_lines-100"><span class="linenos">100</span></a>            <span class="n">segment_counter</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span id="segment_lines-101"><a href="#segment_lines-101"><span class="linenos">101</span></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="segment_lines-102"><a href="#segment_lines-102"><span class="linenos">102</span></a>        <span class="k">for</span> <span class="n">line_num</span> <span class="ow">in</span> <span class="n">trail_data</span><span class="p">[</span><span class="s2">&quot;line_number&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">():</span>
+</span><span id="segment_lines-103"><a href="#segment_lines-103"><span class="linenos">103</span></a>            <span class="n">line_data</span> <span class="o">=</span> <span class="n">trail_data</span><span class="p">[</span><span class="n">trail_data</span><span class="p">[</span><span class="s2">&quot;line_number&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">line_num</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+</span><span id="segment_lines-104"><a href="#segment_lines-104"><span class="linenos">104</span></a>            <span class="n">path</span> <span class="o">=</span> <span class="n">line_data</span><span class="p">[</span><span class="s2">&quot;actual_path&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</span><span id="segment_lines-105"><a href="#segment_lines-105"><span class="linenos">105</span></a>            <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;~&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">path</span><span class="p">:</span>
+</span><span id="segment_lines-106"><a href="#segment_lines-106"><span class="linenos">106</span></a>                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid actual_path value encountered.&quot;</span><span class="p">)</span>
+</span><span id="segment_lines-107"><a href="#segment_lines-107"><span class="linenos">107</span></a>
+</span><span id="segment_lines-108"><a href="#segment_lines-108"><span class="linenos">108</span></a>            <span class="n">start_label</span><span class="p">,</span> <span class="n">end_label</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; ~ &quot;</span><span class="p">)</span>
+</span><span id="segment_lines-109"><a href="#segment_lines-109"><span class="linenos">109</span></a>            <span class="n">segments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+</span><span id="segment_lines-110"><a href="#segment_lines-110"><span class="linenos">110</span></a>                <span class="n">models</span><span class="o">.</span><span class="n">LineSegment</span><span class="p">(</span>
+</span><span id="segment_lines-111"><a href="#segment_lines-111"><span class="linenos">111</span></a>                    <span class="n">start_label</span><span class="o">=</span><span class="n">start_label</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+</span><span id="segment_lines-112"><a href="#segment_lines-112"><span class="linenos">112</span></a>                    <span class="n">end_label</span><span class="o">=</span><span class="n">end_label</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+</span><span id="segment_lines-113"><a href="#segment_lines-113"><span class="linenos">113</span></a>                    <span class="n">points</span><span class="o">=</span><span class="n">line_data</span><span class="p">,</span>
+</span><span id="segment_lines-114"><a href="#segment_lines-114"><span class="linenos">114</span></a>                    <span class="n">is_error</span><span class="o">=</span><span class="n">line_data</span><span class="p">[</span><span class="s2">&quot;is_error&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+</span><span id="segment_lines-115"><a href="#segment_lines-115"><span class="linenos">115</span></a>                    <span class="n">line_number</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">line_num</span><span class="p">),</span>
+</span><span id="segment_lines-116"><a href="#segment_lines-116"><span class="linenos">116</span></a>                <span class="p">)</span>
+</span><span id="segment_lines-117"><a href="#segment_lines-117"><span class="linenos">117</span></a>            <span class="p">)</span>
+</span><span id="segment_lines-118"><a href="#segment_lines-118"><span class="linenos">118</span></a>
+</span><span id="segment_lines-119"><a href="#segment_lines-119"><span class="linenos">119</span></a>    <span class="k">return</span> <span class="n">segments</span>
 </span></pre></div>
 
 
