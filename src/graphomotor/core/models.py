@@ -105,7 +105,7 @@ class SpiralFeatureCategories:
             Dictionary mapping category names to their feature extractor functions.
         """
         # Importing feature modules here to avoid circular imports.
-        from graphomotor.features import distance, drawing_error, time, velocity
+        from graphomotor.features.spiral import distance, drawing_error, time, velocity
 
         return {
             cls.DURATION: lambda: time.get_task_duration(spiral),
