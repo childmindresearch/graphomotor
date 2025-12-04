@@ -72,7 +72,7 @@ def segment_lines(
     Raises:
         KeyError: If trail_id is not found in circles dictionary.
         ValueError: If actual_path values are invalid.
-    """  # noqa: E501
+    """
     if trail_id not in circles:
         raise KeyError("Trail ID not found in circles dictionary.")
 
