@@ -1,7 +1,6 @@
 """Utility functions for trails management."""
 
-from typing import Optional, Tuple
-from typing import Dict, List
+from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 
