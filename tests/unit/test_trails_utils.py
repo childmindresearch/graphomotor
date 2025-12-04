@@ -80,7 +80,7 @@ from graphomotor.utils import trails_utils
     ids=lambda x: x if isinstance(x, str) else "",
 )
 def test_valid_ink_trajectory_scenarios(
-    points_data: pd.DataFrame,
+    points_data: Dict[str, list],
     start_params: Dict,
     end_params: Dict,
     expected_start: int,
@@ -98,6 +98,7 @@ def test_valid_ink_trajectory_scenarios(
 
     assert ink_start == expected_start, f"Failed on {test_id}: ink_start"
     assert ink_end == expected_end, f"Failed on {test_id}: ink_end"
+
 
 @pytest.fixture
 def circles() -> Dict[str, Dict[str, models.CircleTarget]]:
@@ -126,15 +127,13 @@ def test_multiple_unique_paths(
     circles: Dict[str, Dict[str, models.CircleTarget]],
 ) -> None:
     """Multiple unique actual_path values produce correct segments."""
-    df = pd.DataFrame(
-        {
-            "actual_path": ["1 ~ 2", "2 ~ 1"],
-            "line_number": [0, 1],
-            "is_error": [False, True],
-            "x": [0, 1],
-            "y": [0, 1],
-        }
-    )
+    df = pd.DataFrame({
+        "actual_path": ["1 ~ 2", "2 ~ 1"],
+        "line_number": [0, 1],
+        "is_error": [False, True],
+        "x": [0, 1],
+        "y": [0, 1],
+    })
     segments = trails_utils.segment_lines(df, "trail2", circles)
     assert len(segments) == 2
     assert segments[0].start_label == "1"
@@ -151,15 +150,13 @@ def test_single_path_fallback_line_number(
     circles: Dict[str, Dict[str, models.CircleTarget]],
 ) -> None:
     """Single unique path falls back to line_number segmentation."""
-    df = pd.DataFrame(
-        {
-            "actual_path": ["1 ~ 2", "1 ~ 2"],
-            "line_number": [0, 1],
-            "is_error": [False, False],
-            "x": [0, 1],
-            "y": [0, 1],
-        }
-    )
+    df = pd.DataFrame({
+        "actual_path": ["1 ~ 2", "1 ~ 2"],
+        "line_number": [0, 1],
+        "is_error": [False, False],
+        "x": [0, 1],
+        "y": [0, 1],
+    })
     segments = trails_utils.segment_lines(df, "trail2", circles)
     assert len(segments) == 2
     for idx, seg in enumerate(segments):
@@ -182,15 +179,13 @@ def test_invalid_trail_id(
     circles: Dict[str, Dict[str, models.CircleTarget]],
 ) -> None:
     """Passing an invalid trail_id raises KeyError."""
-    df = pd.DataFrame(
-        {
-            "x": [0],
-            "y": [0],
-            "actual_path": ["1 ~ 2"],
-            "line_number": [0],
-            "is_error": [False],
-        }
-    )
+    df = pd.DataFrame({
+        "x": [0],
+        "y": [0],
+        "actual_path": ["1 ~ 2"],
+        "line_number": [0],
+        "is_error": [False],
+    })
     with pytest.raises(KeyError, match="Trail ID not found in circles dictionary."):
         trails_utils.segment_lines(df, "invalid", circles)
 

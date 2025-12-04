@@ -36,9 +36,7 @@ def valid_ink_trajectory(
     ink_start_idx = None
     ink_end_idx = None
 
-    for idx in range(len(points)):
-        row = points.iloc[idx]
-
+    for idx, row in points.iterrows():
         if (
             not start_circle.contains_point(row["x"], row["y"])
             and ink_start_idx is None
@@ -50,6 +48,8 @@ def valid_ink_trajectory(
             break
 
     return ink_start_idx, ink_end_idx
+
+
 def segment_lines(
     trail_data: pd.DataFrame,
     trail_id: str,
