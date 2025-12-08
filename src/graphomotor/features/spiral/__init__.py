@@ -1,4 +1,4 @@
-"""Feature extraction modules for graphomotor data analysis.
+"""Feature extraction modules for Spiral graphomotor data analysis.
 
 This module contains specialized extractors for computing clinically relevant metrics
 across four categories for spiral data: velocity (15 features), distance (8 features),

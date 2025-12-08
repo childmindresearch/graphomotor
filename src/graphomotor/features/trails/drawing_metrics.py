@@ -1,4 +1,4 @@
-"""Feature extraction module for drawing error-based metrics in spiral drawing data."""
+"""Feature extraction module for drawing error-based metrics in trails drawing data."""
 
 from graphomotor.core import models
 
