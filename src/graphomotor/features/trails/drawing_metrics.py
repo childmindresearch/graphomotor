@@ -3,7 +3,7 @@
 from graphomotor.core import models
 
 
-def detect_pen_lifts(drawing: models.Drawing) -> int:
+def detect_pen_lifts(drawing: models.Drawing) -> dict[str, int]:
     """Detect pen lifts during a spiral drawing task.
 
     Args:
@@ -12,11 +12,11 @@ def detect_pen_lifts(drawing: models.Drawing) -> int:
     Returns:
         Integer count of pen lifts detected.
     """
-    return len(drawing.data["line_number"].unique()) - 1
+    return {"pen_lifts": len(drawing.data["line_number"].unique()) - 1}
 
 
 def get_total_errors(drawing: models.Drawing) -> dict[str, float]:
-    """Calculate the total dnumber of errors of a trails drawing task.
+    """Extract the total number of errors of a trails drawing task.
 
     Args:
         drawing: Drawing object containing drawing data.
