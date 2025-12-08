@@ -33,3 +33,14 @@ def test_get_total_errors() -> None:
         match="Drawing data does not contain 'total_number_of_errors' column.",
     ):
         drawing_metrics.get_total_errors(drawing)
+
+
+def test_valid_total_errors() -> None:
+    """Test case with valid total_number_of_errors column."""
+    valid_df = pd.DataFrame({"total_number_of_errors": [5, 1, 2]})
+    drawing = models.Drawing(
+        data=valid_df, task_name="trails", metadata={"id": "5555555"}
+    )
+
+    result = drawing_metrics.get_total_errors(drawing)
+    assert result == {"total_errors": 5}
