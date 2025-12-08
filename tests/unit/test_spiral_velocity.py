@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from graphomotor.core import config, models
-from graphomotor.features import velocity
+from graphomotor.features.spiral import velocity
 
 
 def test_calculate_velocity_metrics(valid_spiral: models.Drawing) -> None:

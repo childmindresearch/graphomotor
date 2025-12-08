@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from graphomotor.core import models
-from graphomotor.features import drawing_error
+from graphomotor.features.spiral import drawing_error
 
 
 def test_calculate_area_under_curve(valid_spiral: models.Drawing) -> None:
