@@ -45,4 +45,8 @@ def percent_accurate_paths(drawing: models.Drawing) -> dict[str, float]:
             "DataFrame must contain 'correct_path' and 'actual_path' columns."
         )
 
-    return (drawing.data["correct_path"] == drawing.data["actual_path"]).mean() * 100
+    return {
+        "total_errors": (
+            (drawing.data["correct_path"] == drawing.data["actual_path"]).mean() * 100
+        )
+    }
