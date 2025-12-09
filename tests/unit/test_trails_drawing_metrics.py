@@ -51,3 +51,9 @@ def test_smoothness_less_than_three_points() -> None:
     """Test smoothness calculation with less than three points."""
     points = pd.DataFrame({"x": [0, 1], "y": [0, 1]})
     assert drawing_metrics.calculate_smoothness(points) == 0.0
+
+
+def test_smoothness_straight_line() -> None:
+    """Collinear points should produce zero smoothness."""
+    points = pd.DataFrame({"x": [0, 1, 2, 3], "y": [0, 0, 0, 0]})
+    assert drawing_metrics.calculate_smoothness(points) == 0.0
