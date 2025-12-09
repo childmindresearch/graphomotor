@@ -2,7 +2,6 @@
 
 import pandas as pd
 import pytest
-import scipy.spatial.distance as dist
 
 from graphomotor.core import models
 from graphomotor.features.trails import drawing_metrics
