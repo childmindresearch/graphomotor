@@ -1,5 +1,6 @@
 """Test cases for drawing_metrics.py functions."""
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -45,3 +46,39 @@ def test_valid_total_errors() -> None:
 
     result = drawing_metrics.get_total_errors(drawing)
     assert result == {"total_errors": 1.0}
+
+
+def test_smoothness_less_than_three_points() -> None:
+    """Test smoothness calculation with less than three points."""
+    points = pd.DataFrame({"x": [0, 1], "y": [0, 1]})
+    assert drawing_metrics.calculate_smoothness(points) == 0.0
+
+
+def test_smoothness_straight_line() -> None:
+    """Collinear points should produce zero smoothness."""
+    points = pd.DataFrame({"x": [0, 1, 2, 3], "y": [0, 0, 0, 0]})
+    assert drawing_metrics.calculate_smoothness(points) == 0.0
+
+
+def test_smoothness_single_right_angle() -> None:
+    """A single 90-degree turn should produce an std of 0."""
+    points = pd.DataFrame({"x": [0, 1, 1], "y": [0, 0, 1]})
+    smoothness = drawing_metrics.calculate_smoothness(points)
+    assert smoothness == 0.0
+
+
+def test_smoothness_varied_angles() -> None:
+    """Test smoothness with two different angles to ensure std is computed correctly."""
+    points = pd.DataFrame({"x": [0, 1, 1, 2], "y": [0, 0, 1, 2]})
+
+    smoothness = drawing_metrics.calculate_smoothness(points)
+
+    expected = np.std([90, 45])
+    assert np.isclose(smoothness, expected)
+
+
+def test_smoothness_zero_length_segments() -> None:
+    """Zero-length segments should be skipped; no angles → smoothness 0."""
+    points = pd.DataFrame({"x": [0, 1, 1, 2], "y": [0, 0, 0, 0]})
+    smoothness = drawing_metrics.calculate_smoothness(points)
+    assert smoothness == 0.0
