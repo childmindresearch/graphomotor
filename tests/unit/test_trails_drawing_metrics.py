@@ -45,3 +45,40 @@ def test_valid_total_errors() -> None:
 
     result = drawing_metrics.get_total_errors(drawing)
     assert result == {"total_errors": 1.0}
+
+
+def test_path_optimality_positive() -> None:
+    """Test case for path optimality with positive optimal distance."""
+    start = models.CircleTarget(order=1, label="1", center_x=0, center_y=0, radius=1)
+    end = models.CircleTarget(order=2, label="2", center_x=10, center_y=0, radius=1)
+    segment = models.LineSegment(
+        start_label="1",
+        end_label="2",
+        points=pd.DataFrame(),
+        is_error=False,
+        line_number=1,
+        distance=8,
+    )
+
+    drawing_metrics.calculate_path_optimality(segment, start, end)
+
+    expected_optimal_distance = 10 - 1 - 1
+    assert segment.path_optimality == expected_optimal_distance / 8
+
+
+def test_path_optimality_non_positive_distance() -> None:
+    """Test case where optimal distance is zero or negative, so no assignment occurs."""
+    start = models.CircleTarget(order=1, label="1", center_x=0, center_y=0, radius=5)
+    end = models.CircleTarget(order=2, label="2", center_x=8, center_y=0, radius=5)
+    segment = models.LineSegment(
+        start_label="1",
+        end_label="2",
+        points=pd.DataFrame(),
+        is_error=False,
+        line_number=1,
+        distance=5,
+    )
+
+    drawing_metrics.calculate_path_optimality(segment, start, end)
+
+    assert segment.path_optimality == 0.0
