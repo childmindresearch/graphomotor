@@ -1,4 +1,4 @@
-"""Internal data class for spiral drawing data."""
+"""Internal data classes for drawing data."""
 
 import dataclasses
 import datetime
@@ -7,8 +7,6 @@ import typing
 import numpy as np
 import pandas as pd
 import pydantic
-
-from graphomotor.features import base_metrics
 
 
 class Drawing(pydantic.BaseModel):
@@ -107,7 +105,12 @@ class SpiralFeatureCategories:
             Dictionary mapping category names to their feature extractor functions.
         """
         # Importing feature modules here to avoid circular imports.
-        from graphomotor.features.spiral import distance, drawing_error, velocity
+        from graphomotor.features.spiral import (
+            base_metrics,
+            distance,
+            drawing_error,
+            velocity,
+        )
 
         return {
             cls.DURATION: lambda: base_metrics.get_task_duration(spiral),
