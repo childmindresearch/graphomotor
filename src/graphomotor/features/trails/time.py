@@ -48,3 +48,21 @@ def calculate_total_error_time(drawing: models.Drawing) -> dict[str, float]:
         total_error_time += end_mid - start_mid
 
     return {"total_error_time": float(total_error_time)}
+
+
+def calculate_correct_time(drawing: models.Drawing) -> dict[str, float]:
+    """Calculate the total time spent drawing correctly.
+
+    This is the complement of the total error time.
+
+    Args:
+        drawing: Drawing object containing drawing data.
+
+    Returns:
+        Dictionary containing the total time spent drawing correctly.
+    """
+    total_time = drawing.data["seconds"].iloc[-1]
+    error_time = calculate_total_error_time(drawing)["total_error_time"]
+    print(total_time, error_time)
+    correct_time = total_time - error_time
+    return {"total_correct_time": float(correct_time)}
