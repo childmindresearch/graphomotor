@@ -8,6 +8,8 @@ import numpy as np
 import pandas as pd
 import pydantic
 
+from graphomotor.features import base_metrics
+
 
 class Drawing(pydantic.BaseModel):
     """Class representing a drawing task, encapsulating both raw data and metadata.
@@ -105,10 +107,10 @@ class SpiralFeatureCategories:
             Dictionary mapping category names to their feature extractor functions.
         """
         # Importing feature modules here to avoid circular imports.
-        from graphomotor.features.spiral import distance, drawing_error, time, velocity
+        from graphomotor.features.spiral import distance, drawing_error, velocity
 
         return {
-            cls.DURATION: lambda: time.get_task_duration(spiral),
+            cls.DURATION: lambda: base_metrics.get_task_duration(spiral),
             cls.VELOCITY: lambda: velocity.calculate_velocity_metrics(spiral),
             cls.HAUSDORFF: lambda: distance.calculate_hausdorff_metrics(
                 spiral, reference_spiral
