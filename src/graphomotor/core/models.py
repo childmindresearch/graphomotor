@@ -105,8 +105,8 @@ class SpiralFeatureCategories:
             Dictionary mapping category names to their feature extractor functions.
         """
         # Importing feature modules here to avoid circular imports.
+        from graphomotor.features import base_metrics
         from graphomotor.features.spiral import (
-            base_metrics,
             distance,
             drawing_error,
             velocity,
