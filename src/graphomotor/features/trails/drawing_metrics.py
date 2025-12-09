@@ -50,7 +50,8 @@ def calculate_path_optimality(
     """
     optimal_distance = (
         dist.euclidean(
-            [start_circle.cx, start_circle.cy], [end_circle.cx, end_circle.cy]
+            [start_circle.center_x, start_circle.center_y],
+            [end_circle.center_x, end_circle.center_y],
         )
         - start_circle.radius
         - end_circle.radius
