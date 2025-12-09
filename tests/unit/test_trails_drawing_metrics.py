@@ -45,3 +45,9 @@ def test_valid_total_errors() -> None:
 
     result = drawing_metrics.get_total_errors(drawing)
     assert result == {"total_errors": 1.0}
+
+
+def test_smoothness_less_than_three_points() -> None:
+    """Test smoothness calculation with less than three points."""
+    points = pd.DataFrame({"x": [0, 1], "y": [0, 1]})
+    assert drawing_metrics.calculate_smoothness(points) == 0.0
