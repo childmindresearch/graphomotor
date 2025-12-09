@@ -75,3 +75,10 @@ def test_smoothness_varied_angles() -> None:
 
     expected = np.std([90, 45])
     assert np.isclose(smoothness, expected)
+
+
+def test_smoothness_zero_length_segments() -> None:
+    """Zero-length segments should be skipped; no angles → smoothness 0."""
+    points = pd.DataFrame({"x": [0, 1, 1, 2], "y": [0, 0, 0, 0]})
+    smoothness = drawing_metrics.calculate_smoothness(points)
+    assert smoothness == 0.0
