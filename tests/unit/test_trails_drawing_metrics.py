@@ -57,3 +57,10 @@ def test_smoothness_straight_line() -> None:
     """Collinear points should produce zero smoothness."""
     points = pd.DataFrame({"x": [0, 1, 2, 3], "y": [0, 0, 0, 0]})
     assert drawing_metrics.calculate_smoothness(points) == 0.0
+
+
+def test_smoothness_single_right_angle() -> None:
+    """A single 90-degree turn should produce an std of 0."""
+    points = pd.DataFrame({"x": [0, 1, 1], "y": [0, 0, 1]})
+    smoothness = drawing_metrics.calculate_smoothness(points)
+    assert smoothness == 0.0
