@@ -1,5 +1,6 @@
 """Test cases for drawing_metrics.py functions."""
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -64,3 +65,13 @@ def test_smoothness_single_right_angle() -> None:
     points = pd.DataFrame({"x": [0, 1, 1], "y": [0, 0, 1]})
     smoothness = drawing_metrics.calculate_smoothness(points)
     assert smoothness == 0.0
+
+
+def test_smoothness_varied_angles() -> None:
+    """Test smoothness with two different angles to ensure std is computed correctly."""
+    points = pd.DataFrame({"x": [0, 1, 1, 2], "y": [0, 0, 1, 2]})
+
+    smoothness = drawing_metrics.calculate_smoothness(points)
+
+    expected = np.std([90, 45])
+    assert np.isclose(smoothness, expected)
