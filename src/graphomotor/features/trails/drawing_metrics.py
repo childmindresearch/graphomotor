@@ -29,3 +29,27 @@ def get_total_errors(drawing: models.Drawing) -> dict[str, float]:
             "Drawing data does not contain 'total_number_of_errors' column."
         )
     return {"total_errors": drawing.data["total_number_of_errors"].iloc[0]}
+
+
+def percent_accurate_paths(drawing: models.Drawing) -> dict[str, float]:
+    """Calculate the percentage of accurate paths in a trails drawing task.
+
+    Args:
+        drawing: Drawing object containing drawing data.
+
+    Returns:
+        Dictionary containing the percentage of accurate paths of the task.
+
+    Raises:
+        ValueError: If required columns are missing in the drawing data.
+    """
+    if not {"correct_path", "actual_path"}.issubset(drawing.data.columns):
+        raise ValueError(
+            "DataFrame must contain 'correct_path' and 'actual_path' columns."
+        )
+
+    return {
+        "percent_accurate_paths": (
+            (drawing.data["correct_path"] == drawing.data["actual_path"]).mean() * 100
+        )
+    }
