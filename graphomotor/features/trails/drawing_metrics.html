@@ -36,6 +36,9 @@
             <li>
                     <a class="function" href="#get_total_errors">get_total_errors</a>
             </li>
+            <li>
+                    <a class="function" href="#percent_accurate_paths">percent_accurate_paths</a>
+            </li>
     </ul>
 
 
@@ -90,6 +93,30 @@
 </span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a>            <span class="s2">&quot;Drawing data does not contain &#39;total_number_of_errors&#39; column.&quot;</span>
 </span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>        <span class="p">)</span>
 </span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a>    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;total_errors&quot;</span><span class="p">:</span> <span class="n">drawing</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;total_number_of_errors&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]}</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>
+</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a>
+</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a><span class="k">def</span><span class="w"> </span><span class="nf">percent_accurate_paths</span><span class="p">(</span><span class="n">drawing</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">Drawing</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the percentage of accurate paths in a trails drawing task.</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a>
+</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a><span class="sd">    Args:</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a><span class="sd">        drawing: Drawing object containing drawing data.</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a>
+</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a><span class="sd">    Returns:</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a><span class="sd">        Dictionary containing the percentage of accurate paths of the task.</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a>
+</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a><span class="sd">    Raises:</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a><span class="sd">        ValueError: If required columns are missing in the drawing data.</span>
+</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="p">{</span><span class="s2">&quot;correct_path&quot;</span><span class="p">,</span> <span class="s2">&quot;actual_path&quot;</span><span class="p">}</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">drawing</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a>            <span class="s2">&quot;DataFrame must contain &#39;correct_path&#39; and &#39;actual_path&#39; columns.&quot;</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a>        <span class="p">)</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a>
+</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a>    <span class="k">return</span> <span class="p">{</span>
+</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a>        <span class="s2">&quot;percent_accurate_paths&quot;</span><span class="p">:</span> <span class="p">(</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a>            <span class="p">(</span><span class="n">drawing</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;correct_path&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">drawing</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;actual_path&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">*</span> <span class="mi">100</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a>        <span class="p">)</span>
+</span><span id="L-55"><a href="#L-55"><span class="linenos">55</span></a>    <span class="p">}</span>
 </span></pre></div>
 
 
@@ -176,6 +203,65 @@
 <blockquote>
   <p>Dictionary containing the total number of errors of the task.</p>
 </blockquote>
+</div>
+
+
+                </section>
+                <section id="percent_accurate_paths">
+                            <input id="percent_accurate_paths-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">percent_accurate_paths</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">drawing</span><span class="p">:</span> <span class="n"><a href="../../core/models.html#Drawing">graphomotor.core.models.Drawing</a></span></span><span class="return-annotation">) -> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>:</span></span>
+
+                <label class="view-source-button" for="percent_accurate_paths-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#percent_accurate_paths"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="percent_accurate_paths-35"><a href="#percent_accurate_paths-35"><span class="linenos">35</span></a><span class="k">def</span><span class="w"> </span><span class="nf">percent_accurate_paths</span><span class="p">(</span><span class="n">drawing</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">Drawing</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+</span><span id="percent_accurate_paths-36"><a href="#percent_accurate_paths-36"><span class="linenos">36</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the percentage of accurate paths in a trails drawing task.</span>
+</span><span id="percent_accurate_paths-37"><a href="#percent_accurate_paths-37"><span class="linenos">37</span></a>
+</span><span id="percent_accurate_paths-38"><a href="#percent_accurate_paths-38"><span class="linenos">38</span></a><span class="sd">    Args:</span>
+</span><span id="percent_accurate_paths-39"><a href="#percent_accurate_paths-39"><span class="linenos">39</span></a><span class="sd">        drawing: Drawing object containing drawing data.</span>
+</span><span id="percent_accurate_paths-40"><a href="#percent_accurate_paths-40"><span class="linenos">40</span></a>
+</span><span id="percent_accurate_paths-41"><a href="#percent_accurate_paths-41"><span class="linenos">41</span></a><span class="sd">    Returns:</span>
+</span><span id="percent_accurate_paths-42"><a href="#percent_accurate_paths-42"><span class="linenos">42</span></a><span class="sd">        Dictionary containing the percentage of accurate paths of the task.</span>
+</span><span id="percent_accurate_paths-43"><a href="#percent_accurate_paths-43"><span class="linenos">43</span></a>
+</span><span id="percent_accurate_paths-44"><a href="#percent_accurate_paths-44"><span class="linenos">44</span></a><span class="sd">    Raises:</span>
+</span><span id="percent_accurate_paths-45"><a href="#percent_accurate_paths-45"><span class="linenos">45</span></a><span class="sd">        ValueError: If required columns are missing in the drawing data.</span>
+</span><span id="percent_accurate_paths-46"><a href="#percent_accurate_paths-46"><span class="linenos">46</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="percent_accurate_paths-47"><a href="#percent_accurate_paths-47"><span class="linenos">47</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="p">{</span><span class="s2">&quot;correct_path&quot;</span><span class="p">,</span> <span class="s2">&quot;actual_path&quot;</span><span class="p">}</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">drawing</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">):</span>
+</span><span id="percent_accurate_paths-48"><a href="#percent_accurate_paths-48"><span class="linenos">48</span></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+</span><span id="percent_accurate_paths-49"><a href="#percent_accurate_paths-49"><span class="linenos">49</span></a>            <span class="s2">&quot;DataFrame must contain &#39;correct_path&#39; and &#39;actual_path&#39; columns.&quot;</span>
+</span><span id="percent_accurate_paths-50"><a href="#percent_accurate_paths-50"><span class="linenos">50</span></a>        <span class="p">)</span>
+</span><span id="percent_accurate_paths-51"><a href="#percent_accurate_paths-51"><span class="linenos">51</span></a>
+</span><span id="percent_accurate_paths-52"><a href="#percent_accurate_paths-52"><span class="linenos">52</span></a>    <span class="k">return</span> <span class="p">{</span>
+</span><span id="percent_accurate_paths-53"><a href="#percent_accurate_paths-53"><span class="linenos">53</span></a>        <span class="s2">&quot;percent_accurate_paths&quot;</span><span class="p">:</span> <span class="p">(</span>
+</span><span id="percent_accurate_paths-54"><a href="#percent_accurate_paths-54"><span class="linenos">54</span></a>            <span class="p">(</span><span class="n">drawing</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;correct_path&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">drawing</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;actual_path&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">*</span> <span class="mi">100</span>
+</span><span id="percent_accurate_paths-55"><a href="#percent_accurate_paths-55"><span class="linenos">55</span></a>        <span class="p">)</span>
+</span><span id="percent_accurate_paths-56"><a href="#percent_accurate_paths-56"><span class="linenos">56</span></a>    <span class="p">}</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Calculate the percentage of accurate paths in a trails drawing task.</p>
+
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>drawing:</strong>  Drawing object containing drawing data.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>Dictionary containing the percentage of accurate paths of the task.</p>
+</blockquote>
+
+<h6 id="raises">Raises:</h6>
+
+<ul>
+<li><strong>ValueError:</strong>  If required columns are missing in the drawing data.</li>
+</ul>
 </div>
 
 
