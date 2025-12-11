@@ -67,4 +67,4 @@ def test_percent_accurate_paths_sample_data() -> None:
     drawing = reader.load_drawing_data(filepath)
 
     result = drawing_metrics.percent_accurate_paths(drawing)
-    assert result == {"total_errors": 100.0}
+    assert result == {"percent_accurate_paths": 100.0}
