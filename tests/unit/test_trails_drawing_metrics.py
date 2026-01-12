@@ -8,22 +8,6 @@ from graphomotor.features.trails import drawing_metrics
 from graphomotor.io import reader
 
 
-def test_no_pen_lifts() -> None:
-    """Test case with no pen lifts."""
-    df = pd.DataFrame({"line_number": [1, 1, 1, 1]})
-    drawing = models.Drawing(data=df, task_name="trails", metadata={"id": "5555555"})
-    result = drawing_metrics.detect_pen_lifts(drawing)
-    assert result == {"pen_lifts": 0}
-
-
-def test_valid_pen_lifts() -> None:
-    """Test case with valid pen lifts."""
-    df = pd.DataFrame({"line_number": [1, 2, 3, 4]})
-    drawing = models.Drawing(data=df, task_name="trails", metadata={"id": "5555555"})
-    result = drawing_metrics.detect_pen_lifts(drawing)
-    assert result == {"pen_lifts": 3}
-
-
 def test_get_total_errors() -> None:
     """Test ValueError when total_number_of_errors column doesn't exist."""
     invalid_df = pd.DataFrame({"some_other_column": [0, 1, 2]})

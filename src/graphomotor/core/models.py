@@ -105,7 +105,7 @@ class SpiralFeatureCategories:
             Dictionary mapping category names to their feature extractor functions.
         """
         # Importing feature modules here to avoid circular imports.
-        from graphomotor.features import base_metrics
+        from graphomotor.features import shared_features
         from graphomotor.features.spiral import (
             distance,
             drawing_error,
@@ -113,7 +113,7 @@ class SpiralFeatureCategories:
         )
 
         return {
-            cls.DURATION: lambda: base_metrics.get_task_duration(spiral),
+            cls.DURATION: lambda: shared_features.get_task_duration(spiral),
             cls.VELOCITY: lambda: velocity.calculate_velocity_metrics(spiral),
             cls.HAUSDORFF: lambda: distance.calculate_hausdorff_metrics(
                 spiral, reference_spiral
