@@ -40,6 +40,12 @@ def calculate_path_optimality(
 ) -> None:
     """Calculate path optimality ratio.
 
+    The default value for path optimality in the LineSegment object is 0.0. This
+    function updates the path_optimality attribute of the LineSegment object based on
+    the optimal distance between the start and end circles, adjusted for their radii.
+    If the optimal distance is less than or equal to zero, the path optimality remains
+    0.0.
+
     Args:
         segment: LineSegment object for which to calculate path optimality.
         start_circle: CircleTarget representing the start circle.
