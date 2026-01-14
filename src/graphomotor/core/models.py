@@ -198,9 +198,8 @@ class LineSegment:
     velocities: typing.List[float] = dataclasses.field(default_factory=list)
     accelerations: typing.List[float] = dataclasses.field(default_factory=list)
 
-    @classmethod
     def calculate_path_optimality(
-        cls,
+        self,
         start_circle: CircleTarget,
         end_circle: CircleTarget,
     ) -> None:
@@ -230,5 +229,5 @@ class LineSegment:
         )
 
         if optimal_distance > 0:
-            cls.path_optimality = optimal_distance / cls.distance
+            self.path_optimality = optimal_distance / self.distance
         return
