@@ -1,4 +1,4 @@
-"""Internal data class for spiral drawing data."""
+"""Internal data classes for drawing data."""
 
 import dataclasses
 import datetime
@@ -105,10 +105,15 @@ class SpiralFeatureCategories:
             Dictionary mapping category names to their feature extractor functions.
         """
         # Importing feature modules here to avoid circular imports.
-        from graphomotor.features.spiral import distance, drawing_error, time, velocity
+        from graphomotor.features import shared_features
+        from graphomotor.features.spiral import (
+            distance,
+            drawing_error,
+            velocity,
+        )
 
         return {
-            cls.DURATION: lambda: time.get_task_duration(spiral),
+            cls.DURATION: lambda: shared_features.get_task_duration(spiral),
             cls.VELOCITY: lambda: velocity.calculate_velocity_metrics(spiral),
             cls.HAUSDORFF: lambda: distance.calculate_hausdorff_metrics(
                 spiral, reference_spiral
