@@ -1,4 +1,4 @@
-"""Internal data class for spiral drawing data."""
+"""Internal data classes for drawing data."""
 
 import dataclasses
 import datetime
@@ -7,6 +7,7 @@ import typing
 import numpy as np
 import pandas as pd
 import pydantic
+import scipy.spatial.distance as dist
 
 
 class Drawing(pydantic.BaseModel):
@@ -105,10 +106,15 @@ class SpiralFeatureCategories:
             Dictionary mapping category names to their feature extractor functions.
         """
         # Importing feature modules here to avoid circular imports.
-        from graphomotor.features.spiral import distance, drawing_error, time, velocity
+        from graphomotor.features import shared_features
+        from graphomotor.features.spiral import (
+            distance,
+            drawing_error,
+            velocity,
+        )
 
         return {
-            cls.DURATION: lambda: time.get_task_duration(spiral),
+            cls.DURATION: lambda: shared_features.get_task_duration(spiral),
             cls.VELOCITY: lambda: velocity.calculate_velocity_metrics(spiral),
             cls.HAUSDORFF: lambda: distance.calculate_hausdorff_metrics(
                 spiral, reference_spiral
@@ -117,6 +123,39 @@ class SpiralFeatureCategories:
                 spiral, reference_spiral
             ),
         }
+
+
+@dataclasses.dataclass
+class CircleTarget:
+    """Represents a target circle in the drawing task.
+
+    Attributes:
+        order: The order of the circle in the sequence.
+        label: The label of the circle.
+        center_x: The x-coordinate of the circle's center.
+        center_y: The y-coordinate of the circle's center.
+        radius: The radius of the circle.
+    """
+
+    order: int
+    label: str
+    center_x: float
+    center_y: float
+    radius: float
+
+    def contains_point(self, x: float, y: float, tolerance: float = 1.5) -> bool:
+        """Check if a point is within the circle (with tolerance multiplier).
+
+        Args:
+            x: X coordinate of the point.
+            y: Y coordinate of the point.
+            tolerance: Multiplier for the radius to define tolerance boundary.
+
+        Returns:
+            True if the point is within the circle (with tolerance), False otherwise.
+        """
+        distance = np.sqrt((x - self.center_x) ** 2 + (y - self.center_y) ** 2)
+        return distance <= (self.radius * tolerance)
 
 
 @dataclasses.dataclass
@@ -164,35 +203,36 @@ class LineSegment:
     velocities: typing.List[float] = dataclasses.field(default_factory=list)
     accelerations: typing.List[float] = dataclasses.field(default_factory=list)
 
+    def calculate_path_optimality(
+        self,
+        start_circle: CircleTarget,
+        end_circle: CircleTarget,
+    ) -> None:
+        """Calculate path optimality ratio.
 
-@dataclasses.dataclass
-class CircleTarget:
-    """Represents a target circle in the drawing task.
-
-    Attributes:
-        order: The order of the circle in the sequence.
-        label: The label of the circle.
-        center_x: The x-coordinate of the circle's center.
-        center_y: The y-coordinate of the circle's center.
-        radius: The radius of the circle.
-    """
-
-    order: int
-    label: str
-    center_x: float
-    center_y: float
-    radius: float
-
-    def contains_point(self, x: float, y: float, tolerance: float = 1.5) -> bool:
-        """Check if a point is within the circle (with tolerance multiplier).
+        The default value for path optimality in the LineSegment object is 0.0. This
+        function updates the path_optimality attribute of the LineSegment object based
+        on the optimal distance between the start and end circles, adjusted for their
+        radii. If the optimal distance is less than or equal to zero, the path
+        optimality remains 0.0.
 
         Args:
-            x: X coordinate of the point.
-            y: Y coordinate of the point.
-            tolerance: Multiplier for the radius to define tolerance boundary.
+            segment: LineSegment object for which to calculate path optimality.
+            start_circle: CircleTarget representing the start circle.
+            end_circle: CircleTarget representing the end circle.
 
         Returns:
-            True if the point is within the circle (with tolerance), False otherwise.
+            Path optimality ratio.
         """
-        distance = np.sqrt((x - self.center_x) ** 2 + (y - self.center_y) ** 2)
-        return distance <= (self.radius * tolerance)
+        optimal_distance = (
+            dist.euclidean(
+                [start_circle.center_x, start_circle.center_y],
+                [end_circle.center_x, end_circle.center_y],
+            )
+            - start_circle.radius
+            - end_circle.radius
+        )
+
+        if optimal_distance > 0:
+            self.path_optimality = optimal_distance / self.distance
+        return
