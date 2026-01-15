@@ -2,7 +2,6 @@
 
 import numpy as np
 import pandas as pd
-from shapely import points
 
 from graphomotor.core import models
 
