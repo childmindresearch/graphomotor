@@ -31,6 +31,7 @@ def test_valid_total_errors() -> None:
     result = drawing_metrics.get_total_errors(drawing)
     assert result == {"total_errors": 1.0}
 
+
 def test_percent_accurate_paths_missing_columns() -> None:
     """Test ValueError when required columns are missing."""
     invalid_df = pd.DataFrame({"some_other_column": [0, 1, 2]})
@@ -53,7 +54,7 @@ def test_percent_accurate_paths_sample_data() -> None:
     result = drawing_metrics.percent_accurate_paths(drawing)
     assert result == {"percent_accurate_paths": 100.0}
 
-    
+
 def test_smoothness_less_than_three_points() -> None:
     """Less than 3 points cannot define curvature."""
     points = pd.DataFrame({"x": [0, 1], "y": [0, 1]})
@@ -104,10 +105,12 @@ def test_smoothness_single_180_degree_turn() -> None:
 
     Since it represents maximal curvature.
     """
-    points = pd.DataFrame({
-        "x": [0, 1, 0],
-        "y": [0, 0, 0],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 1, 0],
+            "y": [0, 0, 0],
+        }
+    )
     expected = np.pi
     smoothness = drawing_metrics.calculate_smoothness(points)
     assert np.isclose(smoothness, expected)
