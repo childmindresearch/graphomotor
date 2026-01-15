@@ -95,3 +95,43 @@ def test_point_outside_with_default_tolerance(circle: models.CircleTarget) -> No
     """Point outside default tolerance boundary should not be contained."""
     assert not circle.contains_point(16.0, 0.0)
     assert not circle.contains_point(0.0, 16.0)
+
+
+def test_path_optimality_positive() -> None:
+    """Test case for path optimality with positive optimal distance."""
+    start = models.CircleTarget(order=1, label="1", center_x=0, center_y=0, radius=1)
+    end = models.CircleTarget(order=2, label="2", center_x=10, center_y=0, radius=1)
+    segment = models.LineSegment(
+        start_label="1",
+        end_label="2",
+        points=pd.DataFrame(),
+        is_error=False,
+        line_number=1,
+        distance=8,
+    )
+    expected_optimal_distance = (
+        end.center_x - start.center_x - start.radius - end.radius
+    )
+    expected_path_optimality = expected_optimal_distance / segment.distance
+
+    segment.calculate_path_optimality(start, end)
+
+    assert segment.path_optimality == expected_path_optimality
+
+
+def test_path_optimality_non_positive_distance() -> None:
+    """Test case where optimal distance is zero or negative, so no assignment occurs."""
+    start = models.CircleTarget(order=1, label="1", center_x=0, center_y=0, radius=5)
+    end = models.CircleTarget(order=2, label="2", center_x=8, center_y=0, radius=5)
+    segment = models.LineSegment(
+        start_label="1",
+        end_label="2",
+        points=pd.DataFrame(),
+        is_error=False,
+        line_number=1,
+        distance=5,
+    )
+
+    segment.calculate_path_optimality(start, end)
+
+    assert segment.path_optimality == 0.0
