@@ -49,31 +49,40 @@ def test_valid_total_errors() -> None:
 
 
 def test_smoothness_less_than_three_points() -> None:
-    """Test smoothness calculation with less than three points."""
+    """Less than 3 points cannot define curvature."""
     points = pd.DataFrame({"x": [0, 1], "y": [0, 1]})
     assert drawing_metrics.calculate_smoothness(points) == 0.0
 
 
 def test_smoothness_straight_line() -> None:
-    """Collinear points should produce zero smoothness."""
+    """Collinear points have zero curvature."""
     points = pd.DataFrame({"x": [0, 1, 2, 3], "y": [0, 0, 0, 0]})
     assert drawing_metrics.calculate_smoothness(points) == 0.0
 
 
 def test_smoothness_single_right_angle() -> None:
-    """A single 90-degree turn should produce an std of 0."""
+    """A single 90-degree corner should produce a large smoothness value.
+
+    (non-zero), since sharp turns are penalized.
+    """
     points = pd.DataFrame({"x": [0, 1, 1], "y": [0, 0, 1]})
+    expected = np.pi / 2
     smoothness = drawing_metrics.calculate_smoothness(points)
-    assert smoothness == 0.0
+    assert np.isclose(smoothness, expected)
 
 
 def test_smoothness_varied_angles() -> None:
-    """Test smoothness with two different angles to ensure std is computed correctly."""
+    """Multiple angles should produce RMS curvature.
+
+    Path has a 90° turn followed by a 45° turn.
+    """
     points = pd.DataFrame({"x": [0, 1, 1, 2], "y": [0, 0, 1, 2]})
+    c1 = np.pi / 2
+    c2 = (np.pi / 4) / ((1 + np.sqrt(2)) / 2)
+    expected = np.sqrt((c1**2 + c2**2) / 2)
 
     smoothness = drawing_metrics.calculate_smoothness(points)
 
-    expected = np.std([90, 45])
     assert np.isclose(smoothness, expected)
 
 
@@ -82,3 +91,17 @@ def test_smoothness_zero_length_segments() -> None:
     points = pd.DataFrame({"x": [0, 1, 1, 2], "y": [0, 0, 0, 0]})
     smoothness = drawing_metrics.calculate_smoothness(points)
     assert smoothness == 0.0
+
+
+def test_smoothness_single_180_degree_turn() -> None:
+    """A single 180-degree turn should produce a very large smoothness value.
+
+    Since it represents maximal curvature.
+    """
+    points = pd.DataFrame({
+        "x": [0, 1, 0],
+        "y": [0, 0, 0],
+    })
+    expected = np.pi
+    smoothness = drawing_metrics.calculate_smoothness(points)
+    assert np.isclose(smoothness, expected)

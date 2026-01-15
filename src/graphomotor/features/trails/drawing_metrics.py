@@ -2,6 +2,7 @@
 
 import numpy as np
 import pandas as pd
+from shapely import points
 
 from graphomotor.core import models
 
@@ -35,11 +36,11 @@ def get_total_errors(drawing: models.Drawing) -> dict[str, float]:
 
 
 def calculate_smoothness(points: pd.DataFrame) -> float:
-    """Calculate path smoothness based on curvature changes.
+    """Calculate path smoothness based on RMS curvature.
 
-    Lower values indicate smoother paths. This function calculates angles between
-    consecutive segments and returns the standard deviation of these angles as a
-    measure of smoothness.
+    Represants the curvature per unit arc length.
+    Lower values indicate smoother drawings. Penalizes sharp corners (e.g., 90° turns)
+    and noisy corrections. Normalized by arc length to reduce sampling-rate dependence.
 
     Args:
         points: DataFrame representing drawing points.
@@ -50,25 +51,29 @@ def calculate_smoothness(points: pd.DataFrame) -> float:
     if len(points) < 3:
         return 0.0
 
-    x = points["x"].values
-    y = points["y"].values
+    xy = points[["x", "y"]].to_numpy()
 
-    angles = []
-    for i in range(1, len(x) - 1):
-        v1 = np.array([x[i] - x[i - 1], y[i] - y[i - 1]])
-        v2 = np.array([x[i + 1] - x[i], y[i + 1] - y[i]])
+    v1 = xy[1:-1] - xy[:-2]
+    v2 = xy[2:] - xy[1:-1]
 
-        if np.linalg.norm(v1) == 0 or np.linalg.norm(v2) == 0:
-            continue
+    l1 = np.linalg.norm(v1, axis=1)
+    l2 = np.linalg.norm(v2, axis=1)
 
-        v1 = v1 / np.linalg.norm(v1)
-        v2 = v2 / np.linalg.norm(v2)
-
-        cos_angle = np.clip(np.dot(v1, v2), -1.0, 1.0)
-        angle = np.arccos(cos_angle)
-        angles.append(angle)
-
-    if not angles:
+    valid = (l1 > 0) & (l2 > 0)
+    if not np.any(valid):
         return 0.0
 
-    return np.std(np.degrees(angles))
+    v1 = v1[valid]
+    v2 = v2[valid]
+    l1 = l1[valid]
+    l2 = l2[valid]
+
+    cos_angle = np.einsum("ij,ij->i", v1, v2) / (l1 * l2)
+    cos_angle = np.clip(cos_angle, -1.0, 1.0)
+
+    angles = np.arccos(cos_angle)
+
+    arc_len = (l1 + l2) / 2.0
+    curvatures = angles / arc_len
+
+    return float(np.sqrt(np.mean(curvatures**2)))
