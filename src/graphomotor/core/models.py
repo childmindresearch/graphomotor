@@ -236,3 +236,30 @@ class LineSegment:
         if optimal_distance > 0:
             self.path_optimality = optimal_distance / self.distance
         return
+
+    def calculate_velocity_metrics(self, ink_points: pd.DataFrame) -> None:
+        """Get velocity metrics of a LineSegment.
+
+        Args:
+            self: LineSegment object to calculate velocities for.
+            ink_points: DataFrame of ink points with 'x', 'y', and 'seconds' columns.
+        """
+        dx = np.diff(ink_points["x"].values)
+        dy = np.diff(ink_points["y"].values)
+        dt = np.diff(ink_points["seconds"].values)
+
+        # NOTE: need to change the way this case is handled
+        # Avoid division by zero
+        dt[dt == 0] = 1e-6
+
+        distances = np.sqrt(dx**2 + dy**2)
+        velocities = distances / dt
+        self.velocities = velocities.tolist()
+
+        self.mean_speed = np.mean(velocities)
+        self.speed_variance = np.var(velocities)
+
+        if len(velocities) >= 2:
+            self.accelerations = np.diff(velocities).tolist()
+
+        return
