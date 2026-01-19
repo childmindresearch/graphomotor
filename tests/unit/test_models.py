@@ -1,7 +1,7 @@
 """Test cases for the Spiral model."""
 
 import datetime
-from typing import Dict
+from typing import Dict, cast
 
 import pandas as pd
 import pytest
@@ -222,12 +222,12 @@ def test_valid_ink_trajectory(
     """
     points_df = pd.DataFrame(points_data)
 
-    start_circle = models.CircleTarget(**start_params)
-    end_circle = models.CircleTarget(**end_params)
+    start_circle = models.CircleTarget(**start_params)  # type: ignore[arg-type]
+    end_circle = models.CircleTarget(**end_params)  # type: ignore[arg-type]
 
     line_segment = models.LineSegment(
-        start_label=start_params["label"],
-        end_label=end_params["label"],
+        start_label=cast(str, start_params["label"]),
+        end_label=cast(str, end_params["label"]),
         points=points_df,
         is_error=False,
         line_number=1,
