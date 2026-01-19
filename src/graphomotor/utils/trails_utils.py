@@ -46,6 +46,13 @@ def valid_ink_trajectory(
             ink_end_idx = idx
             break
 
+    if (
+        ink_start_idx is not None
+        and ink_end_idx is not None
+        and ink_end_idx > ink_start_idx
+    ):
+        ink_points = points.iloc[ink_start_idx : ink_end_idx + 1].copy()
+
     return ink_start_idx, ink_end_idx
 
 
