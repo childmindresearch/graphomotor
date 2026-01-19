@@ -1,6 +1,7 @@
 """Test cases for the Spiral model."""
 
 import datetime
+from typing import Dict
 
 import pandas as pd
 import pytest
@@ -135,3 +136,106 @@ def test_path_optimality_non_positive_distance() -> None:
     segment.calculate_path_optimality(start, end)
 
     assert segment.path_optimality == 0.0
+
+
+@pytest.mark.parametrize(
+    "points_data,start_params,end_params,expected_start,expected_end,test_id",
+    [
+        (
+            {"x": [0, 1, 2, 3, 4, 5], "y": [0, 1, 2, 3, 4, 5]},
+            {"order": 1, "label": "A", "center_x": 0, "center_y": 0, "radius": 0.5},
+            {"order": 2, "label": "B", "center_x": 5, "center_y": 5, "radius": 0.5},
+            1,
+            5,
+            "valid_trajectory",
+        ),
+        (
+            {"x": [0.1, 0.2, 0.3], "y": [0.1, 0.2, 0.3]},
+            {"order": 1, "label": "A", "center_x": 0, "center_y": 0, "radius": 1.0},
+            {"order": 2, "label": "B", "center_x": 10, "center_y": 10, "radius": 1.0},
+            None,
+            None,
+            "no_exit_from_start",
+        ),
+        (
+            {"x": [0, 1, 2, 3], "y": [0, 1, 2, 3]},
+            {"order": 1, "label": "A", "center_x": 0, "center_y": 0, "radius": 0.5},
+            {"order": 2, "label": "B", "center_x": 10, "center_y": 10, "radius": 0.5},
+            1,
+            None,
+            "never_reaches_end",
+        ),
+        (
+            {"x": [], "y": []},
+            {"order": 1, "label": "A", "center_x": 0, "center_y": 0, "radius": 1.0},
+            {"order": 2, "label": "B", "center_x": 5, "center_y": 5, "radius": 1.0},
+            None,
+            None,
+            "empty_dataframe",
+        ),
+        (
+            {"x": [0.1], "y": [0.1]},
+            {"order": 1, "label": "A", "center_x": 0, "center_y": 0, "radius": 1.0},
+            {"order": 2, "label": "B", "center_x": 5, "center_y": 5, "radius": 1.0},
+            None,
+            None,
+            "single_point_in_start",
+        ),
+        (
+            {"x": [2], "y": [2]},
+            {"order": 1, "label": "A", "center_x": 0, "center_y": 0, "radius": 0.5},
+            {"order": 2, "label": "B", "center_x": 5, "center_y": 5, "radius": 0.5},
+            0,
+            None,
+            "single_point_outside_start",
+        ),
+        (
+            {"x": [0, 2.5, 5], "y": [0, 2.5, 5]},
+            {"order": 1, "label": "A", "center_x": 0, "center_y": 0, "radius": 0.5},
+            {"order": 2, "label": "B", "center_x": 2.5, "center_y": 2.5, "radius": 1.0},
+            1,
+            1,
+            "immediate_transition",
+        ),
+        (
+            {"x": [3, 4, 5], "y": [3, 4, 5]},
+            {"order": 1, "label": "A", "center_x": 0, "center_y": 0, "radius": 0.5},
+            {"order": 2, "label": "B", "center_x": 5, "center_y": 5, "radius": 0.5},
+            0,
+            2,
+            "first_point_outside_start",
+        ),
+    ],
+    ids=lambda x: x if isinstance(x, str) else "",
+)
+def test_valid_ink_trajectory(
+    points_data: Dict[str, list[float]],
+    start_params: dict[str, int | str | float],
+    end_params: dict[str, int | str | float],
+    expected_start: int | None,
+    expected_end: int | None,
+    test_id: str,
+) -> None:
+    """Test valid_ink_trajectory method with various point configurations.
+
+    Tests behavior with different circle boundaries.
+    """
+    points_df = pd.DataFrame(points_data)
+
+    start_circle = models.CircleTarget(**start_params)
+    end_circle = models.CircleTarget(**end_params)
+
+    line_segment = models.LineSegment(
+        start_label=start_params["label"],
+        end_label=end_params["label"],
+        points=points_df,
+        is_error=False,
+        line_number=1,
+    )
+
+    result_start, result_end = line_segment.valid_ink_trajectory(
+        start_circle, end_circle
+    )
+
+    assert result_start == expected_start, f"Start index mismatch for {test_id}"
+    assert result_end == expected_end, f"End index mismatch for {test_id}"
