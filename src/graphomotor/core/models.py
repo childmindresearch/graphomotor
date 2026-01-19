@@ -253,6 +253,8 @@ class LineSegment:
         dt[dt == 0] = 1e-6
 
         distances = np.sqrt(dx**2 + dy**2)
+        self.distance = np.sum(distances)
+
         velocities = distances / dt
         self.velocities = velocities.tolist()
 
