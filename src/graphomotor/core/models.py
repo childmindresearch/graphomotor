@@ -2,7 +2,7 @@
 
 import dataclasses
 import datetime
-import typing
+from typing import Callable, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -95,7 +95,7 @@ class SpiralFeatureCategories:
     @classmethod
     def get_extractors(
         cls, spiral: Drawing, reference_spiral: np.ndarray
-    ) -> dict[str, typing.Callable[[], dict[str, float]]]:
+    ) -> dict[str, Callable[[], dict[str, float]]]:
         """Get all feature extractors with appropriate inputs.
 
         Args:
@@ -189,6 +189,7 @@ class LineSegment:
     points: pd.DataFrame
     is_error: bool
     line_number: int
+    ink_points: np.ndarray = dataclasses.field(default_factory=lambda: np.array([]))
 
     ink_time: float = 0.0
     think_time: float = 0.0
@@ -200,8 +201,62 @@ class LineSegment:
     smoothness: float = 0.0
     hesitation_count: int = 0
     hesitation_duration: float = 0.0
-    velocities: typing.List[float] = dataclasses.field(default_factory=list)
-    accelerations: typing.List[float] = dataclasses.field(default_factory=list)
+    velocities: List[float] = dataclasses.field(default_factory=list)
+    accelerations: List[float] = dataclasses.field(default_factory=list)
+
+    def valid_ink_trajectory(
+        self,
+        start_circle: CircleTarget,
+        end_circle: CircleTarget,
+    ) -> Tuple[Optional[int], Optional[int]]:
+        """Determine whether an ink trajectory exists from a start to end circle.
+
+        An "ink trajectory" is defined as the first contiguous sequence of
+        points that:
+        1. Begins **after** the pen leaves the start circle, and
+        2. Ends when the pen first enters the end circle.
+
+        The function scans point-by-point in order. The ink start index is the
+        first point whose (x, y) location is *outside* the start circle. The
+        ink end index is the first subsequent point whose (x, y) location falls
+        *inside* the end circle. If either of these conditions never occurs,
+        the trajectory is considered invalid. If a valid trajectory is found,
+        the ink_points attribute is updated to contain only the points within
+        this trajectory.
+
+        Args:
+            points: DataFrame of points with 'x' and 'y' columns.
+            start_circle: CircleTarget representing the start circle.
+            end_circle: CircleTarget representing the end circle.
+
+        Returns:
+            Tuple of (ink_start_idx: int, ink_end_idx: int) if valid
+            trajectory exists, else (None, None).
+        """
+        ink_start_idx = None
+        ink_end_idx = None
+
+        for idx, row in self.points.iterrows():
+            if (
+                not start_circle.contains_point(row["x"], row["y"])
+                and ink_start_idx is None
+            ):
+                ink_start_idx = idx
+
+            if ink_start_idx is not None and end_circle.contains_point(
+                row["x"], row["y"]
+            ):
+                ink_end_idx = idx
+                break
+
+        if (
+            ink_start_idx is not None
+            and ink_end_idx is not None
+            and ink_end_idx > ink_start_idx
+        ):
+            self.ink_points = self.points.iloc[ink_start_idx : ink_end_idx + 1].copy()
+
+        return ink_start_idx, ink_end_idx
 
     def calculate_path_optimality(
         self,
