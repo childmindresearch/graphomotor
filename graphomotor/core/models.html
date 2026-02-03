@@ -127,6 +127,9 @@
                                 <a class="variable" href="#LineSegment.line_number">line_number</a>
                         </li>
                         <li>
+                                <a class="variable" href="#LineSegment.ink_points">ink_points</a>
+                        </li>
+                        <li>
                                 <a class="variable" href="#LineSegment.ink_time">ink_time</a>
                         </li>
                         <li>
@@ -163,6 +166,9 @@
                                 <a class="variable" href="#LineSegment.accelerations">accelerations</a>
                         </li>
                         <li>
+                                <a class="function" href="#LineSegment.valid_ink_trajectory">valid_ink_trajectory</a>
+                        </li>
+                        <li>
                                 <a class="function" href="#LineSegment.calculate_path_optimality">calculate_path_optimality</a>
                         </li>
                 </ul>
@@ -195,7 +201,7 @@
 </span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a>
 </span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">dataclasses</span>
 </span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">typing</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
 </span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a>
 </span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 </span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
@@ -288,7 +294,7 @@
 </span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>    <span class="nd">@classmethod</span>
 </span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_extractors</span><span class="p">(</span>
 </span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>        <span class="bp">cls</span><span class="p">,</span> <span class="n">spiral</span><span class="p">:</span> <span class="n">Drawing</span><span class="p">,</span> <span class="n">reference_spiral</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
-</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[],</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]:</span>
+</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]:</span>
 </span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all feature extractors with appropriate inputs.</span>
 </span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>
 </span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a><span class="sd">        Args:</span>
@@ -382,53 +388,108 @@
 </span><span id="L-189"><a href="#L-189"><span class="linenos">189</span></a>    <span class="n">points</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
 </span><span id="L-190"><a href="#L-190"><span class="linenos">190</span></a>    <span class="n">is_error</span><span class="p">:</span> <span class="nb">bool</span>
 </span><span id="L-191"><a href="#L-191"><span class="linenos">191</span></a>    <span class="n">line_number</span><span class="p">:</span> <span class="nb">int</span>
-</span><span id="L-192"><a href="#L-192"><span class="linenos">192</span></a>
-</span><span id="L-193"><a href="#L-193"><span class="linenos">193</span></a>    <span class="n">ink_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="L-194"><a href="#L-194"><span class="linenos">194</span></a>    <span class="n">think_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="L-195"><a href="#L-195"><span class="linenos">195</span></a>    <span class="n">think_circle_label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-</span><span id="L-196"><a href="#L-196"><span class="linenos">196</span></a>    <span class="n">distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="L-197"><a href="#L-197"><span class="linenos">197</span></a>    <span class="n">mean_speed</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="L-198"><a href="#L-198"><span class="linenos">198</span></a>    <span class="n">speed_variance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="L-199"><a href="#L-199"><span class="linenos">199</span></a>    <span class="n">path_optimality</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="L-200"><a href="#L-200"><span class="linenos">200</span></a>    <span class="n">smoothness</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="L-201"><a href="#L-201"><span class="linenos">201</span></a>    <span class="n">hesitation_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="L-202"><a href="#L-202"><span class="linenos">202</span></a>    <span class="n">hesitation_duration</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="L-203"><a href="#L-203"><span class="linenos">203</span></a>    <span class="n">velocities</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
-</span><span id="L-204"><a href="#L-204"><span class="linenos">204</span></a>    <span class="n">accelerations</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
-</span><span id="L-205"><a href="#L-205"><span class="linenos">205</span></a>
-</span><span id="L-206"><a href="#L-206"><span class="linenos">206</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_path_optimality</span><span class="p">(</span>
-</span><span id="L-207"><a href="#L-207"><span class="linenos">207</span></a>        <span class="bp">self</span><span class="p">,</span>
-</span><span id="L-208"><a href="#L-208"><span class="linenos">208</span></a>        <span class="n">start_circle</span><span class="p">:</span> <span class="n">CircleTarget</span><span class="p">,</span>
-</span><span id="L-209"><a href="#L-209"><span class="linenos">209</span></a>        <span class="n">end_circle</span><span class="p">:</span> <span class="n">CircleTarget</span><span class="p">,</span>
-</span><span id="L-210"><a href="#L-210"><span class="linenos">210</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="L-211"><a href="#L-211"><span class="linenos">211</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate path optimality ratio.</span>
-</span><span id="L-212"><a href="#L-212"><span class="linenos">212</span></a>
-</span><span id="L-213"><a href="#L-213"><span class="linenos">213</span></a><span class="sd">        The default value for path optimality in the LineSegment object is 0.0. This</span>
-</span><span id="L-214"><a href="#L-214"><span class="linenos">214</span></a><span class="sd">        function updates the path_optimality attribute of the LineSegment object based</span>
-</span><span id="L-215"><a href="#L-215"><span class="linenos">215</span></a><span class="sd">        on the optimal distance between the start and end circles, adjusted for their</span>
-</span><span id="L-216"><a href="#L-216"><span class="linenos">216</span></a><span class="sd">        radii. If the optimal distance is less than or equal to zero, the path</span>
-</span><span id="L-217"><a href="#L-217"><span class="linenos">217</span></a><span class="sd">        optimality remains 0.0.</span>
+</span><span id="L-192"><a href="#L-192"><span class="linenos">192</span></a>    <span class="n">ink_points</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([]))</span>
+</span><span id="L-193"><a href="#L-193"><span class="linenos">193</span></a>
+</span><span id="L-194"><a href="#L-194"><span class="linenos">194</span></a>    <span class="n">ink_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="L-195"><a href="#L-195"><span class="linenos">195</span></a>    <span class="n">think_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="L-196"><a href="#L-196"><span class="linenos">196</span></a>    <span class="n">think_circle_label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+</span><span id="L-197"><a href="#L-197"><span class="linenos">197</span></a>    <span class="n">distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="L-198"><a href="#L-198"><span class="linenos">198</span></a>    <span class="n">mean_speed</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="L-199"><a href="#L-199"><span class="linenos">199</span></a>    <span class="n">speed_variance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="L-200"><a href="#L-200"><span class="linenos">200</span></a>    <span class="n">path_optimality</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="L-201"><a href="#L-201"><span class="linenos">201</span></a>    <span class="n">smoothness</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="L-202"><a href="#L-202"><span class="linenos">202</span></a>    <span class="n">hesitation_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="L-203"><a href="#L-203"><span class="linenos">203</span></a>    <span class="n">hesitation_duration</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="L-204"><a href="#L-204"><span class="linenos">204</span></a>    <span class="n">velocities</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+</span><span id="L-205"><a href="#L-205"><span class="linenos">205</span></a>    <span class="n">accelerations</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+</span><span id="L-206"><a href="#L-206"><span class="linenos">206</span></a>
+</span><span id="L-207"><a href="#L-207"><span class="linenos">207</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">valid_ink_trajectory</span><span class="p">(</span>
+</span><span id="L-208"><a href="#L-208"><span class="linenos">208</span></a>        <span class="bp">self</span><span class="p">,</span>
+</span><span id="L-209"><a href="#L-209"><span class="linenos">209</span></a>        <span class="n">start_circle</span><span class="p">:</span> <span class="n">CircleTarget</span><span class="p">,</span>
+</span><span id="L-210"><a href="#L-210"><span class="linenos">210</span></a>        <span class="n">end_circle</span><span class="p">:</span> <span class="n">CircleTarget</span><span class="p">,</span>
+</span><span id="L-211"><a href="#L-211"><span class="linenos">211</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+</span><span id="L-212"><a href="#L-212"><span class="linenos">212</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Determine whether an ink trajectory exists from a start to end circle.</span>
+</span><span id="L-213"><a href="#L-213"><span class="linenos">213</span></a>
+</span><span id="L-214"><a href="#L-214"><span class="linenos">214</span></a><span class="sd">        An &quot;ink trajectory&quot; is defined as the first contiguous sequence of</span>
+</span><span id="L-215"><a href="#L-215"><span class="linenos">215</span></a><span class="sd">        points that:</span>
+</span><span id="L-216"><a href="#L-216"><span class="linenos">216</span></a><span class="sd">        1. Begins **after** the pen leaves the start circle, and</span>
+</span><span id="L-217"><a href="#L-217"><span class="linenos">217</span></a><span class="sd">        2. Ends when the pen first enters the end circle.</span>
 </span><span id="L-218"><a href="#L-218"><span class="linenos">218</span></a>
-</span><span id="L-219"><a href="#L-219"><span class="linenos">219</span></a><span class="sd">        Args:</span>
-</span><span id="L-220"><a href="#L-220"><span class="linenos">220</span></a><span class="sd">            segment: LineSegment object for which to calculate path optimality.</span>
-</span><span id="L-221"><a href="#L-221"><span class="linenos">221</span></a><span class="sd">            start_circle: CircleTarget representing the start circle.</span>
-</span><span id="L-222"><a href="#L-222"><span class="linenos">222</span></a><span class="sd">            end_circle: CircleTarget representing the end circle.</span>
-</span><span id="L-223"><a href="#L-223"><span class="linenos">223</span></a>
-</span><span id="L-224"><a href="#L-224"><span class="linenos">224</span></a><span class="sd">        Returns:</span>
-</span><span id="L-225"><a href="#L-225"><span class="linenos">225</span></a><span class="sd">            Path optimality ratio.</span>
-</span><span id="L-226"><a href="#L-226"><span class="linenos">226</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="L-227"><a href="#L-227"><span class="linenos">227</span></a>        <span class="n">optimal_distance</span> <span class="o">=</span> <span class="p">(</span>
-</span><span id="L-228"><a href="#L-228"><span class="linenos">228</span></a>            <span class="n">dist</span><span class="o">.</span><span class="n">euclidean</span><span class="p">(</span>
-</span><span id="L-229"><a href="#L-229"><span class="linenos">229</span></a>                <span class="p">[</span><span class="n">start_circle</span><span class="o">.</span><span class="n">center_x</span><span class="p">,</span> <span class="n">start_circle</span><span class="o">.</span><span class="n">center_y</span><span class="p">],</span>
-</span><span id="L-230"><a href="#L-230"><span class="linenos">230</span></a>                <span class="p">[</span><span class="n">end_circle</span><span class="o">.</span><span class="n">center_x</span><span class="p">,</span> <span class="n">end_circle</span><span class="o">.</span><span class="n">center_y</span><span class="p">],</span>
-</span><span id="L-231"><a href="#L-231"><span class="linenos">231</span></a>            <span class="p">)</span>
-</span><span id="L-232"><a href="#L-232"><span class="linenos">232</span></a>            <span class="o">-</span> <span class="n">start_circle</span><span class="o">.</span><span class="n">radius</span>
-</span><span id="L-233"><a href="#L-233"><span class="linenos">233</span></a>            <span class="o">-</span> <span class="n">end_circle</span><span class="o">.</span><span class="n">radius</span>
-</span><span id="L-234"><a href="#L-234"><span class="linenos">234</span></a>        <span class="p">)</span>
-</span><span id="L-235"><a href="#L-235"><span class="linenos">235</span></a>
-</span><span id="L-236"><a href="#L-236"><span class="linenos">236</span></a>        <span class="k">if</span> <span class="n">optimal_distance</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-</span><span id="L-237"><a href="#L-237"><span class="linenos">237</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">path_optimality</span> <span class="o">=</span> <span class="n">optimal_distance</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">distance</span>
-</span><span id="L-238"><a href="#L-238"><span class="linenos">238</span></a>        <span class="k">return</span>
+</span><span id="L-219"><a href="#L-219"><span class="linenos">219</span></a><span class="sd">        The function scans point-by-point in order. The ink start index is the</span>
+</span><span id="L-220"><a href="#L-220"><span class="linenos">220</span></a><span class="sd">        first point whose (x, y) location is *outside* the start circle. The</span>
+</span><span id="L-221"><a href="#L-221"><span class="linenos">221</span></a><span class="sd">        ink end index is the first subsequent point whose (x, y) location falls</span>
+</span><span id="L-222"><a href="#L-222"><span class="linenos">222</span></a><span class="sd">        *inside* the end circle. If either of these conditions never occurs,</span>
+</span><span id="L-223"><a href="#L-223"><span class="linenos">223</span></a><span class="sd">        the trajectory is considered invalid. If a valid trajectory is found,</span>
+</span><span id="L-224"><a href="#L-224"><span class="linenos">224</span></a><span class="sd">        the ink_points attribute is updated to contain only the points within</span>
+</span><span id="L-225"><a href="#L-225"><span class="linenos">225</span></a><span class="sd">        this trajectory.</span>
+</span><span id="L-226"><a href="#L-226"><span class="linenos">226</span></a>
+</span><span id="L-227"><a href="#L-227"><span class="linenos">227</span></a><span class="sd">        Args:</span>
+</span><span id="L-228"><a href="#L-228"><span class="linenos">228</span></a><span class="sd">            points: DataFrame of points with &#39;x&#39; and &#39;y&#39; columns.</span>
+</span><span id="L-229"><a href="#L-229"><span class="linenos">229</span></a><span class="sd">            start_circle: CircleTarget representing the start circle.</span>
+</span><span id="L-230"><a href="#L-230"><span class="linenos">230</span></a><span class="sd">            end_circle: CircleTarget representing the end circle.</span>
+</span><span id="L-231"><a href="#L-231"><span class="linenos">231</span></a>
+</span><span id="L-232"><a href="#L-232"><span class="linenos">232</span></a><span class="sd">        Returns:</span>
+</span><span id="L-233"><a href="#L-233"><span class="linenos">233</span></a><span class="sd">            Tuple of (ink_start_idx: int, ink_end_idx: int) if valid</span>
+</span><span id="L-234"><a href="#L-234"><span class="linenos">234</span></a><span class="sd">            trajectory exists, else (None, None).</span>
+</span><span id="L-235"><a href="#L-235"><span class="linenos">235</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-236"><a href="#L-236"><span class="linenos">236</span></a>        <span class="n">ink_start_idx</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="L-237"><a href="#L-237"><span class="linenos">237</span></a>        <span class="n">ink_end_idx</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="L-238"><a href="#L-238"><span class="linenos">238</span></a>
+</span><span id="L-239"><a href="#L-239"><span class="linenos">239</span></a>        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+</span><span id="L-240"><a href="#L-240"><span class="linenos">240</span></a>            <span class="k">if</span> <span class="p">(</span>
+</span><span id="L-241"><a href="#L-241"><span class="linenos">241</span></a>                <span class="ow">not</span> <span class="n">start_circle</span><span class="o">.</span><span class="n">contains_point</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">])</span>
+</span><span id="L-242"><a href="#L-242"><span class="linenos">242</span></a>                <span class="ow">and</span> <span class="n">ink_start_idx</span> <span class="ow">is</span> <span class="kc">None</span>
+</span><span id="L-243"><a href="#L-243"><span class="linenos">243</span></a>            <span class="p">):</span>
+</span><span id="L-244"><a href="#L-244"><span class="linenos">244</span></a>                <span class="n">ink_start_idx</span> <span class="o">=</span> <span class="n">idx</span>
+</span><span id="L-245"><a href="#L-245"><span class="linenos">245</span></a>
+</span><span id="L-246"><a href="#L-246"><span class="linenos">246</span></a>            <span class="k">if</span> <span class="n">ink_start_idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">end_circle</span><span class="o">.</span><span class="n">contains_point</span><span class="p">(</span>
+</span><span id="L-247"><a href="#L-247"><span class="linenos">247</span></a>                <span class="n">row</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span>
+</span><span id="L-248"><a href="#L-248"><span class="linenos">248</span></a>            <span class="p">):</span>
+</span><span id="L-249"><a href="#L-249"><span class="linenos">249</span></a>                <span class="n">ink_end_idx</span> <span class="o">=</span> <span class="n">idx</span>
+</span><span id="L-250"><a href="#L-250"><span class="linenos">250</span></a>                <span class="k">break</span>
+</span><span id="L-251"><a href="#L-251"><span class="linenos">251</span></a>
+</span><span id="L-252"><a href="#L-252"><span class="linenos">252</span></a>        <span class="k">if</span> <span class="p">(</span>
+</span><span id="L-253"><a href="#L-253"><span class="linenos">253</span></a>            <span class="n">ink_start_idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+</span><span id="L-254"><a href="#L-254"><span class="linenos">254</span></a>            <span class="ow">and</span> <span class="n">ink_end_idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+</span><span id="L-255"><a href="#L-255"><span class="linenos">255</span></a>            <span class="ow">and</span> <span class="n">ink_end_idx</span> <span class="o">&gt;</span> <span class="n">ink_start_idx</span>
+</span><span id="L-256"><a href="#L-256"><span class="linenos">256</span></a>        <span class="p">):</span>
+</span><span id="L-257"><a href="#L-257"><span class="linenos">257</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">ink_points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">ink_start_idx</span> <span class="p">:</span> <span class="n">ink_end_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+</span><span id="L-258"><a href="#L-258"><span class="linenos">258</span></a>
+</span><span id="L-259"><a href="#L-259"><span class="linenos">259</span></a>        <span class="k">return</span> <span class="n">ink_start_idx</span><span class="p">,</span> <span class="n">ink_end_idx</span>
+</span><span id="L-260"><a href="#L-260"><span class="linenos">260</span></a>
+</span><span id="L-261"><a href="#L-261"><span class="linenos">261</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_path_optimality</span><span class="p">(</span>
+</span><span id="L-262"><a href="#L-262"><span class="linenos">262</span></a>        <span class="bp">self</span><span class="p">,</span>
+</span><span id="L-263"><a href="#L-263"><span class="linenos">263</span></a>        <span class="n">start_circle</span><span class="p">:</span> <span class="n">CircleTarget</span><span class="p">,</span>
+</span><span id="L-264"><a href="#L-264"><span class="linenos">264</span></a>        <span class="n">end_circle</span><span class="p">:</span> <span class="n">CircleTarget</span><span class="p">,</span>
+</span><span id="L-265"><a href="#L-265"><span class="linenos">265</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-266"><a href="#L-266"><span class="linenos">266</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate path optimality ratio.</span>
+</span><span id="L-267"><a href="#L-267"><span class="linenos">267</span></a>
+</span><span id="L-268"><a href="#L-268"><span class="linenos">268</span></a><span class="sd">        The default value for path optimality in the LineSegment object is 0.0. This</span>
+</span><span id="L-269"><a href="#L-269"><span class="linenos">269</span></a><span class="sd">        function updates the path_optimality attribute of the LineSegment object based</span>
+</span><span id="L-270"><a href="#L-270"><span class="linenos">270</span></a><span class="sd">        on the optimal distance between the start and end circles, adjusted for their</span>
+</span><span id="L-271"><a href="#L-271"><span class="linenos">271</span></a><span class="sd">        radii. If the optimal distance is less than or equal to zero, the path</span>
+</span><span id="L-272"><a href="#L-272"><span class="linenos">272</span></a><span class="sd">        optimality remains 0.0.</span>
+</span><span id="L-273"><a href="#L-273"><span class="linenos">273</span></a>
+</span><span id="L-274"><a href="#L-274"><span class="linenos">274</span></a><span class="sd">        Args:</span>
+</span><span id="L-275"><a href="#L-275"><span class="linenos">275</span></a><span class="sd">            segment: LineSegment object for which to calculate path optimality.</span>
+</span><span id="L-276"><a href="#L-276"><span class="linenos">276</span></a><span class="sd">            start_circle: CircleTarget representing the start circle.</span>
+</span><span id="L-277"><a href="#L-277"><span class="linenos">277</span></a><span class="sd">            end_circle: CircleTarget representing the end circle.</span>
+</span><span id="L-278"><a href="#L-278"><span class="linenos">278</span></a>
+</span><span id="L-279"><a href="#L-279"><span class="linenos">279</span></a><span class="sd">        Returns:</span>
+</span><span id="L-280"><a href="#L-280"><span class="linenos">280</span></a><span class="sd">            Path optimality ratio.</span>
+</span><span id="L-281"><a href="#L-281"><span class="linenos">281</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-282"><a href="#L-282"><span class="linenos">282</span></a>        <span class="n">optimal_distance</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="L-283"><a href="#L-283"><span class="linenos">283</span></a>            <span class="n">dist</span><span class="o">.</span><span class="n">euclidean</span><span class="p">(</span>
+</span><span id="L-284"><a href="#L-284"><span class="linenos">284</span></a>                <span class="p">[</span><span class="n">start_circle</span><span class="o">.</span><span class="n">center_x</span><span class="p">,</span> <span class="n">start_circle</span><span class="o">.</span><span class="n">center_y</span><span class="p">],</span>
+</span><span id="L-285"><a href="#L-285"><span class="linenos">285</span></a>                <span class="p">[</span><span class="n">end_circle</span><span class="o">.</span><span class="n">center_x</span><span class="p">,</span> <span class="n">end_circle</span><span class="o">.</span><span class="n">center_y</span><span class="p">],</span>
+</span><span id="L-286"><a href="#L-286"><span class="linenos">286</span></a>            <span class="p">)</span>
+</span><span id="L-287"><a href="#L-287"><span class="linenos">287</span></a>            <span class="o">-</span> <span class="n">start_circle</span><span class="o">.</span><span class="n">radius</span>
+</span><span id="L-288"><a href="#L-288"><span class="linenos">288</span></a>            <span class="o">-</span> <span class="n">end_circle</span><span class="o">.</span><span class="n">radius</span>
+</span><span id="L-289"><a href="#L-289"><span class="linenos">289</span></a>        <span class="p">)</span>
+</span><span id="L-290"><a href="#L-290"><span class="linenos">290</span></a>
+</span><span id="L-291"><a href="#L-291"><span class="linenos">291</span></a>        <span class="k">if</span> <span class="n">optimal_distance</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+</span><span id="L-292"><a href="#L-292"><span class="linenos">292</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">path_optimality</span> <span class="o">=</span> <span class="n">optimal_distance</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">distance</span>
+</span><span id="L-293"><a href="#L-293"><span class="linenos">293</span></a>        <span class="k">return</span>
 </span></pre></div>
 
 
@@ -729,7 +790,7 @@ y, UTC_Timestamp, seconds).</li>
 </span><span id="SpiralFeatureCategories-96"><a href="#SpiralFeatureCategories-96"><span class="linenos"> 96</span></a>    <span class="nd">@classmethod</span>
 </span><span id="SpiralFeatureCategories-97"><a href="#SpiralFeatureCategories-97"><span class="linenos"> 97</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_extractors</span><span class="p">(</span>
 </span><span id="SpiralFeatureCategories-98"><a href="#SpiralFeatureCategories-98"><span class="linenos"> 98</span></a>        <span class="bp">cls</span><span class="p">,</span> <span class="n">spiral</span><span class="p">:</span> <span class="n">Drawing</span><span class="p">,</span> <span class="n">reference_spiral</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
-</span><span id="SpiralFeatureCategories-99"><a href="#SpiralFeatureCategories-99"><span class="linenos"> 99</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[],</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]:</span>
+</span><span id="SpiralFeatureCategories-99"><a href="#SpiralFeatureCategories-99"><span class="linenos"> 99</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]:</span>
 </span><span id="SpiralFeatureCategories-100"><a href="#SpiralFeatureCategories-100"><span class="linenos">100</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all feature extractors with appropriate inputs.</span>
 </span><span id="SpiralFeatureCategories-101"><a href="#SpiralFeatureCategories-101"><span class="linenos">101</span></a>
 </span><span id="SpiralFeatureCategories-102"><a href="#SpiralFeatureCategories-102"><span class="linenos">102</span></a><span class="sd">        Args:</span>
@@ -856,7 +917,7 @@ y, UTC_Timestamp, seconds).</li>
             <div class="pdoc-code codehilite"><pre><span></span><span id="SpiralFeatureCategories.get_extractors-96"><a href="#SpiralFeatureCategories.get_extractors-96"><span class="linenos"> 96</span></a>    <span class="nd">@classmethod</span>
 </span><span id="SpiralFeatureCategories.get_extractors-97"><a href="#SpiralFeatureCategories.get_extractors-97"><span class="linenos"> 97</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_extractors</span><span class="p">(</span>
 </span><span id="SpiralFeatureCategories.get_extractors-98"><a href="#SpiralFeatureCategories.get_extractors-98"><span class="linenos"> 98</span></a>        <span class="bp">cls</span><span class="p">,</span> <span class="n">spiral</span><span class="p">:</span> <span class="n">Drawing</span><span class="p">,</span> <span class="n">reference_spiral</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
-</span><span id="SpiralFeatureCategories.get_extractors-99"><a href="#SpiralFeatureCategories.get_extractors-99"><span class="linenos"> 99</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">typing</span><span class="o">.</span><span class="n">Callable</span><span class="p">[[],</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]:</span>
+</span><span id="SpiralFeatureCategories.get_extractors-99"><a href="#SpiralFeatureCategories.get_extractors-99"><span class="linenos"> 99</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]:</span>
 </span><span id="SpiralFeatureCategories.get_extractors-100"><a href="#SpiralFeatureCategories.get_extractors-100"><span class="linenos">100</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get all feature extractors with appropriate inputs.</span>
 </span><span id="SpiralFeatureCategories.get_extractors-101"><a href="#SpiralFeatureCategories.get_extractors-101"><span class="linenos">101</span></a>
 </span><span id="SpiralFeatureCategories.get_extractors-102"><a href="#SpiralFeatureCategories.get_extractors-102"><span class="linenos">102</span></a><span class="sd">        Args:</span>
@@ -1123,53 +1184,108 @@ y, UTC_Timestamp, seconds).</li>
 </span><span id="LineSegment-190"><a href="#LineSegment-190"><span class="linenos">190</span></a>    <span class="n">points</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
 </span><span id="LineSegment-191"><a href="#LineSegment-191"><span class="linenos">191</span></a>    <span class="n">is_error</span><span class="p">:</span> <span class="nb">bool</span>
 </span><span id="LineSegment-192"><a href="#LineSegment-192"><span class="linenos">192</span></a>    <span class="n">line_number</span><span class="p">:</span> <span class="nb">int</span>
-</span><span id="LineSegment-193"><a href="#LineSegment-193"><span class="linenos">193</span></a>
-</span><span id="LineSegment-194"><a href="#LineSegment-194"><span class="linenos">194</span></a>    <span class="n">ink_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="LineSegment-195"><a href="#LineSegment-195"><span class="linenos">195</span></a>    <span class="n">think_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="LineSegment-196"><a href="#LineSegment-196"><span class="linenos">196</span></a>    <span class="n">think_circle_label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-</span><span id="LineSegment-197"><a href="#LineSegment-197"><span class="linenos">197</span></a>    <span class="n">distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="LineSegment-198"><a href="#LineSegment-198"><span class="linenos">198</span></a>    <span class="n">mean_speed</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="LineSegment-199"><a href="#LineSegment-199"><span class="linenos">199</span></a>    <span class="n">speed_variance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="LineSegment-200"><a href="#LineSegment-200"><span class="linenos">200</span></a>    <span class="n">path_optimality</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="LineSegment-201"><a href="#LineSegment-201"><span class="linenos">201</span></a>    <span class="n">smoothness</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="LineSegment-202"><a href="#LineSegment-202"><span class="linenos">202</span></a>    <span class="n">hesitation_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
-</span><span id="LineSegment-203"><a href="#LineSegment-203"><span class="linenos">203</span></a>    <span class="n">hesitation_duration</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-</span><span id="LineSegment-204"><a href="#LineSegment-204"><span class="linenos">204</span></a>    <span class="n">velocities</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
-</span><span id="LineSegment-205"><a href="#LineSegment-205"><span class="linenos">205</span></a>    <span class="n">accelerations</span><span class="p">:</span> <span class="n">typing</span><span class="o">.</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
-</span><span id="LineSegment-206"><a href="#LineSegment-206"><span class="linenos">206</span></a>
-</span><span id="LineSegment-207"><a href="#LineSegment-207"><span class="linenos">207</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_path_optimality</span><span class="p">(</span>
-</span><span id="LineSegment-208"><a href="#LineSegment-208"><span class="linenos">208</span></a>        <span class="bp">self</span><span class="p">,</span>
-</span><span id="LineSegment-209"><a href="#LineSegment-209"><span class="linenos">209</span></a>        <span class="n">start_circle</span><span class="p">:</span> <span class="n">CircleTarget</span><span class="p">,</span>
-</span><span id="LineSegment-210"><a href="#LineSegment-210"><span class="linenos">210</span></a>        <span class="n">end_circle</span><span class="p">:</span> <span class="n">CircleTarget</span><span class="p">,</span>
-</span><span id="LineSegment-211"><a href="#LineSegment-211"><span class="linenos">211</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="LineSegment-212"><a href="#LineSegment-212"><span class="linenos">212</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate path optimality ratio.</span>
-</span><span id="LineSegment-213"><a href="#LineSegment-213"><span class="linenos">213</span></a>
-</span><span id="LineSegment-214"><a href="#LineSegment-214"><span class="linenos">214</span></a><span class="sd">        The default value for path optimality in the LineSegment object is 0.0. This</span>
-</span><span id="LineSegment-215"><a href="#LineSegment-215"><span class="linenos">215</span></a><span class="sd">        function updates the path_optimality attribute of the LineSegment object based</span>
-</span><span id="LineSegment-216"><a href="#LineSegment-216"><span class="linenos">216</span></a><span class="sd">        on the optimal distance between the start and end circles, adjusted for their</span>
-</span><span id="LineSegment-217"><a href="#LineSegment-217"><span class="linenos">217</span></a><span class="sd">        radii. If the optimal distance is less than or equal to zero, the path</span>
-</span><span id="LineSegment-218"><a href="#LineSegment-218"><span class="linenos">218</span></a><span class="sd">        optimality remains 0.0.</span>
+</span><span id="LineSegment-193"><a href="#LineSegment-193"><span class="linenos">193</span></a>    <span class="n">ink_points</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([]))</span>
+</span><span id="LineSegment-194"><a href="#LineSegment-194"><span class="linenos">194</span></a>
+</span><span id="LineSegment-195"><a href="#LineSegment-195"><span class="linenos">195</span></a>    <span class="n">ink_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="LineSegment-196"><a href="#LineSegment-196"><span class="linenos">196</span></a>    <span class="n">think_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="LineSegment-197"><a href="#LineSegment-197"><span class="linenos">197</span></a>    <span class="n">think_circle_label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+</span><span id="LineSegment-198"><a href="#LineSegment-198"><span class="linenos">198</span></a>    <span class="n">distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="LineSegment-199"><a href="#LineSegment-199"><span class="linenos">199</span></a>    <span class="n">mean_speed</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="LineSegment-200"><a href="#LineSegment-200"><span class="linenos">200</span></a>    <span class="n">speed_variance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="LineSegment-201"><a href="#LineSegment-201"><span class="linenos">201</span></a>    <span class="n">path_optimality</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="LineSegment-202"><a href="#LineSegment-202"><span class="linenos">202</span></a>    <span class="n">smoothness</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="LineSegment-203"><a href="#LineSegment-203"><span class="linenos">203</span></a>    <span class="n">hesitation_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>
+</span><span id="LineSegment-204"><a href="#LineSegment-204"><span class="linenos">204</span></a>    <span class="n">hesitation_duration</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+</span><span id="LineSegment-205"><a href="#LineSegment-205"><span class="linenos">205</span></a>    <span class="n">velocities</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+</span><span id="LineSegment-206"><a href="#LineSegment-206"><span class="linenos">206</span></a>    <span class="n">accelerations</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span>
+</span><span id="LineSegment-207"><a href="#LineSegment-207"><span class="linenos">207</span></a>
+</span><span id="LineSegment-208"><a href="#LineSegment-208"><span class="linenos">208</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">valid_ink_trajectory</span><span class="p">(</span>
+</span><span id="LineSegment-209"><a href="#LineSegment-209"><span class="linenos">209</span></a>        <span class="bp">self</span><span class="p">,</span>
+</span><span id="LineSegment-210"><a href="#LineSegment-210"><span class="linenos">210</span></a>        <span class="n">start_circle</span><span class="p">:</span> <span class="n">CircleTarget</span><span class="p">,</span>
+</span><span id="LineSegment-211"><a href="#LineSegment-211"><span class="linenos">211</span></a>        <span class="n">end_circle</span><span class="p">:</span> <span class="n">CircleTarget</span><span class="p">,</span>
+</span><span id="LineSegment-212"><a href="#LineSegment-212"><span class="linenos">212</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+</span><span id="LineSegment-213"><a href="#LineSegment-213"><span class="linenos">213</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Determine whether an ink trajectory exists from a start to end circle.</span>
+</span><span id="LineSegment-214"><a href="#LineSegment-214"><span class="linenos">214</span></a>
+</span><span id="LineSegment-215"><a href="#LineSegment-215"><span class="linenos">215</span></a><span class="sd">        An &quot;ink trajectory&quot; is defined as the first contiguous sequence of</span>
+</span><span id="LineSegment-216"><a href="#LineSegment-216"><span class="linenos">216</span></a><span class="sd">        points that:</span>
+</span><span id="LineSegment-217"><a href="#LineSegment-217"><span class="linenos">217</span></a><span class="sd">        1. Begins **after** the pen leaves the start circle, and</span>
+</span><span id="LineSegment-218"><a href="#LineSegment-218"><span class="linenos">218</span></a><span class="sd">        2. Ends when the pen first enters the end circle.</span>
 </span><span id="LineSegment-219"><a href="#LineSegment-219"><span class="linenos">219</span></a>
-</span><span id="LineSegment-220"><a href="#LineSegment-220"><span class="linenos">220</span></a><span class="sd">        Args:</span>
-</span><span id="LineSegment-221"><a href="#LineSegment-221"><span class="linenos">221</span></a><span class="sd">            segment: LineSegment object for which to calculate path optimality.</span>
-</span><span id="LineSegment-222"><a href="#LineSegment-222"><span class="linenos">222</span></a><span class="sd">            start_circle: CircleTarget representing the start circle.</span>
-</span><span id="LineSegment-223"><a href="#LineSegment-223"><span class="linenos">223</span></a><span class="sd">            end_circle: CircleTarget representing the end circle.</span>
-</span><span id="LineSegment-224"><a href="#LineSegment-224"><span class="linenos">224</span></a>
-</span><span id="LineSegment-225"><a href="#LineSegment-225"><span class="linenos">225</span></a><span class="sd">        Returns:</span>
-</span><span id="LineSegment-226"><a href="#LineSegment-226"><span class="linenos">226</span></a><span class="sd">            Path optimality ratio.</span>
-</span><span id="LineSegment-227"><a href="#LineSegment-227"><span class="linenos">227</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="LineSegment-228"><a href="#LineSegment-228"><span class="linenos">228</span></a>        <span class="n">optimal_distance</span> <span class="o">=</span> <span class="p">(</span>
-</span><span id="LineSegment-229"><a href="#LineSegment-229"><span class="linenos">229</span></a>            <span class="n">dist</span><span class="o">.</span><span class="n">euclidean</span><span class="p">(</span>
-</span><span id="LineSegment-230"><a href="#LineSegment-230"><span class="linenos">230</span></a>                <span class="p">[</span><span class="n">start_circle</span><span class="o">.</span><span class="n">center_x</span><span class="p">,</span> <span class="n">start_circle</span><span class="o">.</span><span class="n">center_y</span><span class="p">],</span>
-</span><span id="LineSegment-231"><a href="#LineSegment-231"><span class="linenos">231</span></a>                <span class="p">[</span><span class="n">end_circle</span><span class="o">.</span><span class="n">center_x</span><span class="p">,</span> <span class="n">end_circle</span><span class="o">.</span><span class="n">center_y</span><span class="p">],</span>
-</span><span id="LineSegment-232"><a href="#LineSegment-232"><span class="linenos">232</span></a>            <span class="p">)</span>
-</span><span id="LineSegment-233"><a href="#LineSegment-233"><span class="linenos">233</span></a>            <span class="o">-</span> <span class="n">start_circle</span><span class="o">.</span><span class="n">radius</span>
-</span><span id="LineSegment-234"><a href="#LineSegment-234"><span class="linenos">234</span></a>            <span class="o">-</span> <span class="n">end_circle</span><span class="o">.</span><span class="n">radius</span>
-</span><span id="LineSegment-235"><a href="#LineSegment-235"><span class="linenos">235</span></a>        <span class="p">)</span>
-</span><span id="LineSegment-236"><a href="#LineSegment-236"><span class="linenos">236</span></a>
-</span><span id="LineSegment-237"><a href="#LineSegment-237"><span class="linenos">237</span></a>        <span class="k">if</span> <span class="n">optimal_distance</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-</span><span id="LineSegment-238"><a href="#LineSegment-238"><span class="linenos">238</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">path_optimality</span> <span class="o">=</span> <span class="n">optimal_distance</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">distance</span>
-</span><span id="LineSegment-239"><a href="#LineSegment-239"><span class="linenos">239</span></a>        <span class="k">return</span>
+</span><span id="LineSegment-220"><a href="#LineSegment-220"><span class="linenos">220</span></a><span class="sd">        The function scans point-by-point in order. The ink start index is the</span>
+</span><span id="LineSegment-221"><a href="#LineSegment-221"><span class="linenos">221</span></a><span class="sd">        first point whose (x, y) location is *outside* the start circle. The</span>
+</span><span id="LineSegment-222"><a href="#LineSegment-222"><span class="linenos">222</span></a><span class="sd">        ink end index is the first subsequent point whose (x, y) location falls</span>
+</span><span id="LineSegment-223"><a href="#LineSegment-223"><span class="linenos">223</span></a><span class="sd">        *inside* the end circle. If either of these conditions never occurs,</span>
+</span><span id="LineSegment-224"><a href="#LineSegment-224"><span class="linenos">224</span></a><span class="sd">        the trajectory is considered invalid. If a valid trajectory is found,</span>
+</span><span id="LineSegment-225"><a href="#LineSegment-225"><span class="linenos">225</span></a><span class="sd">        the ink_points attribute is updated to contain only the points within</span>
+</span><span id="LineSegment-226"><a href="#LineSegment-226"><span class="linenos">226</span></a><span class="sd">        this trajectory.</span>
+</span><span id="LineSegment-227"><a href="#LineSegment-227"><span class="linenos">227</span></a>
+</span><span id="LineSegment-228"><a href="#LineSegment-228"><span class="linenos">228</span></a><span class="sd">        Args:</span>
+</span><span id="LineSegment-229"><a href="#LineSegment-229"><span class="linenos">229</span></a><span class="sd">            points: DataFrame of points with &#39;x&#39; and &#39;y&#39; columns.</span>
+</span><span id="LineSegment-230"><a href="#LineSegment-230"><span class="linenos">230</span></a><span class="sd">            start_circle: CircleTarget representing the start circle.</span>
+</span><span id="LineSegment-231"><a href="#LineSegment-231"><span class="linenos">231</span></a><span class="sd">            end_circle: CircleTarget representing the end circle.</span>
+</span><span id="LineSegment-232"><a href="#LineSegment-232"><span class="linenos">232</span></a>
+</span><span id="LineSegment-233"><a href="#LineSegment-233"><span class="linenos">233</span></a><span class="sd">        Returns:</span>
+</span><span id="LineSegment-234"><a href="#LineSegment-234"><span class="linenos">234</span></a><span class="sd">            Tuple of (ink_start_idx: int, ink_end_idx: int) if valid</span>
+</span><span id="LineSegment-235"><a href="#LineSegment-235"><span class="linenos">235</span></a><span class="sd">            trajectory exists, else (None, None).</span>
+</span><span id="LineSegment-236"><a href="#LineSegment-236"><span class="linenos">236</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="LineSegment-237"><a href="#LineSegment-237"><span class="linenos">237</span></a>        <span class="n">ink_start_idx</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="LineSegment-238"><a href="#LineSegment-238"><span class="linenos">238</span></a>        <span class="n">ink_end_idx</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="LineSegment-239"><a href="#LineSegment-239"><span class="linenos">239</span></a>
+</span><span id="LineSegment-240"><a href="#LineSegment-240"><span class="linenos">240</span></a>        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+</span><span id="LineSegment-241"><a href="#LineSegment-241"><span class="linenos">241</span></a>            <span class="k">if</span> <span class="p">(</span>
+</span><span id="LineSegment-242"><a href="#LineSegment-242"><span class="linenos">242</span></a>                <span class="ow">not</span> <span class="n">start_circle</span><span class="o">.</span><span class="n">contains_point</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">])</span>
+</span><span id="LineSegment-243"><a href="#LineSegment-243"><span class="linenos">243</span></a>                <span class="ow">and</span> <span class="n">ink_start_idx</span> <span class="ow">is</span> <span class="kc">None</span>
+</span><span id="LineSegment-244"><a href="#LineSegment-244"><span class="linenos">244</span></a>            <span class="p">):</span>
+</span><span id="LineSegment-245"><a href="#LineSegment-245"><span class="linenos">245</span></a>                <span class="n">ink_start_idx</span> <span class="o">=</span> <span class="n">idx</span>
+</span><span id="LineSegment-246"><a href="#LineSegment-246"><span class="linenos">246</span></a>
+</span><span id="LineSegment-247"><a href="#LineSegment-247"><span class="linenos">247</span></a>            <span class="k">if</span> <span class="n">ink_start_idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">end_circle</span><span class="o">.</span><span class="n">contains_point</span><span class="p">(</span>
+</span><span id="LineSegment-248"><a href="#LineSegment-248"><span class="linenos">248</span></a>                <span class="n">row</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span>
+</span><span id="LineSegment-249"><a href="#LineSegment-249"><span class="linenos">249</span></a>            <span class="p">):</span>
+</span><span id="LineSegment-250"><a href="#LineSegment-250"><span class="linenos">250</span></a>                <span class="n">ink_end_idx</span> <span class="o">=</span> <span class="n">idx</span>
+</span><span id="LineSegment-251"><a href="#LineSegment-251"><span class="linenos">251</span></a>                <span class="k">break</span>
+</span><span id="LineSegment-252"><a href="#LineSegment-252"><span class="linenos">252</span></a>
+</span><span id="LineSegment-253"><a href="#LineSegment-253"><span class="linenos">253</span></a>        <span class="k">if</span> <span class="p">(</span>
+</span><span id="LineSegment-254"><a href="#LineSegment-254"><span class="linenos">254</span></a>            <span class="n">ink_start_idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+</span><span id="LineSegment-255"><a href="#LineSegment-255"><span class="linenos">255</span></a>            <span class="ow">and</span> <span class="n">ink_end_idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+</span><span id="LineSegment-256"><a href="#LineSegment-256"><span class="linenos">256</span></a>            <span class="ow">and</span> <span class="n">ink_end_idx</span> <span class="o">&gt;</span> <span class="n">ink_start_idx</span>
+</span><span id="LineSegment-257"><a href="#LineSegment-257"><span class="linenos">257</span></a>        <span class="p">):</span>
+</span><span id="LineSegment-258"><a href="#LineSegment-258"><span class="linenos">258</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">ink_points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">ink_start_idx</span> <span class="p">:</span> <span class="n">ink_end_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+</span><span id="LineSegment-259"><a href="#LineSegment-259"><span class="linenos">259</span></a>
+</span><span id="LineSegment-260"><a href="#LineSegment-260"><span class="linenos">260</span></a>        <span class="k">return</span> <span class="n">ink_start_idx</span><span class="p">,</span> <span class="n">ink_end_idx</span>
+</span><span id="LineSegment-261"><a href="#LineSegment-261"><span class="linenos">261</span></a>
+</span><span id="LineSegment-262"><a href="#LineSegment-262"><span class="linenos">262</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_path_optimality</span><span class="p">(</span>
+</span><span id="LineSegment-263"><a href="#LineSegment-263"><span class="linenos">263</span></a>        <span class="bp">self</span><span class="p">,</span>
+</span><span id="LineSegment-264"><a href="#LineSegment-264"><span class="linenos">264</span></a>        <span class="n">start_circle</span><span class="p">:</span> <span class="n">CircleTarget</span><span class="p">,</span>
+</span><span id="LineSegment-265"><a href="#LineSegment-265"><span class="linenos">265</span></a>        <span class="n">end_circle</span><span class="p">:</span> <span class="n">CircleTarget</span><span class="p">,</span>
+</span><span id="LineSegment-266"><a href="#LineSegment-266"><span class="linenos">266</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="LineSegment-267"><a href="#LineSegment-267"><span class="linenos">267</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate path optimality ratio.</span>
+</span><span id="LineSegment-268"><a href="#LineSegment-268"><span class="linenos">268</span></a>
+</span><span id="LineSegment-269"><a href="#LineSegment-269"><span class="linenos">269</span></a><span class="sd">        The default value for path optimality in the LineSegment object is 0.0. This</span>
+</span><span id="LineSegment-270"><a href="#LineSegment-270"><span class="linenos">270</span></a><span class="sd">        function updates the path_optimality attribute of the LineSegment object based</span>
+</span><span id="LineSegment-271"><a href="#LineSegment-271"><span class="linenos">271</span></a><span class="sd">        on the optimal distance between the start and end circles, adjusted for their</span>
+</span><span id="LineSegment-272"><a href="#LineSegment-272"><span class="linenos">272</span></a><span class="sd">        radii. If the optimal distance is less than or equal to zero, the path</span>
+</span><span id="LineSegment-273"><a href="#LineSegment-273"><span class="linenos">273</span></a><span class="sd">        optimality remains 0.0.</span>
+</span><span id="LineSegment-274"><a href="#LineSegment-274"><span class="linenos">274</span></a>
+</span><span id="LineSegment-275"><a href="#LineSegment-275"><span class="linenos">275</span></a><span class="sd">        Args:</span>
+</span><span id="LineSegment-276"><a href="#LineSegment-276"><span class="linenos">276</span></a><span class="sd">            segment: LineSegment object for which to calculate path optimality.</span>
+</span><span id="LineSegment-277"><a href="#LineSegment-277"><span class="linenos">277</span></a><span class="sd">            start_circle: CircleTarget representing the start circle.</span>
+</span><span id="LineSegment-278"><a href="#LineSegment-278"><span class="linenos">278</span></a><span class="sd">            end_circle: CircleTarget representing the end circle.</span>
+</span><span id="LineSegment-279"><a href="#LineSegment-279"><span class="linenos">279</span></a>
+</span><span id="LineSegment-280"><a href="#LineSegment-280"><span class="linenos">280</span></a><span class="sd">        Returns:</span>
+</span><span id="LineSegment-281"><a href="#LineSegment-281"><span class="linenos">281</span></a><span class="sd">            Path optimality ratio.</span>
+</span><span id="LineSegment-282"><a href="#LineSegment-282"><span class="linenos">282</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="LineSegment-283"><a href="#LineSegment-283"><span class="linenos">283</span></a>        <span class="n">optimal_distance</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="LineSegment-284"><a href="#LineSegment-284"><span class="linenos">284</span></a>            <span class="n">dist</span><span class="o">.</span><span class="n">euclidean</span><span class="p">(</span>
+</span><span id="LineSegment-285"><a href="#LineSegment-285"><span class="linenos">285</span></a>                <span class="p">[</span><span class="n">start_circle</span><span class="o">.</span><span class="n">center_x</span><span class="p">,</span> <span class="n">start_circle</span><span class="o">.</span><span class="n">center_y</span><span class="p">],</span>
+</span><span id="LineSegment-286"><a href="#LineSegment-286"><span class="linenos">286</span></a>                <span class="p">[</span><span class="n">end_circle</span><span class="o">.</span><span class="n">center_x</span><span class="p">,</span> <span class="n">end_circle</span><span class="o">.</span><span class="n">center_y</span><span class="p">],</span>
+</span><span id="LineSegment-287"><a href="#LineSegment-287"><span class="linenos">287</span></a>            <span class="p">)</span>
+</span><span id="LineSegment-288"><a href="#LineSegment-288"><span class="linenos">288</span></a>            <span class="o">-</span> <span class="n">start_circle</span><span class="o">.</span><span class="n">radius</span>
+</span><span id="LineSegment-289"><a href="#LineSegment-289"><span class="linenos">289</span></a>            <span class="o">-</span> <span class="n">end_circle</span><span class="o">.</span><span class="n">radius</span>
+</span><span id="LineSegment-290"><a href="#LineSegment-290"><span class="linenos">290</span></a>        <span class="p">)</span>
+</span><span id="LineSegment-291"><a href="#LineSegment-291"><span class="linenos">291</span></a>
+</span><span id="LineSegment-292"><a href="#LineSegment-292"><span class="linenos">292</span></a>        <span class="k">if</span> <span class="n">optimal_distance</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+</span><span id="LineSegment-293"><a href="#LineSegment-293"><span class="linenos">293</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">path_optimality</span> <span class="o">=</span> <span class="n">optimal_distance</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">distance</span>
+</span><span id="LineSegment-294"><a href="#LineSegment-294"><span class="linenos">294</span></a>        <span class="k">return</span>
 </span></pre></div>
 
 
@@ -1203,7 +1319,7 @@ y, UTC_Timestamp, seconds).</li>
                             <div id="LineSegment.__init__" class="classattr">
                                 <div class="attr function">
             
-        <span class="name">LineSegment</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">start_label</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">end_label</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">points</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">DataFrame</span>,</span><span class="param">	<span class="n">is_error</span><span class="p">:</span> <span class="nb">bool</span>,</span><span class="param">	<span class="n">line_number</span><span class="p">:</span> <span class="nb">int</span>,</span><span class="param">	<span class="n">ink_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>,</span><span class="param">	<span class="n">think_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>,</span><span class="param">	<span class="n">think_circle_label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>,</span><span class="param">	<span class="n">distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>,</span><span class="param">	<span class="n">mean_speed</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>,</span><span class="param">	<span class="n">speed_variance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>,</span><span class="param">	<span class="n">path_optimality</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>,</span><span class="param">	<span class="n">smoothness</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>,</span><span class="param">	<span class="n">hesitation_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>,</span><span class="param">	<span class="n">hesitation_duration</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>,</span><span class="param">	<span class="n">velocities</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">factory</span><span class="o">&gt;</span>,</span><span class="param">	<span class="n">accelerations</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">factory</span><span class="o">&gt;</span></span>)</span>
+        <span class="name">LineSegment</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">start_label</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">end_label</span><span class="p">:</span> <span class="nb">str</span>,</span><span class="param">	<span class="n">points</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">DataFrame</span>,</span><span class="param">	<span class="n">is_error</span><span class="p">:</span> <span class="nb">bool</span>,</span><span class="param">	<span class="n">line_number</span><span class="p">:</span> <span class="nb">int</span>,</span><span class="param">	<span class="n">ink_points</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">factory</span><span class="o">&gt;</span>,</span><span class="param">	<span class="n">ink_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>,</span><span class="param">	<span class="n">think_time</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>,</span><span class="param">	<span class="n">think_circle_label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>,</span><span class="param">	<span class="n">distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>,</span><span class="param">	<span class="n">mean_speed</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>,</span><span class="param">	<span class="n">speed_variance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>,</span><span class="param">	<span class="n">path_optimality</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>,</span><span class="param">	<span class="n">smoothness</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>,</span><span class="param">	<span class="n">hesitation_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span>,</span><span class="param">	<span class="n">hesitation_duration</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>,</span><span class="param">	<span class="n">velocities</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">factory</span><span class="o">&gt;</span>,</span><span class="param">	<span class="n">accelerations</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">factory</span><span class="o">&gt;</span></span>)</span>
 
         
     </div>
@@ -1263,6 +1379,17 @@ y, UTC_Timestamp, seconds).</li>
         
     </div>
     <a class="headerlink" href="#LineSegment.line_number"></a>
+    
+    
+
+                            </div>
+                            <div id="LineSegment.ink_points" class="classattr">
+                                <div class="attr variable">
+            <span class="name">ink_points</span><span class="annotation">: numpy.ndarray</span>
+
+        
+    </div>
+    <a class="headerlink" href="#LineSegment.ink_points"></a>
     
     
 
@@ -1409,6 +1536,109 @@ y, UTC_Timestamp, seconds).</li>
     
 
                             </div>
+                            <div id="LineSegment.valid_ink_trajectory" class="classattr">
+                                        <input id="LineSegment.valid_ink_trajectory-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">valid_ink_trajectory</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="bp">self</span>,</span><span class="param">	<span class="n">start_circle</span><span class="p">:</span> <span class="n"><a href="#CircleTarget">CircleTarget</a></span>,</span><span class="param">	<span class="n">end_circle</span><span class="p">:</span> <span class="n"><a href="#CircleTarget">CircleTarget</a></span></span><span class="return-annotation">) -> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span>:</span></span>
+
+                <label class="view-source-button" for="LineSegment.valid_ink_trajectory-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#LineSegment.valid_ink_trajectory"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LineSegment.valid_ink_trajectory-208"><a href="#LineSegment.valid_ink_trajectory-208"><span class="linenos">208</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">valid_ink_trajectory</span><span class="p">(</span>
+</span><span id="LineSegment.valid_ink_trajectory-209"><a href="#LineSegment.valid_ink_trajectory-209"><span class="linenos">209</span></a>        <span class="bp">self</span><span class="p">,</span>
+</span><span id="LineSegment.valid_ink_trajectory-210"><a href="#LineSegment.valid_ink_trajectory-210"><span class="linenos">210</span></a>        <span class="n">start_circle</span><span class="p">:</span> <span class="n">CircleTarget</span><span class="p">,</span>
+</span><span id="LineSegment.valid_ink_trajectory-211"><a href="#LineSegment.valid_ink_trajectory-211"><span class="linenos">211</span></a>        <span class="n">end_circle</span><span class="p">:</span> <span class="n">CircleTarget</span><span class="p">,</span>
+</span><span id="LineSegment.valid_ink_trajectory-212"><a href="#LineSegment.valid_ink_trajectory-212"><span class="linenos">212</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+</span><span id="LineSegment.valid_ink_trajectory-213"><a href="#LineSegment.valid_ink_trajectory-213"><span class="linenos">213</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Determine whether an ink trajectory exists from a start to end circle.</span>
+</span><span id="LineSegment.valid_ink_trajectory-214"><a href="#LineSegment.valid_ink_trajectory-214"><span class="linenos">214</span></a>
+</span><span id="LineSegment.valid_ink_trajectory-215"><a href="#LineSegment.valid_ink_trajectory-215"><span class="linenos">215</span></a><span class="sd">        An &quot;ink trajectory&quot; is defined as the first contiguous sequence of</span>
+</span><span id="LineSegment.valid_ink_trajectory-216"><a href="#LineSegment.valid_ink_trajectory-216"><span class="linenos">216</span></a><span class="sd">        points that:</span>
+</span><span id="LineSegment.valid_ink_trajectory-217"><a href="#LineSegment.valid_ink_trajectory-217"><span class="linenos">217</span></a><span class="sd">        1. Begins **after** the pen leaves the start circle, and</span>
+</span><span id="LineSegment.valid_ink_trajectory-218"><a href="#LineSegment.valid_ink_trajectory-218"><span class="linenos">218</span></a><span class="sd">        2. Ends when the pen first enters the end circle.</span>
+</span><span id="LineSegment.valid_ink_trajectory-219"><a href="#LineSegment.valid_ink_trajectory-219"><span class="linenos">219</span></a>
+</span><span id="LineSegment.valid_ink_trajectory-220"><a href="#LineSegment.valid_ink_trajectory-220"><span class="linenos">220</span></a><span class="sd">        The function scans point-by-point in order. The ink start index is the</span>
+</span><span id="LineSegment.valid_ink_trajectory-221"><a href="#LineSegment.valid_ink_trajectory-221"><span class="linenos">221</span></a><span class="sd">        first point whose (x, y) location is *outside* the start circle. The</span>
+</span><span id="LineSegment.valid_ink_trajectory-222"><a href="#LineSegment.valid_ink_trajectory-222"><span class="linenos">222</span></a><span class="sd">        ink end index is the first subsequent point whose (x, y) location falls</span>
+</span><span id="LineSegment.valid_ink_trajectory-223"><a href="#LineSegment.valid_ink_trajectory-223"><span class="linenos">223</span></a><span class="sd">        *inside* the end circle. If either of these conditions never occurs,</span>
+</span><span id="LineSegment.valid_ink_trajectory-224"><a href="#LineSegment.valid_ink_trajectory-224"><span class="linenos">224</span></a><span class="sd">        the trajectory is considered invalid. If a valid trajectory is found,</span>
+</span><span id="LineSegment.valid_ink_trajectory-225"><a href="#LineSegment.valid_ink_trajectory-225"><span class="linenos">225</span></a><span class="sd">        the ink_points attribute is updated to contain only the points within</span>
+</span><span id="LineSegment.valid_ink_trajectory-226"><a href="#LineSegment.valid_ink_trajectory-226"><span class="linenos">226</span></a><span class="sd">        this trajectory.</span>
+</span><span id="LineSegment.valid_ink_trajectory-227"><a href="#LineSegment.valid_ink_trajectory-227"><span class="linenos">227</span></a>
+</span><span id="LineSegment.valid_ink_trajectory-228"><a href="#LineSegment.valid_ink_trajectory-228"><span class="linenos">228</span></a><span class="sd">        Args:</span>
+</span><span id="LineSegment.valid_ink_trajectory-229"><a href="#LineSegment.valid_ink_trajectory-229"><span class="linenos">229</span></a><span class="sd">            points: DataFrame of points with &#39;x&#39; and &#39;y&#39; columns.</span>
+</span><span id="LineSegment.valid_ink_trajectory-230"><a href="#LineSegment.valid_ink_trajectory-230"><span class="linenos">230</span></a><span class="sd">            start_circle: CircleTarget representing the start circle.</span>
+</span><span id="LineSegment.valid_ink_trajectory-231"><a href="#LineSegment.valid_ink_trajectory-231"><span class="linenos">231</span></a><span class="sd">            end_circle: CircleTarget representing the end circle.</span>
+</span><span id="LineSegment.valid_ink_trajectory-232"><a href="#LineSegment.valid_ink_trajectory-232"><span class="linenos">232</span></a>
+</span><span id="LineSegment.valid_ink_trajectory-233"><a href="#LineSegment.valid_ink_trajectory-233"><span class="linenos">233</span></a><span class="sd">        Returns:</span>
+</span><span id="LineSegment.valid_ink_trajectory-234"><a href="#LineSegment.valid_ink_trajectory-234"><span class="linenos">234</span></a><span class="sd">            Tuple of (ink_start_idx: int, ink_end_idx: int) if valid</span>
+</span><span id="LineSegment.valid_ink_trajectory-235"><a href="#LineSegment.valid_ink_trajectory-235"><span class="linenos">235</span></a><span class="sd">            trajectory exists, else (None, None).</span>
+</span><span id="LineSegment.valid_ink_trajectory-236"><a href="#LineSegment.valid_ink_trajectory-236"><span class="linenos">236</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="LineSegment.valid_ink_trajectory-237"><a href="#LineSegment.valid_ink_trajectory-237"><span class="linenos">237</span></a>        <span class="n">ink_start_idx</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="LineSegment.valid_ink_trajectory-238"><a href="#LineSegment.valid_ink_trajectory-238"><span class="linenos">238</span></a>        <span class="n">ink_end_idx</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="LineSegment.valid_ink_trajectory-239"><a href="#LineSegment.valid_ink_trajectory-239"><span class="linenos">239</span></a>
+</span><span id="LineSegment.valid_ink_trajectory-240"><a href="#LineSegment.valid_ink_trajectory-240"><span class="linenos">240</span></a>        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+</span><span id="LineSegment.valid_ink_trajectory-241"><a href="#LineSegment.valid_ink_trajectory-241"><span class="linenos">241</span></a>            <span class="k">if</span> <span class="p">(</span>
+</span><span id="LineSegment.valid_ink_trajectory-242"><a href="#LineSegment.valid_ink_trajectory-242"><span class="linenos">242</span></a>                <span class="ow">not</span> <span class="n">start_circle</span><span class="o">.</span><span class="n">contains_point</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">])</span>
+</span><span id="LineSegment.valid_ink_trajectory-243"><a href="#LineSegment.valid_ink_trajectory-243"><span class="linenos">243</span></a>                <span class="ow">and</span> <span class="n">ink_start_idx</span> <span class="ow">is</span> <span class="kc">None</span>
+</span><span id="LineSegment.valid_ink_trajectory-244"><a href="#LineSegment.valid_ink_trajectory-244"><span class="linenos">244</span></a>            <span class="p">):</span>
+</span><span id="LineSegment.valid_ink_trajectory-245"><a href="#LineSegment.valid_ink_trajectory-245"><span class="linenos">245</span></a>                <span class="n">ink_start_idx</span> <span class="o">=</span> <span class="n">idx</span>
+</span><span id="LineSegment.valid_ink_trajectory-246"><a href="#LineSegment.valid_ink_trajectory-246"><span class="linenos">246</span></a>
+</span><span id="LineSegment.valid_ink_trajectory-247"><a href="#LineSegment.valid_ink_trajectory-247"><span class="linenos">247</span></a>            <span class="k">if</span> <span class="n">ink_start_idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">end_circle</span><span class="o">.</span><span class="n">contains_point</span><span class="p">(</span>
+</span><span id="LineSegment.valid_ink_trajectory-248"><a href="#LineSegment.valid_ink_trajectory-248"><span class="linenos">248</span></a>                <span class="n">row</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span>
+</span><span id="LineSegment.valid_ink_trajectory-249"><a href="#LineSegment.valid_ink_trajectory-249"><span class="linenos">249</span></a>            <span class="p">):</span>
+</span><span id="LineSegment.valid_ink_trajectory-250"><a href="#LineSegment.valid_ink_trajectory-250"><span class="linenos">250</span></a>                <span class="n">ink_end_idx</span> <span class="o">=</span> <span class="n">idx</span>
+</span><span id="LineSegment.valid_ink_trajectory-251"><a href="#LineSegment.valid_ink_trajectory-251"><span class="linenos">251</span></a>                <span class="k">break</span>
+</span><span id="LineSegment.valid_ink_trajectory-252"><a href="#LineSegment.valid_ink_trajectory-252"><span class="linenos">252</span></a>
+</span><span id="LineSegment.valid_ink_trajectory-253"><a href="#LineSegment.valid_ink_trajectory-253"><span class="linenos">253</span></a>        <span class="k">if</span> <span class="p">(</span>
+</span><span id="LineSegment.valid_ink_trajectory-254"><a href="#LineSegment.valid_ink_trajectory-254"><span class="linenos">254</span></a>            <span class="n">ink_start_idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+</span><span id="LineSegment.valid_ink_trajectory-255"><a href="#LineSegment.valid_ink_trajectory-255"><span class="linenos">255</span></a>            <span class="ow">and</span> <span class="n">ink_end_idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+</span><span id="LineSegment.valid_ink_trajectory-256"><a href="#LineSegment.valid_ink_trajectory-256"><span class="linenos">256</span></a>            <span class="ow">and</span> <span class="n">ink_end_idx</span> <span class="o">&gt;</span> <span class="n">ink_start_idx</span>
+</span><span id="LineSegment.valid_ink_trajectory-257"><a href="#LineSegment.valid_ink_trajectory-257"><span class="linenos">257</span></a>        <span class="p">):</span>
+</span><span id="LineSegment.valid_ink_trajectory-258"><a href="#LineSegment.valid_ink_trajectory-258"><span class="linenos">258</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">ink_points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">ink_start_idx</span> <span class="p">:</span> <span class="n">ink_end_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+</span><span id="LineSegment.valid_ink_trajectory-259"><a href="#LineSegment.valid_ink_trajectory-259"><span class="linenos">259</span></a>
+</span><span id="LineSegment.valid_ink_trajectory-260"><a href="#LineSegment.valid_ink_trajectory-260"><span class="linenos">260</span></a>        <span class="k">return</span> <span class="n">ink_start_idx</span><span class="p">,</span> <span class="n">ink_end_idx</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Determine whether an ink trajectory exists from a start to end circle.</p>
+
+<p>An "ink trajectory" is defined as the first contiguous sequence of
+points that:</p>
+
+<ol>
+<li>Begins <strong>after</strong> the pen leaves the start circle, and</li>
+<li>Ends when the pen first enters the end circle.</li>
+</ol>
+
+<p>The function scans point-by-point in order. The ink start index is the
+first point whose (x, y) location is <em>outside</em> the start circle. The
+ink end index is the first subsequent point whose (x, y) location falls
+<em>inside</em> the end circle. If either of these conditions never occurs,
+the trajectory is considered invalid. If a valid trajectory is found,
+the ink_points attribute is updated to contain only the points within
+this trajectory.</p>
+
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>points:</strong>  DataFrame of points with 'x' and 'y' columns.</li>
+<li><strong>start_circle:</strong>  CircleTarget representing the start circle.</li>
+<li><strong>end_circle:</strong>  CircleTarget representing the end circle.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>Tuple of (ink_start_idx: int, ink_end_idx: int) if valid
+  trajectory exists, else (None, None).</p>
+</blockquote>
+</div>
+
+
+                            </div>
                             <div id="LineSegment.calculate_path_optimality" class="classattr">
                                         <input id="LineSegment.calculate_path_optimality-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
@@ -1420,39 +1650,39 @@ y, UTC_Timestamp, seconds).</li>
 
     </div>
     <a class="headerlink" href="#LineSegment.calculate_path_optimality"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="LineSegment.calculate_path_optimality-207"><a href="#LineSegment.calculate_path_optimality-207"><span class="linenos">207</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_path_optimality</span><span class="p">(</span>
-</span><span id="LineSegment.calculate_path_optimality-208"><a href="#LineSegment.calculate_path_optimality-208"><span class="linenos">208</span></a>        <span class="bp">self</span><span class="p">,</span>
-</span><span id="LineSegment.calculate_path_optimality-209"><a href="#LineSegment.calculate_path_optimality-209"><span class="linenos">209</span></a>        <span class="n">start_circle</span><span class="p">:</span> <span class="n">CircleTarget</span><span class="p">,</span>
-</span><span id="LineSegment.calculate_path_optimality-210"><a href="#LineSegment.calculate_path_optimality-210"><span class="linenos">210</span></a>        <span class="n">end_circle</span><span class="p">:</span> <span class="n">CircleTarget</span><span class="p">,</span>
-</span><span id="LineSegment.calculate_path_optimality-211"><a href="#LineSegment.calculate_path_optimality-211"><span class="linenos">211</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-</span><span id="LineSegment.calculate_path_optimality-212"><a href="#LineSegment.calculate_path_optimality-212"><span class="linenos">212</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate path optimality ratio.</span>
-</span><span id="LineSegment.calculate_path_optimality-213"><a href="#LineSegment.calculate_path_optimality-213"><span class="linenos">213</span></a>
-</span><span id="LineSegment.calculate_path_optimality-214"><a href="#LineSegment.calculate_path_optimality-214"><span class="linenos">214</span></a><span class="sd">        The default value for path optimality in the LineSegment object is 0.0. This</span>
-</span><span id="LineSegment.calculate_path_optimality-215"><a href="#LineSegment.calculate_path_optimality-215"><span class="linenos">215</span></a><span class="sd">        function updates the path_optimality attribute of the LineSegment object based</span>
-</span><span id="LineSegment.calculate_path_optimality-216"><a href="#LineSegment.calculate_path_optimality-216"><span class="linenos">216</span></a><span class="sd">        on the optimal distance between the start and end circles, adjusted for their</span>
-</span><span id="LineSegment.calculate_path_optimality-217"><a href="#LineSegment.calculate_path_optimality-217"><span class="linenos">217</span></a><span class="sd">        radii. If the optimal distance is less than or equal to zero, the path</span>
-</span><span id="LineSegment.calculate_path_optimality-218"><a href="#LineSegment.calculate_path_optimality-218"><span class="linenos">218</span></a><span class="sd">        optimality remains 0.0.</span>
-</span><span id="LineSegment.calculate_path_optimality-219"><a href="#LineSegment.calculate_path_optimality-219"><span class="linenos">219</span></a>
-</span><span id="LineSegment.calculate_path_optimality-220"><a href="#LineSegment.calculate_path_optimality-220"><span class="linenos">220</span></a><span class="sd">        Args:</span>
-</span><span id="LineSegment.calculate_path_optimality-221"><a href="#LineSegment.calculate_path_optimality-221"><span class="linenos">221</span></a><span class="sd">            segment: LineSegment object for which to calculate path optimality.</span>
-</span><span id="LineSegment.calculate_path_optimality-222"><a href="#LineSegment.calculate_path_optimality-222"><span class="linenos">222</span></a><span class="sd">            start_circle: CircleTarget representing the start circle.</span>
-</span><span id="LineSegment.calculate_path_optimality-223"><a href="#LineSegment.calculate_path_optimality-223"><span class="linenos">223</span></a><span class="sd">            end_circle: CircleTarget representing the end circle.</span>
-</span><span id="LineSegment.calculate_path_optimality-224"><a href="#LineSegment.calculate_path_optimality-224"><span class="linenos">224</span></a>
-</span><span id="LineSegment.calculate_path_optimality-225"><a href="#LineSegment.calculate_path_optimality-225"><span class="linenos">225</span></a><span class="sd">        Returns:</span>
-</span><span id="LineSegment.calculate_path_optimality-226"><a href="#LineSegment.calculate_path_optimality-226"><span class="linenos">226</span></a><span class="sd">            Path optimality ratio.</span>
-</span><span id="LineSegment.calculate_path_optimality-227"><a href="#LineSegment.calculate_path_optimality-227"><span class="linenos">227</span></a><span class="sd">        &quot;&quot;&quot;</span>
-</span><span id="LineSegment.calculate_path_optimality-228"><a href="#LineSegment.calculate_path_optimality-228"><span class="linenos">228</span></a>        <span class="n">optimal_distance</span> <span class="o">=</span> <span class="p">(</span>
-</span><span id="LineSegment.calculate_path_optimality-229"><a href="#LineSegment.calculate_path_optimality-229"><span class="linenos">229</span></a>            <span class="n">dist</span><span class="o">.</span><span class="n">euclidean</span><span class="p">(</span>
-</span><span id="LineSegment.calculate_path_optimality-230"><a href="#LineSegment.calculate_path_optimality-230"><span class="linenos">230</span></a>                <span class="p">[</span><span class="n">start_circle</span><span class="o">.</span><span class="n">center_x</span><span class="p">,</span> <span class="n">start_circle</span><span class="o">.</span><span class="n">center_y</span><span class="p">],</span>
-</span><span id="LineSegment.calculate_path_optimality-231"><a href="#LineSegment.calculate_path_optimality-231"><span class="linenos">231</span></a>                <span class="p">[</span><span class="n">end_circle</span><span class="o">.</span><span class="n">center_x</span><span class="p">,</span> <span class="n">end_circle</span><span class="o">.</span><span class="n">center_y</span><span class="p">],</span>
-</span><span id="LineSegment.calculate_path_optimality-232"><a href="#LineSegment.calculate_path_optimality-232"><span class="linenos">232</span></a>            <span class="p">)</span>
-</span><span id="LineSegment.calculate_path_optimality-233"><a href="#LineSegment.calculate_path_optimality-233"><span class="linenos">233</span></a>            <span class="o">-</span> <span class="n">start_circle</span><span class="o">.</span><span class="n">radius</span>
-</span><span id="LineSegment.calculate_path_optimality-234"><a href="#LineSegment.calculate_path_optimality-234"><span class="linenos">234</span></a>            <span class="o">-</span> <span class="n">end_circle</span><span class="o">.</span><span class="n">radius</span>
-</span><span id="LineSegment.calculate_path_optimality-235"><a href="#LineSegment.calculate_path_optimality-235"><span class="linenos">235</span></a>        <span class="p">)</span>
-</span><span id="LineSegment.calculate_path_optimality-236"><a href="#LineSegment.calculate_path_optimality-236"><span class="linenos">236</span></a>
-</span><span id="LineSegment.calculate_path_optimality-237"><a href="#LineSegment.calculate_path_optimality-237"><span class="linenos">237</span></a>        <span class="k">if</span> <span class="n">optimal_distance</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-</span><span id="LineSegment.calculate_path_optimality-238"><a href="#LineSegment.calculate_path_optimality-238"><span class="linenos">238</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">path_optimality</span> <span class="o">=</span> <span class="n">optimal_distance</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">distance</span>
-</span><span id="LineSegment.calculate_path_optimality-239"><a href="#LineSegment.calculate_path_optimality-239"><span class="linenos">239</span></a>        <span class="k">return</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LineSegment.calculate_path_optimality-262"><a href="#LineSegment.calculate_path_optimality-262"><span class="linenos">262</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_path_optimality</span><span class="p">(</span>
+</span><span id="LineSegment.calculate_path_optimality-263"><a href="#LineSegment.calculate_path_optimality-263"><span class="linenos">263</span></a>        <span class="bp">self</span><span class="p">,</span>
+</span><span id="LineSegment.calculate_path_optimality-264"><a href="#LineSegment.calculate_path_optimality-264"><span class="linenos">264</span></a>        <span class="n">start_circle</span><span class="p">:</span> <span class="n">CircleTarget</span><span class="p">,</span>
+</span><span id="LineSegment.calculate_path_optimality-265"><a href="#LineSegment.calculate_path_optimality-265"><span class="linenos">265</span></a>        <span class="n">end_circle</span><span class="p">:</span> <span class="n">CircleTarget</span><span class="p">,</span>
+</span><span id="LineSegment.calculate_path_optimality-266"><a href="#LineSegment.calculate_path_optimality-266"><span class="linenos">266</span></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="LineSegment.calculate_path_optimality-267"><a href="#LineSegment.calculate_path_optimality-267"><span class="linenos">267</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate path optimality ratio.</span>
+</span><span id="LineSegment.calculate_path_optimality-268"><a href="#LineSegment.calculate_path_optimality-268"><span class="linenos">268</span></a>
+</span><span id="LineSegment.calculate_path_optimality-269"><a href="#LineSegment.calculate_path_optimality-269"><span class="linenos">269</span></a><span class="sd">        The default value for path optimality in the LineSegment object is 0.0. This</span>
+</span><span id="LineSegment.calculate_path_optimality-270"><a href="#LineSegment.calculate_path_optimality-270"><span class="linenos">270</span></a><span class="sd">        function updates the path_optimality attribute of the LineSegment object based</span>
+</span><span id="LineSegment.calculate_path_optimality-271"><a href="#LineSegment.calculate_path_optimality-271"><span class="linenos">271</span></a><span class="sd">        on the optimal distance between the start and end circles, adjusted for their</span>
+</span><span id="LineSegment.calculate_path_optimality-272"><a href="#LineSegment.calculate_path_optimality-272"><span class="linenos">272</span></a><span class="sd">        radii. If the optimal distance is less than or equal to zero, the path</span>
+</span><span id="LineSegment.calculate_path_optimality-273"><a href="#LineSegment.calculate_path_optimality-273"><span class="linenos">273</span></a><span class="sd">        optimality remains 0.0.</span>
+</span><span id="LineSegment.calculate_path_optimality-274"><a href="#LineSegment.calculate_path_optimality-274"><span class="linenos">274</span></a>
+</span><span id="LineSegment.calculate_path_optimality-275"><a href="#LineSegment.calculate_path_optimality-275"><span class="linenos">275</span></a><span class="sd">        Args:</span>
+</span><span id="LineSegment.calculate_path_optimality-276"><a href="#LineSegment.calculate_path_optimality-276"><span class="linenos">276</span></a><span class="sd">            segment: LineSegment object for which to calculate path optimality.</span>
+</span><span id="LineSegment.calculate_path_optimality-277"><a href="#LineSegment.calculate_path_optimality-277"><span class="linenos">277</span></a><span class="sd">            start_circle: CircleTarget representing the start circle.</span>
+</span><span id="LineSegment.calculate_path_optimality-278"><a href="#LineSegment.calculate_path_optimality-278"><span class="linenos">278</span></a><span class="sd">            end_circle: CircleTarget representing the end circle.</span>
+</span><span id="LineSegment.calculate_path_optimality-279"><a href="#LineSegment.calculate_path_optimality-279"><span class="linenos">279</span></a>
+</span><span id="LineSegment.calculate_path_optimality-280"><a href="#LineSegment.calculate_path_optimality-280"><span class="linenos">280</span></a><span class="sd">        Returns:</span>
+</span><span id="LineSegment.calculate_path_optimality-281"><a href="#LineSegment.calculate_path_optimality-281"><span class="linenos">281</span></a><span class="sd">            Path optimality ratio.</span>
+</span><span id="LineSegment.calculate_path_optimality-282"><a href="#LineSegment.calculate_path_optimality-282"><span class="linenos">282</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="LineSegment.calculate_path_optimality-283"><a href="#LineSegment.calculate_path_optimality-283"><span class="linenos">283</span></a>        <span class="n">optimal_distance</span> <span class="o">=</span> <span class="p">(</span>
+</span><span id="LineSegment.calculate_path_optimality-284"><a href="#LineSegment.calculate_path_optimality-284"><span class="linenos">284</span></a>            <span class="n">dist</span><span class="o">.</span><span class="n">euclidean</span><span class="p">(</span>
+</span><span id="LineSegment.calculate_path_optimality-285"><a href="#LineSegment.calculate_path_optimality-285"><span class="linenos">285</span></a>                <span class="p">[</span><span class="n">start_circle</span><span class="o">.</span><span class="n">center_x</span><span class="p">,</span> <span class="n">start_circle</span><span class="o">.</span><span class="n">center_y</span><span class="p">],</span>
+</span><span id="LineSegment.calculate_path_optimality-286"><a href="#LineSegment.calculate_path_optimality-286"><span class="linenos">286</span></a>                <span class="p">[</span><span class="n">end_circle</span><span class="o">.</span><span class="n">center_x</span><span class="p">,</span> <span class="n">end_circle</span><span class="o">.</span><span class="n">center_y</span><span class="p">],</span>
+</span><span id="LineSegment.calculate_path_optimality-287"><a href="#LineSegment.calculate_path_optimality-287"><span class="linenos">287</span></a>            <span class="p">)</span>
+</span><span id="LineSegment.calculate_path_optimality-288"><a href="#LineSegment.calculate_path_optimality-288"><span class="linenos">288</span></a>            <span class="o">-</span> <span class="n">start_circle</span><span class="o">.</span><span class="n">radius</span>
+</span><span id="LineSegment.calculate_path_optimality-289"><a href="#LineSegment.calculate_path_optimality-289"><span class="linenos">289</span></a>            <span class="o">-</span> <span class="n">end_circle</span><span class="o">.</span><span class="n">radius</span>
+</span><span id="LineSegment.calculate_path_optimality-290"><a href="#LineSegment.calculate_path_optimality-290"><span class="linenos">290</span></a>        <span class="p">)</span>
+</span><span id="LineSegment.calculate_path_optimality-291"><a href="#LineSegment.calculate_path_optimality-291"><span class="linenos">291</span></a>
+</span><span id="LineSegment.calculate_path_optimality-292"><a href="#LineSegment.calculate_path_optimality-292"><span class="linenos">292</span></a>        <span class="k">if</span> <span class="n">optimal_distance</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+</span><span id="LineSegment.calculate_path_optimality-293"><a href="#LineSegment.calculate_path_optimality-293"><span class="linenos">293</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">path_optimality</span> <span class="o">=</span> <span class="n">optimal_distance</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">distance</span>
+</span><span id="LineSegment.calculate_path_optimality-294"><a href="#LineSegment.calculate_path_optimality-294"><span class="linenos">294</span></a>        <span class="k">return</span>
 </span></pre></div>
 
 
