@@ -46,7 +46,7 @@ def percent_accurate_paths(drawing: models.Drawing) -> dict[str, float]:
 
 
 def calculate_smoothness(points: pd.DataFrame) -> float:
-    """Calculate path smoothness based on RMS curvature.
+    """Calculate path smoothness based on Root Mean Square (RMS) curvature.
 
     Represants the curvature per unit arc length.
     Lower values indicate smoother drawings. Penalizes sharp corners (e.g., 90° turns)
@@ -63,27 +63,29 @@ def calculate_smoothness(points: pd.DataFrame) -> float:
 
     xy = points[["x", "y"]].to_numpy()
 
-    v1 = xy[1:-1] - xy[:-2]
-    v2 = xy[2:] - xy[1:-1]
+    forward_vector = xy[1:-1] - xy[:-2]
+    backward_vector = xy[2:] - xy[1:-1]
 
-    l1 = np.linalg.norm(v1, axis=1)
-    l2 = np.linalg.norm(v2, axis=1)
+    forward_norm = np.linalg.norm(forward_vector, axis=1)
+    backward_norm = np.linalg.norm(backward_vector, axis=1)
 
-    valid = (l1 > 0) & (l2 > 0)
+    valid = (forward_norm > 0) & (backward_norm > 0)
     if not np.any(valid):
         return 0.0
 
-    v1 = v1[valid]
-    v2 = v2[valid]
-    l1 = l1[valid]
-    l2 = l2[valid]
+    valid_forward_vector = forward_vector[valid]
+    valid_backward_vector = backward_vector[valid]
+    valid_forward_norm = forward_norm[valid]
+    valid_backward_norm = backward_norm[valid]
 
-    cos_angle = np.einsum("ij,ij->i", v1, v2) / (l1 * l2)
+    cos_angle = (valid_forward_vector * valid_backward_vector).sum(axis=1) / (
+        valid_forward_norm * valid_backward_norm
+    )
     cos_angle = np.clip(cos_angle, -1.0, 1.0)
 
     angles = np.arccos(cos_angle)
 
-    arc_len = (l1 + l2) / 2.0
+    arc_len = (valid_forward_norm + valid_backward_norm) / 2.0
     curvatures = angles / arc_len
 
     return float(np.sqrt(np.mean(curvatures**2)))
