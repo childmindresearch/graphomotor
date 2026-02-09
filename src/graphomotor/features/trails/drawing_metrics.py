@@ -48,7 +48,7 @@ def percent_accurate_paths(drawing: models.Drawing) -> dict[str, float]:
 def calculate_smoothness(points: pd.DataFrame) -> float:
     """Calculate path smoothness based on Root Mean Square (RMS) curvature.
 
-    Represants the curvature per unit arc length.
+    Represents the curvature per unit arc length.
     Lower values indicate smoother drawings. Penalizes sharp corners (e.g., 90° turns)
     and noisy corrections. Normalized by arc length to reduce sampling-rate dependence.
 
@@ -85,7 +85,7 @@ def calculate_smoothness(points: pd.DataFrame) -> float:
 
     angles = np.arccos(cos_angle)
 
-    arc_len = (valid_forward_norm + valid_backward_norm) / 2.0
-    curvatures = angles / arc_len
+    avg_segment_length = (valid_forward_norm + valid_backward_norm) / 2.0
+    curvatures = angles / avg_segment_length
 
     return float(np.sqrt(np.mean(curvatures**2)))
