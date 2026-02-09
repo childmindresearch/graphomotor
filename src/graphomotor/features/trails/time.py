@@ -7,9 +7,9 @@ def calculate_total_error_time(drawing: models.Drawing) -> dict[str, float]:
     """Calculate the total time spent making errors.
 
     A contiguous "error chunk" is any sequence of rows where df["error"] != "E0".
-    The start of each chunk is defined as the midpoint between the last timestamp with
-    a "correct" entry and the first timestamp of an "error". The total error time is
-    the sum of the durations of all error chunks.
+    The start and end of each chunk is defined as the midpoint between the last
+    timestamp with a "correct" entry and the first timestamp of an "error". The total
+    error time is the sum of the durations of all error chunks.
 
     Args:
         drawing: Drawing object containing drawing data.
