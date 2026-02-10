@@ -88,8 +88,11 @@ class Drawing(pydantic.BaseModel):
         Raises:
             ValueError: If the dataframe contains duplicate timestamps.
         """
-        if v["seconds"].duplicated().any():
-            raise ValueError("duplicate timestamps in 'seconds'.")
+        if cls.metadata.get("task") not in {"trail1", "trail2", "trail3", "trail4"}:
+            return v
+        else:
+            if v["seconds"].duplicated().any():
+                raise ValueError("duplicate timestamps in 'seconds'.")
 
         return v
 
