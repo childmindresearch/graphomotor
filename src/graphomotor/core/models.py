@@ -189,7 +189,6 @@ class LineSegment:
     points: pd.DataFrame
     is_error: bool
     line_number: int
-    ink_points: np.ndarray = dataclasses.field(default_factory=lambda: np.array([]))
 
     ink_time: float = 0.0
     think_time: float = 0.0
@@ -230,7 +229,7 @@ class LineSegment:
             end_circle: CircleTarget representing the end circle.
 
         Returns:
-            Tuple of (ink_start_idx: int, ink_end_idx: int) if valid
+            Tuple of (ink_start_idx: Optional[int], ink_end_idx: Optional[int]) if valid
             trajectory exists, else (None, None).
         """
         ink_start_idx = None
@@ -248,13 +247,6 @@ class LineSegment:
             ):
                 ink_end_idx = idx
                 break
-
-        if (
-            ink_start_idx is not None
-            and ink_end_idx is not None
-            and ink_end_idx > ink_start_idx
-        ):
-            self.ink_points = self.points.iloc[ink_start_idx : ink_end_idx + 1].copy()
 
         return ink_start_idx, ink_end_idx
 
@@ -297,7 +289,7 @@ class LineSegment:
 
         Args:
             self: LineSegment object to calculate velocities for.
-            ink_points: DataFrame of ink points with 'x', 'y', and 'seconds' columns.
+            ink_points: DataFrame containing the ink points for the line segment.
         """
         dx = np.diff(ink_points["x"].values)
         dy = np.diff(ink_points["y"].values)
@@ -317,7 +309,9 @@ class LineSegment:
 
         return
 
-    def detect_hesitations(self, threshold_percentile: int = 20) -> None:
+    def detect_hesitations(
+        self, ink_points: pd.DataFrame, threshold_percentile: int = 20
+    ) -> None:
         """Detect hesitations as periods of significantly reduced velocity.
 
         This function defines a hesitation as any period where the velocity falls below
@@ -328,6 +322,7 @@ class LineSegment:
         threshold and the time interval between points.
 
         Args:
+            ink_points: DataFrame containing the ink points for the line segment.
             threshold_percentile: Percentile to determine the velocity threshold for
                 hesitations (default is 20, meaning the bottom 20% of velocities are
                 considered hesitations).
@@ -335,7 +330,7 @@ class LineSegment:
         if len(self.velocities) < 3:
             return
 
-        dt = np.diff(self.ink_points["seconds"].values)
+        dt = np.diff(ink_points["seconds"].values)
 
         threshold = np.percentile(self.velocities, threshold_percentile)
         hesitations = self.velocities < threshold
