@@ -10,7 +10,11 @@ from graphomotor.io import reader
 
 def test_get_total_errors() -> None:
     """Test ValueError when total_number_of_errors column doesn't exist."""
-    invalid_df = pd.DataFrame({"some_other_column": [0, 1, 2]})
+    invalid_df = pd.DataFrame({
+        "some_other_column": [0, 1, 2],
+        "seconds": [0.0, 1.0, 2.0],
+        "UTC_Timestamp": [0.0, 1.0, 2.0],
+    })
     drawing = models.Drawing(
         data=invalid_df, task_name="trails", metadata={"id": "5555555"}
     )
@@ -33,7 +37,11 @@ def test_valid_total_errors() -> None:
 
 def test_percent_accurate_paths_missing_columns() -> None:
     """Test ValueError when required columns are missing."""
-    invalid_df = pd.DataFrame({"some_other_column": [0, 1, 2]})
+    invalid_df = pd.DataFrame({
+        "some_other_column": [0, 1, 2],
+        "seconds": [0.0, 1.0, 2.0],
+        "UTC_Timestamp": [0.0, 1.0, 2.0],
+    })
     drawing = models.Drawing(
         data=invalid_df, task_name="trails", metadata={"id": "5555555"}
     )
