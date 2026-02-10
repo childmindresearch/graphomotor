@@ -66,8 +66,8 @@ def test_invalid_metadata_values(
     [
         (
             "UTC_Timestamp",
-            datetime.datetime(2024, 1, 1, 12, 0, 0),
-            datetime.datetime(2024, 1, 1, 12, 0, 0),
+            16.596,
+            16.596,
             "duplicate timestamps in 'UTC_Timestamp'.",
         ),
         ("seconds", 1.73, 1.73, "duplicate timestamps in 'seconds'."),
@@ -77,8 +77,8 @@ def test_duplicate_timestamps(
     valid_spiral_data: pd.DataFrame,
     valid_spiral_metadata: dict[str, str | datetime.datetime],
     key: str,
-    time: datetime.datetime | float,
-    duplicate_time: datetime.datetime | float,
+    time: str | float,
+    duplicate_time: str | float,
     expected_error: str,
 ) -> None:
     """Test that duplicate timestamps in the DataFrame aren't allowed."""
