@@ -17,7 +17,7 @@ class Drawing(pydantic.BaseModel):
         data: DataFrame containing drawing data with required columns (line_number, x,
             y, UTC_Timestamp, seconds).
         task_name: Name of the drawing task (e.g., 'spiral', 'trails', etc.).
-        metadata: Dictionary containing metadata about the spiral:
+        metadata: Dictionary containing metadata about the drawing:
             - id: Unique identifier for the participant,
             - hand: Hand used ('Dom' for dominant, 'NonDom' for non-dominant),
             - task: Task name,
@@ -88,14 +88,8 @@ class Drawing(pydantic.BaseModel):
         Raises:
             ValueError: If the dataframe contains duplicate timestamps.
         """
-        if cls.task_name != "trails":
-            return v
-        else:
-            if v["seconds"].duplicated().any():
-                raise ValueError("duplicate timestamps in 'seconds'.")
-
-            if v["UTC_Timestamp"].duplicated().any():
-                raise ValueError("duplicate timestamps in 'UTC_Timestamp'.")
+        if v["seconds"].duplicated().any():
+            raise ValueError("duplicate timestamps in 'seconds'.")
 
         return v
 

@@ -13,7 +13,6 @@ def test_get_total_errors() -> None:
     invalid_df = pd.DataFrame({
         "some_other_column": [0, 1, 2],
         "seconds": [0.0, 1.0, 2.0],
-        "UTC_Timestamp": [0.0, 1.0, 2.0],
     })
     drawing = models.Drawing(
         data=invalid_df, task_name="trails", metadata={"id": "5555555"}
@@ -40,7 +39,6 @@ def test_percent_accurate_paths_missing_columns() -> None:
     invalid_df = pd.DataFrame({
         "some_other_column": [0, 1, 2],
         "seconds": [0.0, 1.0, 2.0],
-        "UTC_Timestamp": [0.0, 1.0, 2.0],
     })
     drawing = models.Drawing(
         data=invalid_df, task_name="trails", metadata={"id": "5555555"}

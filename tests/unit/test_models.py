@@ -64,12 +64,6 @@ def test_invalid_metadata_values(
 @pytest.mark.parametrize(
     "key,time,duplicate_time,expected_error",
     [
-        (
-            "UTC_Timestamp",
-            16.596,
-            16.596,
-            "duplicate timestamps in 'UTC_Timestamp'.",
-        ),
         ("seconds", 1.73, 1.73, "duplicate timestamps in 'seconds'."),
     ],
 )
