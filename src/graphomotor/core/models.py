@@ -316,3 +316,40 @@ class LineSegment:
             self.accelerations = np.diff(velocities).tolist()
 
         return
+
+    def detect_hesitations(self, threshold_percentile: int = 20) -> None:
+        """Detect hesitations as periods of significantly reduced velocity.
+
+        This function defines a hesitation as any period where the velocity falls below
+        a certain threshold, which is determined by the specified percentile of the
+        velocity distribution. It counts the number of distinct hesitation periods and
+        adds 1 if the line starts with a hesitation. It also calculates the total
+        duration of hesitations based on the number of points that fall below the
+        threshold and the time interval between points.
+
+        Args:
+            threshold_percentile: Percentile to determine the velocity threshold for
+                hesitations (default is 20, meaning the bottom 20% of velocities are
+                considered hesitations).
+        """
+        if len(self.velocities) < 3:
+            return
+
+        dt = np.diff(self.ink_points["seconds"].values)
+
+        threshold = np.percentile(self.velocities, threshold_percentile)
+        hesitations = self.velocities < threshold
+
+        hesitation_changes = np.diff(hesitations.astype(int))
+        hesitation_starts = np.where(hesitation_changes == 1)[0] + 1
+        hesitation_count = len(hesitation_starts)
+
+        if hesitations[0]:
+            hesitation_count += 1
+
+        hesitation_duration = np.sum(hesitations) * dt[0]
+
+        self.hesitation_count = hesitation_count
+        self.hesitation_duration = hesitation_duration
+
+        return
