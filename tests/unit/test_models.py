@@ -242,11 +242,13 @@ def test_valid_ink_trajectory(
 
 def test_uniform_motion() -> None:
     """Test with points moving at constant velocity."""
-    points = pd.DataFrame({
-        "x": [0, 1, 2, 3],
-        "y": [0, 0, 0, 0],
-        "seconds": [0, 1, 2, 3],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 1, 2, 3],
+            "y": [0, 0, 0, 0],
+            "seconds": [0, 1, 2, 3],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -268,11 +270,13 @@ def test_uniform_motion() -> None:
 
 def test_accelerating_motion() -> None:
     """Test with motion accelerating over time."""
-    points = pd.DataFrame({
-        "x": [0, 1, 4, 9],
-        "y": [0, 0, 0, 0],
-        "seconds": [0, 1, 2, 3],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 1, 4, 9],
+            "y": [0, 0, 0, 0],
+            "seconds": [0, 1, 2, 3],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -297,11 +301,13 @@ def test_accelerating_motion() -> None:
 
 def test_velocity_two_points_only() -> None:
     """Test velocity calculation with only two points."""
-    points = pd.DataFrame({
-        "x": [0, 3],
-        "y": [0, 4],
-        "seconds": [0, 2],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 3],
+            "y": [0, 4],
+            "seconds": [0, 2],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -322,11 +328,13 @@ def test_velocity_two_points_only() -> None:
 
 def test_decelerating_motion() -> None:
     """Test with decelerating motion (negative acceleration)."""
-    points = pd.DataFrame({
-        "x": [0, 4, 7, 9],
-        "y": [0, 0, 0, 0],
-        "seconds": [0, 1, 2, 3],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 4, 7, 9],
+            "y": [0, 0, 0, 0],
+            "seconds": [0, 1, 2, 3],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -351,11 +359,13 @@ def test_decelerating_motion() -> None:
 
 def test_stationary_motion() -> None:
     """Test with no movement (all points the same)."""
-    points = pd.DataFrame({
-        "x": [1, 1, 1],
-        "y": [1, 1, 1],
-        "seconds": [0, 1, 2],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [1, 1, 1],
+            "y": [1, 1, 1],
+            "seconds": [0, 1, 2],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
