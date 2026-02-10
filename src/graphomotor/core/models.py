@@ -73,6 +73,26 @@ class Drawing(pydantic.BaseModel):
 
         return v
 
+    @pydantic.field_validator("data")
+    @classmethod
+    def validate_timestamps(cls, v: pd.DataFrame) -> pd.DataFrame:
+        """Validate that the data DataFrame does not contain duplicate timestamps.
+
+        Args:
+            cls: The class.
+            v: The dataframe to validate.
+
+        Returns:
+            The dataframe if it does not contain duplicate timestamps.
+
+        Raises:
+            ValueError: If the dataframe contains duplicate timestamps.
+        """
+        if v["seconds"].duplicated().any():
+            raise ValueError("DataFrame contains duplicate timestamps.")
+
+        return v
+
 
 class SpiralFeatureCategories:
     """Class to hold valid feature categories for Graphomotor."""
