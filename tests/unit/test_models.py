@@ -253,9 +253,10 @@ def test_uniform_motion() -> None:
         points=points,
         is_error=False,
         line_number=1,
+        ink_points=points,  # Pre-assign ink_points for velocity calculation
     )
 
-    segment.calculate_velocity_metrics(ink_points=points)
+    segment.calculate_velocity_metrics()
 
     assert segment.distance == pytest.approx(3.0)
     assert segment.mean_speed == pytest.approx(1.0)
@@ -279,9 +280,10 @@ def test_accelerating_motion() -> None:
         points=points,
         is_error=False,
         line_number=1,
+        ink_points=points,  # Pre-assign ink_points for velocity calculation
     )
 
-    segment.calculate_velocity_metrics(ink_points=points)
+    segment.calculate_velocity_metrics()
 
     assert segment.distance == pytest.approx(9.0)
     assert segment.mean_speed == pytest.approx(3.0)
@@ -308,9 +310,10 @@ def test_velocity_two_points_only() -> None:
         points=points,
         is_error=False,
         line_number=1,
+        ink_points=points,  # Pre-assign ink_points for velocity calculation
     )
 
-    segment.calculate_velocity_metrics(ink_points=points)
+    segment.calculate_velocity_metrics()
 
     assert segment.distance == pytest.approx(5.0)
     assert segment.mean_speed == pytest.approx(2.5)
@@ -333,9 +336,10 @@ def test_decelerating_motion() -> None:
         points=points,
         is_error=False,
         line_number=1,
+        ink_points=points,  # Pre-assign ink_points for velocity calculation
     )
 
-    segment.calculate_velocity_metrics(ink_points=points)
+    segment.calculate_velocity_metrics()
 
     assert segment.distance == pytest.approx(9.0)
     assert segment.mean_speed == pytest.approx(3.0)
@@ -362,9 +366,10 @@ def test_stationary_motion() -> None:
         points=points,
         is_error=False,
         line_number=1,
+        ink_points=points,  # Pre-assign ink_points for velocity calculation
     )
 
-    segment.calculate_velocity_metrics(ink_points=points)
+    segment.calculate_velocity_metrics()
 
     assert segment.distance == pytest.approx(0.0)
     assert segment.mean_speed == pytest.approx(0.0)
@@ -388,10 +393,11 @@ def test_no_hesitations_uniform_motion() -> None:
         points=points,
         is_error=False,
         line_number=1,
+        ink_points=points,  # Pre-assign ink_points for velocity calculation
     )
 
-    segment.calculate_velocity_metrics(ink_points=points)
-    segment.detect_hesitations(ink_points=points)
+    segment.calculate_velocity_metrics()
+    segment.detect_hesitations()
 
     assert segment.hesitation_count == 0
     assert segment.hesitation_duration == pytest.approx(0.0)
@@ -410,10 +416,11 @@ def test_hesitation_at_start() -> None:
         points=points,
         is_error=False,
         line_number=1,
+        ink_points=points,  # Pre-assign ink_points for velocity calculation
     )
 
-    segment.calculate_velocity_metrics(ink_points=points)
-    segment.detect_hesitations(ink_points=points)
+    segment.calculate_velocity_metrics()
+    segment.detect_hesitations()
 
     assert segment.hesitation_count == 1
     assert segment.hesitation_duration == pytest.approx(1.0)
@@ -432,10 +439,11 @@ def test_multiple_hesitations() -> None:
         points=points,
         is_error=False,
         line_number=1,
+        ink_points=points,  # Pre-assign ink_points for velocity calculation
     )
 
-    segment.calculate_velocity_metrics(ink_points=points)
-    segment.detect_hesitations(ink_points=points)
+    segment.calculate_velocity_metrics()
+    segment.detect_hesitations()
 
     assert segment.hesitation_count == 2
     assert segment.hesitation_duration == pytest.approx(2.0)
@@ -454,10 +462,11 @@ def test_less_than_three_velocities() -> None:
         points=points,
         is_error=False,
         line_number=1,
+        ink_points=points,  # Pre-assign ink_points for velocity calculation
     )
 
-    segment.calculate_velocity_metrics(ink_points=points)
-    segment.detect_hesitations(ink_points=points)
+    segment.calculate_velocity_metrics()
+    segment.detect_hesitations()
 
     assert segment.hesitation_count == 0
     assert segment.hesitation_duration == pytest.approx(0.0)
