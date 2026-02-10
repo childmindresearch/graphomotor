@@ -248,10 +248,6 @@ class LineSegment:
         dy = np.diff(ink_points["y"].values)
         dt = np.diff(ink_points["seconds"].values)
 
-        # NOTE: need to change the way this case is handled
-        # Avoid division by zero
-        dt[dt == 0] = 1e-6
-
         distances = np.sqrt(dx**2 + dy**2)
         self.distance = np.sum(distances)
 
