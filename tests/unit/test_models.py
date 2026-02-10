@@ -239,7 +239,7 @@ def test_valid_ink_trajectory(
     assert result_start == expected_start, f"Start index mismatch for {test_id}"
     assert result_end == expected_end, f"End index mismatch for {test_id}"
 
-    
+
 def test_uniform_motion() -> None:
     """Test with points moving at constant velocity."""
     points = pd.DataFrame({
@@ -251,6 +251,10 @@ def test_uniform_motion() -> None:
         start_label="1",
         end_label="2",
         points=points,
+        is_error=False,
+        line_number=1,
+    )
+
     segment.calculate_velocity_metrics(points)
 
     assert segment.distance == pytest.approx(3.0)
@@ -292,7 +296,7 @@ def test_accelerating_motion() -> None:
 
 
 def test_velocity_two_points_only() -> None:
-    """Test velocity calculation with only two points (one velocity, no acceleration)."""
+    """Test velocity calculation with only two points."""
     points = pd.DataFrame({
         "x": [0, 3],
         "y": [0, 4],
@@ -369,4 +373,3 @@ def test_stationary_motion() -> None:
     assert all(v == pytest.approx(0.0) for v in segment.velocities)
     assert len(segment.accelerations) == 1
     assert segment.accelerations[0] == pytest.approx(0.0)
-    
