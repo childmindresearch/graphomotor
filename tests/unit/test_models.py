@@ -61,6 +61,37 @@ def test_invalid_metadata_values(
         )
 
 
+@pytest.mark.parametrize(
+    "key,time,duplicate_time,expected_error",
+    [
+        (
+            "UTC_Timestamp",
+            datetime.datetime(2024, 1, 1, 12, 0, 0),
+            datetime.datetime(2024, 1, 1, 12, 0, 0),
+            "duplicate timestamps in 'UTC_Timestamp'.",
+        ),
+        ("seconds", 1.73, 1.73, "duplicate timestamps in 'seconds'."),
+    ],
+)
+def test_duplicate_timestamps(
+    valid_spiral_data: pd.DataFrame,
+    valid_spiral_metadata: dict[str, str | datetime.datetime],
+    key: str,
+    time: datetime.datetime | float,
+    duplicate_time: datetime.datetime | float,
+    expected_error: str,
+) -> None:
+    """Test that duplicate timestamps in the DataFrame aren't allowed."""
+    invalid_data = valid_spiral_data.copy()
+    invalid_data[key][0] = time
+    invalid_data[key][1] = duplicate_time
+
+    with pytest.raises(ValueError, match=expected_error):
+        models.Drawing(
+            data=invalid_data, task_name="spiral", metadata=valid_spiral_metadata
+        )
+
+
 @pytest.fixture
 def circle() -> models.CircleTarget:
     """Create a standard circle at origin with radius 10."""
