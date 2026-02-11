@@ -248,12 +248,6 @@ class LineSegment:
             ):
                 ink_end_idx = idx
                 break
-        if (
-            ink_start_idx is not None
-            and ink_end_idx is not None
-            and ink_end_idx > ink_start_idx
-        ):
-            self.ink_points = self.points.iloc[ink_start_idx : ink_end_idx + 1].copy()
 
         return ink_start_idx, ink_end_idx
 
@@ -358,8 +352,9 @@ class LineSegment:
         """Calculate path smoothness based on Root Mean Square (RMS) curvature.
 
         Represents the curvature per unit arc length.
-        Lower values indicate smoother drawings. Penalizes sharp corners (e.g., 90° turns)
-        and noisy corrections. Normalized by arc length to reduce sampling-rate dependence.
+        Lower values indicate smoother drawings. Penalizes sharp corners (e.g.,
+        90° turns) and noisy corrections. Normalized by arc length to reduce
+        sampling-rate dependence.
         """
         if len(self.ink_points) < 3:
             return 0.0
@@ -398,71 +393,58 @@ class LineSegment:
     def compute_segment_metrics(
         self, circles: dict[str, dict[str, CircleTarget]], trail_id: str
     ) -> None:
-        """Compute metrics for a line segment (excluding think time which is calculated separately).
+        """Compute all metrics for a line segment.
+
+        This function computes various metrics for the line segment, including ink time,
+        velocity metrics, path optimality, smoothness, and hesitation detection. It
+        first determines the valid ink trajectory between the start and end circles. If
+        a valid trajectory is found, it updates the ink_points attribute and calculates
+        the metrics.
 
         Args:
-            circles: Dictionary of circle targets keyed by trail ID
-            trail_id: Trail identifier for circle lookup
-
-        Returns:
-            LineSegment with computed metrics
+            circles: A dictionary mapping each trail type to dictionaries of
+                CircleTarget instances (output of load_scaled_circles in config).
+            trail_id: Trail identifier for circle lookup.
         """
         circles = circles[trail_id]
         points = self.points.copy()
 
         if len(points) < 2:
-            return self
+            return
 
         if self.start_label not in circles or self.end_label not in circles:
-            return self
+            return
 
         start_circle = circles[self.start_label]
         end_circle = circles[self.end_label]
 
-        points = points.reset_index(drop=True)
-
-        # NOTE: Think time is now calculated separately using consecutive segments
-        # This method only handles ink time and movement metrics
-
-        ink_start_idx, ink_end_idx = self.valid_ink_trajectory(
-            points, start_circle, end_circle
-        )
+        ink_start_idx, ink_end_idx = self.valid_ink_trajectory(start_circle, end_circle)
 
         if (
             ink_start_idx is not None
             and ink_end_idx is not None
             and ink_end_idx > ink_start_idx
         ):
-            ink_points = points.iloc[ink_start_idx : ink_end_idx + 1].copy()
+            self.ink_points = self.points.iloc[ink_start_idx : ink_end_idx + 1].copy()
 
-            if len(ink_points) >= 2:
-                ink_start = ink_points.iloc[0]["seconds"]
-                ink_end = ink_points.iloc[-1]["seconds"]
+            if len(self.ink_points) >= 2:
+                ink_start = self.ink_points.iloc[0]["seconds"]
+                ink_end = self.ink_points.iloc[-1]["seconds"]
                 self.ink_time = ink_end - ink_start
 
-                # NOTE: Unsure if we are going to resample or not
-                # # Resample to 60Hz if duration is sufficient
-                # if self.ink_time > 0.05:  # Only resample if duration > 50ms
-                #     ink_points = resample_to_60hz(ink_points, ink_start, ink_end)
-
-                # Calculate velocities and speeds
                 self.calculate_velocity_metrics()
 
-                # Calculate path optimality
                 self.calculate_path_optimality(start_circle, end_circle)
-                # Smoothness (based on curvature changes)
-                if len(ink_points) >= 3:
-                    self.calculate_smoothness()
 
-                # Hesitation detection
+                self.calculate_smoothness()
+
                 self.detect_hesitations()
 
         elif ink_start_idx is not None:
-            # Line started but never reached destination - use all remaining points
-            ink_points = points.iloc[ink_start_idx:].copy()
-            if len(ink_points) >= 2:
+            self.ink_points = points.iloc[ink_start_idx:].copy()
+            if len(self.ink_points) >= 2:
                 self.ink_time = (
-                    ink_points.iloc[-1]["seconds"] - ink_points.iloc[0]["seconds"]
+                    self.ink_points.iloc[-1]["seconds"]
+                    - self.ink_points.iloc[0]["seconds"]
                 )
-
         return
