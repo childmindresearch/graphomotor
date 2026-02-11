@@ -353,3 +353,116 @@ class LineSegment:
         self.hesitation_duration = hesitation_duration
 
         return
+
+    def calculate_smoothness(self) -> None:
+        """Calculate path smoothness based on Root Mean Square (RMS) curvature.
+
+        Represents the curvature per unit arc length.
+        Lower values indicate smoother drawings. Penalizes sharp corners (e.g., 90° turns)
+        and noisy corrections. Normalized by arc length to reduce sampling-rate dependence.
+        """
+        if len(self.ink_points) < 3:
+            return 0.0
+
+        xy = self.ink_points[["x", "y"]].to_numpy()
+
+        forward_vector = xy[1:-1] - xy[:-2]
+        backward_vector = xy[2:] - xy[1:-1]
+
+        forward_norm = np.linalg.norm(forward_vector, axis=1)
+        backward_norm = np.linalg.norm(backward_vector, axis=1)
+
+        valid = (forward_norm > 0) & (backward_norm > 0)
+        if not np.any(valid):
+            return
+
+        valid_forward_vector = forward_vector[valid]
+        valid_backward_vector = backward_vector[valid]
+        valid_forward_norm = forward_norm[valid]
+        valid_backward_norm = backward_norm[valid]
+
+        cos_angle = (valid_forward_vector * valid_backward_vector).sum(axis=1) / (
+            valid_forward_norm * valid_backward_norm
+        )
+        cos_angle = np.clip(cos_angle, -1.0, 1.0)
+
+        angles = np.arccos(cos_angle)
+
+        avg_segment_length = (valid_forward_norm + valid_backward_norm) / 2.0
+        curvatures = angles / avg_segment_length
+
+        self.smoothness = float(np.sqrt(np.mean(curvatures**2)))
+
+        return
+
+    def compute_segment_metrics(
+        self, circles: dict[str, dict[str, CircleTarget]], trail_id: str
+    ) -> None:
+        """Compute metrics for a line segment (excluding think time which is calculated separately).
+
+        Args:
+            circles: Dictionary of circle targets keyed by trail ID
+            trail_id: Trail identifier for circle lookup
+
+        Returns:
+            LineSegment with computed metrics
+        """
+        circles = circles[trail_id]
+        points = self.points.copy()
+
+        if len(points) < 2:
+            return self
+
+        if self.start_label not in circles or self.end_label not in circles:
+            return self
+
+        start_circle = circles[self.start_label]
+        end_circle = circles[self.end_label]
+
+        points = points.reset_index(drop=True)
+
+        # NOTE: Think time is now calculated separately using consecutive segments
+        # This method only handles ink time and movement metrics
+
+        ink_start_idx, ink_end_idx = self.valid_ink_trajectory(
+            points, start_circle, end_circle
+        )
+
+        if (
+            ink_start_idx is not None
+            and ink_end_idx is not None
+            and ink_end_idx > ink_start_idx
+        ):
+            ink_points = points.iloc[ink_start_idx : ink_end_idx + 1].copy()
+
+            if len(ink_points) >= 2:
+                ink_start = ink_points.iloc[0]["seconds"]
+                ink_end = ink_points.iloc[-1]["seconds"]
+                self.ink_time = ink_end - ink_start
+
+                # NOTE: Unsure if we are going to resample or not
+                # # Resample to 60Hz if duration is sufficient
+                # if self.ink_time > 0.05:  # Only resample if duration > 50ms
+                #     ink_points = resample_to_60hz(ink_points, ink_start, ink_end)
+
+                # Calculate velocities and speeds
+                self.calculate_velocity_metrics()
+
+                # Calculate path optimality
+                self.calculate_path_optimality(start_circle, end_circle)
+                # Smoothness (based on curvature changes)
+                if len(ink_points) >= 3:
+                    self.calculate_smoothness()
+
+                # Hesitation detection
+                self.detect_hesitations()
+
+        elif ink_start_idx is not None:
+            # Line started but never reached destination - use all remaining points
+            ink_points = points.iloc[ink_start_idx:].copy()
+            if len(ink_points) >= 2:
+                self.ink_time = (
+                    ink_points.iloc[-1]["seconds"] - ink_points.iloc[0]["seconds"]
+                )
+
+        return
