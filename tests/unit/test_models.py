@@ -243,11 +243,13 @@ def test_valid_ink_trajectory(
 
 def test_uniform_motion() -> None:
     """Test with points moving at constant velocity."""
-    points = pd.DataFrame({
-        "x": [0, 1, 2, 3],
-        "y": [0, 0, 0, 0],
-        "seconds": [0, 1, 2, 3],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 1, 2, 3],
+            "y": [0, 0, 0, 0],
+            "seconds": [0, 1, 2, 3],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -270,11 +272,13 @@ def test_uniform_motion() -> None:
 
 def test_accelerating_motion() -> None:
     """Test with motion accelerating over time."""
-    points = pd.DataFrame({
-        "x": [0, 1, 4, 9],
-        "y": [0, 0, 0, 0],
-        "seconds": [0, 1, 2, 3],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 1, 4, 9],
+            "y": [0, 0, 0, 0],
+            "seconds": [0, 1, 2, 3],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -300,11 +304,13 @@ def test_accelerating_motion() -> None:
 
 def test_velocity_two_points_only() -> None:
     """Test velocity calculation with only two points."""
-    points = pd.DataFrame({
-        "x": [0, 3],
-        "y": [0, 4],
-        "seconds": [0, 2],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 3],
+            "y": [0, 4],
+            "seconds": [0, 2],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -326,11 +332,13 @@ def test_velocity_two_points_only() -> None:
 
 def test_decelerating_motion() -> None:
     """Test with decelerating motion (negative acceleration)."""
-    points = pd.DataFrame({
-        "x": [0, 4, 7, 9],
-        "y": [0, 0, 0, 0],
-        "seconds": [0, 1, 2, 3],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 4, 7, 9],
+            "y": [0, 0, 0, 0],
+            "seconds": [0, 1, 2, 3],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -356,11 +364,13 @@ def test_decelerating_motion() -> None:
 
 def test_stationary_motion() -> None:
     """Test with no movement (all points the same)."""
-    points = pd.DataFrame({
-        "x": [1, 1, 1],
-        "y": [1, 1, 1],
-        "seconds": [0, 1, 2],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [1, 1, 1],
+            "y": [1, 1, 1],
+            "seconds": [0, 1, 2],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -383,11 +393,13 @@ def test_stationary_motion() -> None:
 
 def test_no_hesitations_uniform_motion() -> None:
     """Test with uniform motion where all velocities are equal."""
-    points = pd.DataFrame({
-        "x": [0, 1, 2, 3],
-        "y": [0, 0, 0, 0],
-        "seconds": [0, 1, 2, 3],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 1, 2, 3],
+            "y": [0, 0, 0, 0],
+            "seconds": [0, 1, 2, 3],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -406,11 +418,13 @@ def test_no_hesitations_uniform_motion() -> None:
 
 def test_hesitation_at_start() -> None:
     """Test when the line starts with a hesitation."""
-    points = pd.DataFrame({
-        "x": [0, 0.1, 1, 2],
-        "y": [0, 0.1, 0, 0],
-        "seconds": [0, 1, 2, 3],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 0.1, 1, 2],
+            "y": [0, 0.1, 0, 0],
+            "seconds": [0, 1, 2, 3],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -429,11 +443,13 @@ def test_hesitation_at_start() -> None:
 
 def test_multiple_hesitations() -> None:
     """Test when there are multiple hesitation periods."""
-    points = pd.DataFrame({
-        "x": [0, 100, 100.1, 200, 200.1, 300, 400, 500, 600],
-        "y": [0, 0, 0, 0, 0, 0, 0, 0, 0],
-        "seconds": [0, 1, 2, 3, 4, 5, 6, 7, 8],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 100, 100.1, 200, 200.1, 300, 400, 500, 600],
+            "y": [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            "seconds": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -452,11 +468,13 @@ def test_multiple_hesitations() -> None:
 
 def test_less_than_three_velocities() -> None:
     """Test early return when velocities length is less than 3."""
-    points = pd.DataFrame({
-        "x": [0, 1],
-        "y": [0, 0],
-        "seconds": [0, 1],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 1],
+            "y": [0, 0],
+            "seconds": [0, 1],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -475,11 +493,13 @@ def test_less_than_three_velocities() -> None:
 
 def test_smoothness_less_than_three_points() -> None:
     """Less than 3 points cannot define curvature."""
-    points = pd.DataFrame({
-        "x": [0, 1],
-        "y": [0, 0],
-        "seconds": [0, 1],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 1],
+            "y": [0, 0],
+            "seconds": [0, 1],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -569,10 +589,12 @@ def test_smoothness_single_180_degree_turn() -> None:
 
     Since it represents maximal curvature.
     """
-    points = pd.DataFrame({
-        "x": [0, 1, 0],
-        "y": [0, 0, 0],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 1, 0],
+            "y": [0, 0, 0],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
