@@ -3,6 +3,7 @@
 import datetime
 from typing import Dict, cast
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -242,13 +243,11 @@ def test_valid_ink_trajectory(
 
 def test_uniform_motion() -> None:
     """Test with points moving at constant velocity."""
-    points = pd.DataFrame(
-        {
-            "x": [0, 1, 2, 3],
-            "y": [0, 0, 0, 0],
-            "seconds": [0, 1, 2, 3],
-        }
-    )
+    points = pd.DataFrame({
+        "x": [0, 1, 2, 3],
+        "y": [0, 0, 0, 0],
+        "seconds": [0, 1, 2, 3],
+    })
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -259,24 +258,20 @@ def test_uniform_motion() -> None:
 
     segment.calculate_velocity_metrics(points)
 
-    assert segment.distance == pytest.approx(3.0)
-    assert segment.mean_speed == pytest.approx(1.0)
-    assert segment.speed_variance == pytest.approx(0.0)
-    assert len(segment.velocities) == 3
-    assert all(v == pytest.approx(1.0) for v in segment.velocities)
-    assert len(segment.accelerations) == 2
-    assert all(a == pytest.approx(0.0) for a in segment.accelerations)
+    assert segment.distance == 3.0
+    assert segment.mean_speed == 1.0
+    assert segment.speed_variance == 0.0
+    assert np.all(segment.velocities) == 1.0
+    assert np.all(segment.accelerations) == 0.0
 
 
 def test_accelerating_motion() -> None:
     """Test with motion accelerating over time."""
-    points = pd.DataFrame(
-        {
-            "x": [0, 1, 4, 9],
-            "y": [0, 0, 0, 0],
-            "seconds": [0, 1, 2, 3],
-        }
-    )
+    points = pd.DataFrame({
+        "x": [0, 1, 4, 9],
+        "y": [0, 0, 0, 0],
+        "seconds": [0, 1, 2, 3],
+    })
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -287,27 +282,20 @@ def test_accelerating_motion() -> None:
 
     segment.calculate_velocity_metrics(points)
 
-    assert segment.distance == pytest.approx(9.0)
-    assert segment.mean_speed == pytest.approx(3.0)
+    assert segment.distance == 9.0
+    assert segment.mean_speed == 3.0
     assert segment.speed_variance > 0.0
-    assert len(segment.velocities) == 3
-    assert segment.velocities[0] == pytest.approx(1.0)
-    assert segment.velocities[1] == pytest.approx(3.0)
-    assert segment.velocities[2] == pytest.approx(5.0)
-    assert len(segment.accelerations) == 2
-    assert segment.accelerations[0] == pytest.approx(2.0)
-    assert segment.accelerations[1] == pytest.approx(2.0)
+    assert segment.velocities == [1.0, 3.0, 5.0]
+    assert segment.accelerations == [2.0, 2.0]
 
 
 def test_velocity_two_points_only() -> None:
     """Test velocity calculation with only two points."""
-    points = pd.DataFrame(
-        {
-            "x": [0, 3],
-            "y": [0, 4],
-            "seconds": [0, 2],
-        }
-    )
+    points = pd.DataFrame({
+        "x": [0, 3],
+        "y": [0, 4],
+        "seconds": [0, 2],
+    })
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -318,23 +306,20 @@ def test_velocity_two_points_only() -> None:
 
     segment.calculate_velocity_metrics(points)
 
-    assert segment.distance == pytest.approx(5.0)
-    assert segment.mean_speed == pytest.approx(2.5)
-    assert segment.speed_variance == pytest.approx(0.0)
-    assert len(segment.velocities) == 1
-    assert segment.velocities[0] == pytest.approx(2.5)
-    assert len(segment.accelerations) == 0
+    assert segment.distance == 5.0
+    assert segment.mean_speed == 2.5
+    assert segment.speed_variance == 0.0
+    assert segment.velocities == [2.5]
+    assert segment.accelerations == []
 
 
 def test_decelerating_motion() -> None:
     """Test with decelerating motion (negative acceleration)."""
-    points = pd.DataFrame(
-        {
-            "x": [0, 4, 7, 9],
-            "y": [0, 0, 0, 0],
-            "seconds": [0, 1, 2, 3],
-        }
-    )
+    points = pd.DataFrame({
+        "x": [0, 4, 7, 9],
+        "y": [0, 0, 0, 0],
+        "seconds": [0, 1, 2, 3],
+    })
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -345,27 +330,20 @@ def test_decelerating_motion() -> None:
 
     segment.calculate_velocity_metrics(points)
 
-    assert segment.distance == pytest.approx(9.0)
-    assert segment.mean_speed == pytest.approx(3.0)
+    assert segment.distance == 9.0
+    assert segment.mean_speed == 3.0
     assert segment.speed_variance > 0.0
-    assert len(segment.velocities) == 3
-    assert segment.velocities[0] == pytest.approx(4.0)
-    assert segment.velocities[1] == pytest.approx(3.0)
-    assert segment.velocities[2] == pytest.approx(2.0)
-    assert len(segment.accelerations) == 2
-    assert segment.accelerations[0] == pytest.approx(-1.0)
-    assert segment.accelerations[1] == pytest.approx(-1.0)
+    assert segment.velocities == [4.0, 3.0, 2.0]
+    assert segment.accelerations == [-1.0, -1.0]
 
 
 def test_stationary_motion() -> None:
     """Test with no movement (all points the same)."""
-    points = pd.DataFrame(
-        {
-            "x": [1, 1, 1],
-            "y": [1, 1, 1],
-            "seconds": [0, 1, 2],
-        }
-    )
+    points = pd.DataFrame({
+        "x": [1, 1, 1],
+        "y": [1, 1, 1],
+        "seconds": [0, 1, 2],
+    })
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -376,10 +354,8 @@ def test_stationary_motion() -> None:
 
     segment.calculate_velocity_metrics(points)
 
-    assert segment.distance == pytest.approx(0.0)
-    assert segment.mean_speed == pytest.approx(0.0)
-    assert segment.speed_variance == pytest.approx(0.0)
-    assert len(segment.velocities) == 2
-    assert all(v == pytest.approx(0.0) for v in segment.velocities)
-    assert len(segment.accelerations) == 1
-    assert segment.accelerations[0] == pytest.approx(0.0)
+    assert segment.distance == 0.0
+    assert segment.mean_speed == 0.0
+    assert segment.speed_variance == 0.0
+    assert segment.velocities == [0.0, 0.0]
+    assert segment.accelerations == [0.0]

@@ -293,7 +293,7 @@ class LineSegment:
         return
 
     def calculate_velocity_metrics(self, ink_points: pd.DataFrame) -> None:
-        """Get velocity metrics of a LineSegment.
+        """Get distance, velocity, and acceleration metrics of a LineSegment.
 
         Args:
             self: LineSegment object to calculate velocities for.
