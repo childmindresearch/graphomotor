@@ -357,7 +357,7 @@ class LineSegment:
         sampling-rate dependence.
         """
         if len(self.ink_points) < 3:
-            return 0.0
+            return
 
         xy = self.ink_points[["x", "y"]].to_numpy()
 
@@ -406,17 +406,17 @@ class LineSegment:
                 CircleTarget instances (output of load_scaled_circles in config).
             trail_id: Trail identifier for circle lookup.
         """
-        circles = circles[trail_id]
+        trail_circles = circles[trail_id]
         points = self.points.copy()
 
         if len(points) < 2:
             return
 
-        if self.start_label not in circles or self.end_label not in circles:
+        if self.start_label not in trail_circles or self.end_label not in trail_circles:
             return
 
-        start_circle = circles[self.start_label]
-        end_circle = circles[self.end_label]
+        start_circle = trail_circles[self.start_label]
+        end_circle = trail_circles[self.end_label]
 
         ink_start_idx, ink_end_idx = self.valid_ink_trajectory(start_circle, end_circle)
 
