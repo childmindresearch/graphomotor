@@ -1,8 +1,5 @@
 """Feature extraction module for drawing error-based metrics in trails drawing data."""
 
-import numpy as np
-import pandas as pd
-
 from graphomotor.core import models
 
 
