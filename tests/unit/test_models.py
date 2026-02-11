@@ -2,6 +2,7 @@
 
 import datetime
 from typing import Dict, cast
+from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
@@ -243,11 +244,13 @@ def test_valid_ink_trajectory(
 
 def test_uniform_motion() -> None:
     """Test with points moving at constant velocity."""
-    points = pd.DataFrame({
-        "x": [0, 1, 2, 3],
-        "y": [0, 0, 0, 0],
-        "seconds": [0, 1, 2, 3],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 1, 2, 3],
+            "y": [0, 0, 0, 0],
+            "seconds": [0, 1, 2, 3],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -270,11 +273,13 @@ def test_uniform_motion() -> None:
 
 def test_accelerating_motion() -> None:
     """Test with motion accelerating over time."""
-    points = pd.DataFrame({
-        "x": [0, 1, 4, 9],
-        "y": [0, 0, 0, 0],
-        "seconds": [0, 1, 2, 3],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 1, 4, 9],
+            "y": [0, 0, 0, 0],
+            "seconds": [0, 1, 2, 3],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -300,11 +305,13 @@ def test_accelerating_motion() -> None:
 
 def test_velocity_two_points_only() -> None:
     """Test velocity calculation with only two points."""
-    points = pd.DataFrame({
-        "x": [0, 3],
-        "y": [0, 4],
-        "seconds": [0, 2],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 3],
+            "y": [0, 4],
+            "seconds": [0, 2],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -326,11 +333,13 @@ def test_velocity_two_points_only() -> None:
 
 def test_decelerating_motion() -> None:
     """Test with decelerating motion (negative acceleration)."""
-    points = pd.DataFrame({
-        "x": [0, 4, 7, 9],
-        "y": [0, 0, 0, 0],
-        "seconds": [0, 1, 2, 3],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 4, 7, 9],
+            "y": [0, 0, 0, 0],
+            "seconds": [0, 1, 2, 3],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -356,11 +365,13 @@ def test_decelerating_motion() -> None:
 
 def test_stationary_motion() -> None:
     """Test with no movement (all points the same)."""
-    points = pd.DataFrame({
-        "x": [1, 1, 1],
-        "y": [1, 1, 1],
-        "seconds": [0, 1, 2],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [1, 1, 1],
+            "y": [1, 1, 1],
+            "seconds": [0, 1, 2],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -383,11 +394,13 @@ def test_stationary_motion() -> None:
 
 def test_no_hesitations_uniform_motion() -> None:
     """Test with uniform motion where all velocities are equal."""
-    points = pd.DataFrame({
-        "x": [0, 1, 2, 3],
-        "y": [0, 0, 0, 0],
-        "seconds": [0, 1, 2, 3],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 1, 2, 3],
+            "y": [0, 0, 0, 0],
+            "seconds": [0, 1, 2, 3],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -406,11 +419,13 @@ def test_no_hesitations_uniform_motion() -> None:
 
 def test_hesitation_at_start() -> None:
     """Test when the line starts with a hesitation."""
-    points = pd.DataFrame({
-        "x": [0, 0.1, 1, 2],
-        "y": [0, 0.1, 0, 0],
-        "seconds": [0, 1, 2, 3],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 0.1, 1, 2],
+            "y": [0, 0.1, 0, 0],
+            "seconds": [0, 1, 2, 3],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -429,11 +444,13 @@ def test_hesitation_at_start() -> None:
 
 def test_multiple_hesitations() -> None:
     """Test when there are multiple hesitation periods."""
-    points = pd.DataFrame({
-        "x": [0, 100, 100.1, 200, 200.1, 300, 400, 500, 600],
-        "y": [0, 0, 0, 0, 0, 0, 0, 0, 0],
-        "seconds": [0, 1, 2, 3, 4, 5, 6, 7, 8],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 100, 100.1, 200, 200.1, 300, 400, 500, 600],
+            "y": [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            "seconds": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -452,11 +469,13 @@ def test_multiple_hesitations() -> None:
 
 def test_less_than_three_velocities() -> None:
     """Test early return when velocities length is less than 3."""
-    points = pd.DataFrame({
-        "x": [0, 1],
-        "y": [0, 0],
-        "seconds": [0, 1],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 1],
+            "y": [0, 0],
+            "seconds": [0, 1],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -475,11 +494,13 @@ def test_less_than_three_velocities() -> None:
 
 def test_smoothness_less_than_three_points() -> None:
     """Less than 3 points cannot define curvature."""
-    points = pd.DataFrame({
-        "x": [0, 1],
-        "y": [0, 0],
-        "seconds": [0, 1],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 1],
+            "y": [0, 0],
+            "seconds": [0, 1],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -569,10 +590,12 @@ def test_smoothness_single_180_degree_turn() -> None:
 
     Since it represents maximal curvature.
     """
-    points = pd.DataFrame({
-        "x": [0, 1, 0],
-        "y": [0, 0, 0],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 1, 0],
+            "y": [0, 0, 0],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -588,11 +611,13 @@ def test_smoothness_single_180_degree_turn() -> None:
 
 def test_compute_segment_metrics_less_than_two_points() -> None:
     """Test early return when segment has less than 2 points."""
-    points = pd.DataFrame({
-        "x": [0],
-        "y": [0],
-        "seconds": [0],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0],
+            "y": [0],
+            "seconds": [0],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -620,11 +645,13 @@ def test_compute_segment_metrics_less_than_two_points() -> None:
 
 def test_compute_segment_metrics_invalid_start_label() -> None:
     """Test early return when start_label not in trail circles."""
-    points = pd.DataFrame({
-        "x": [0, 50, 100],
-        "y": [0, 0, 0],
-        "seconds": [0, 1, 2],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 50, 100],
+            "y": [0, 0, 0],
+            "seconds": [0, 1, 2],
+        }
+    )
     segment = models.LineSegment(
         start_label="999",
         end_label="2",
@@ -653,11 +680,13 @@ def test_compute_segment_metrics_invalid_start_label() -> None:
 
 def test_compute_segment_metrics_invalid_end_label() -> None:
     """Test early return when end_label not in trail circles."""
-    points = pd.DataFrame({
-        "x": [0, 50, 100],
-        "y": [0, 0, 0],
-        "seconds": [0, 1, 2],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 50, 100],
+            "y": [0, 0, 0],
+            "seconds": [0, 1, 2],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="999",
@@ -665,7 +694,6 @@ def test_compute_segment_metrics_invalid_end_label() -> None:
         is_error=False,
         line_number=1,
     )
-
     circles = {
         "A": {
             "1": models.CircleTarget(
@@ -686,11 +714,13 @@ def test_compute_segment_metrics_invalid_end_label() -> None:
 
 def test_compute_segment_metrics_valid_trajectory() -> None:
     """Test successful computation of all metrics with valid trajectory."""
-    points = pd.DataFrame({
-        "x": [0, 25, 50, 75, 100],
-        "y": [0, 0, 0, 0, 0],
-        "seconds": [0, 1, 2, 3, 4],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 25, 50, 75, 100],
+            "y": [0, 0, 0, 0, 0],
+            "seconds": [0, 1, 2, 3, 4],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -698,7 +728,7 @@ def test_compute_segment_metrics_valid_trajectory() -> None:
         is_error=False,
         line_number=1,
     )
-    segment.valid_ink_trajectory = lambda start, end: (0, 4)
+
     circles = {
         "A": {
             "1": models.CircleTarget(
@@ -710,7 +740,8 @@ def test_compute_segment_metrics_valid_trajectory() -> None:
         }
     }
 
-    segment.compute_segment_metrics(circles=circles, trail_id="A")
+    with patch.object(segment, "valid_ink_trajectory", return_value=(0, 4)):
+        segment.compute_segment_metrics(circles=circles, trail_id="A")
 
     assert segment.ink_time == pytest.approx(4.0)
     assert len(segment.ink_points) == 5
@@ -723,11 +754,13 @@ def test_compute_segment_metrics_valid_trajectory() -> None:
 
 def test_compute_segment_metrics_ink_end_equals_ink_start() -> None:
     """Test when ink_end_idx equals ink_start_idx (no valid trajectory)."""
-    points = pd.DataFrame({
-        "x": [0, 50, 100],
-        "y": [0, 0, 0],
-        "seconds": [0, 1, 2],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 50, 100],
+            "y": [0, 0, 0],
+            "seconds": [0, 1, 2],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -735,7 +768,7 @@ def test_compute_segment_metrics_ink_end_equals_ink_start() -> None:
         is_error=False,
         line_number=1,
     )
-    segment.valid_ink_trajectory = lambda start, end: (1, 1)
+
     circles = {
         "A": {
             "1": models.CircleTarget(
@@ -747,7 +780,8 @@ def test_compute_segment_metrics_ink_end_equals_ink_start() -> None:
         }
     }
 
-    segment.compute_segment_metrics(circles=circles, trail_id="A")
+    with patch.object(segment, "valid_ink_trajectory", return_value=(1, 1)):
+        segment.compute_segment_metrics(circles=circles, trail_id="A")
 
     assert segment.distance == 0.0
     assert len(segment.velocities) == 0
@@ -755,11 +789,13 @@ def test_compute_segment_metrics_ink_end_equals_ink_start() -> None:
 
 def test_compute_segment_metrics_ink_end_before_ink_start() -> None:
     """Test when ink_end_idx is before ink_start_idx (invalid trajectory)."""
-    points = pd.DataFrame({
-        "x": [0, 50, 100],
-        "y": [0, 0, 0],
-        "seconds": [0, 1, 2],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 50, 100],
+            "y": [0, 0, 0],
+            "seconds": [0, 1, 2],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -767,7 +803,7 @@ def test_compute_segment_metrics_ink_end_before_ink_start() -> None:
         is_error=False,
         line_number=1,
     )
-    segment.valid_ink_trajectory = lambda start, end: (2, 0)
+
     circles = {
         "A": {
             "1": models.CircleTarget(
@@ -779,7 +815,8 @@ def test_compute_segment_metrics_ink_end_before_ink_start() -> None:
         }
     }
 
-    segment.compute_segment_metrics(circles=circles, trail_id="A")
+    with patch.object(segment, "valid_ink_trajectory", return_value=(2, 0)):
+        segment.compute_segment_metrics(circles=circles, trail_id="A")
 
     assert segment.distance == 0.0
     assert len(segment.velocities) == 0
@@ -787,11 +824,13 @@ def test_compute_segment_metrics_ink_end_before_ink_start() -> None:
 
 def test_compute_segment_metrics_only_start_index_found() -> None:
     """Test when only ink_start_idx is found (end is None)."""
-    points = pd.DataFrame({
-        "x": [0, 25, 50, 75],
-        "y": [0, 0, 0, 0],
-        "seconds": [0, 1, 2, 3],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 25, 50, 75],
+            "y": [0, 0, 0, 0],
+            "seconds": [0, 1, 2, 3],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -799,7 +838,7 @@ def test_compute_segment_metrics_only_start_index_found() -> None:
         is_error=False,
         line_number=1,
     )
-    segment.valid_ink_trajectory = lambda start, end: (1, None)
+
     circles = {
         "A": {
             "1": models.CircleTarget(
@@ -811,7 +850,8 @@ def test_compute_segment_metrics_only_start_index_found() -> None:
         }
     }
 
-    segment.compute_segment_metrics(circles=circles, trail_id="A")
+    with patch.object(segment, "valid_ink_trajectory", return_value=(1, None)):
+        segment.compute_segment_metrics(circles=circles, trail_id="A")
 
     assert segment.ink_time == pytest.approx(2.0)
     assert len(segment.ink_points) == 3
@@ -821,11 +861,13 @@ def test_compute_segment_metrics_only_start_index_found() -> None:
 
 def test_compute_segment_metrics_calls_all_metric_functions() -> None:
     """Test that all metric calculation functions are called."""
-    points = pd.DataFrame({
-        "x": [0, 25, 50, 75, 100],
-        "y": [0, 0, 0, 0, 0],
-        "seconds": [0, 1, 2, 3, 4],
-    })
+    points = pd.DataFrame(
+        {
+            "x": [0, 25, 50, 75, 100],
+            "y": [0, 0, 0, 0, 0],
+            "seconds": [0, 1, 2, 3, 4],
+        }
+    )
     segment = models.LineSegment(
         start_label="1",
         end_label="2",
@@ -833,7 +875,7 @@ def test_compute_segment_metrics_calls_all_metric_functions() -> None:
         is_error=False,
         line_number=1,
     )
-    segment.valid_ink_trajectory = lambda start, end: (0, 4)
+
     circles = {
         "A": {
             "1": models.CircleTarget(
@@ -845,7 +887,8 @@ def test_compute_segment_metrics_calls_all_metric_functions() -> None:
         }
     }
 
-    segment.compute_segment_metrics(circles=circles, trail_id="A")
+    with patch.object(segment, "valid_ink_trajectory", return_value=(0, 4)):
+        segment.compute_segment_metrics(circles=circles, trail_id="A")
 
     assert len(segment.velocities) > 0
     assert segment.path_optimality > 0.0
