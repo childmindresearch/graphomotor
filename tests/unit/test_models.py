@@ -611,7 +611,7 @@ def test_compute_segment_metrics_less_than_two_points() -> None:
         }
     }
 
-    segment.valid_ink_trajectory = lambda start, end: (0, 4)  # type: ignore[method-assign]
+    segment.compute_segment_metrics(circles=circles, trail_id="A")
 
     assert segment.ink_time == 0.0
     assert segment.distance == 0.0
