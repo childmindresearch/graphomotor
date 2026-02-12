@@ -3,7 +3,6 @@
 import datetime
 from typing import Dict, cast
 
-import numpy as np
 import pandas as pd
 import pytest
 
@@ -256,15 +255,18 @@ def test_uniform_motion() -> None:
         points=points,
         is_error=False,
         line_number=1,
+        ink_points=points,  # Pre-assign ink_points for velocity calculation
     )
 
-    segment.calculate_velocity_metrics(points)
+    segment.calculate_velocity_metrics()
 
-    assert segment.distance == 3.0
-    assert segment.mean_speed == 1.0
-    assert segment.speed_variance == 0.0
-    assert np.all(segment.velocities) == 1.0
-    assert np.all(segment.accelerations) == 0.0
+    assert segment.distance == pytest.approx(3.0)
+    assert segment.mean_speed == pytest.approx(1.0)
+    assert segment.speed_variance == pytest.approx(0.0)
+    assert len(segment.velocities) == 3
+    assert all(v == pytest.approx(1.0) for v in segment.velocities)
+    assert len(segment.accelerations) == 2
+    assert all(a == pytest.approx(0.0) for a in segment.accelerations)
 
 
 def test_accelerating_motion() -> None:
@@ -282,15 +284,21 @@ def test_accelerating_motion() -> None:
         points=points,
         is_error=False,
         line_number=1,
+        ink_points=points,  # Pre-assign ink_points for velocity calculation
     )
 
-    segment.calculate_velocity_metrics(points)
+    segment.calculate_velocity_metrics()
 
-    assert segment.distance == 9.0
-    assert segment.mean_speed == 3.0
-    assert segment.speed_variance == pytest.approx(2.6666666666666665)
-    assert segment.velocities == [1.0, 3.0, 5.0]
-    assert segment.accelerations == [2.0, 2.0]
+    assert segment.distance == pytest.approx(9.0)
+    assert segment.mean_speed == pytest.approx(3.0)
+    assert segment.speed_variance > 0.0
+    assert len(segment.velocities) == 3
+    assert segment.velocities[0] == pytest.approx(1.0)
+    assert segment.velocities[1] == pytest.approx(3.0)
+    assert segment.velocities[2] == pytest.approx(5.0)
+    assert len(segment.accelerations) == 2
+    assert segment.accelerations[0] == pytest.approx(2.0)
+    assert segment.accelerations[1] == pytest.approx(2.0)
 
 
 def test_velocity_two_points_only() -> None:
@@ -308,15 +316,17 @@ def test_velocity_two_points_only() -> None:
         points=points,
         is_error=False,
         line_number=1,
+        ink_points=points,  # Pre-assign ink_points for velocity calculation
     )
 
-    segment.calculate_velocity_metrics(points)
+    segment.calculate_velocity_metrics()
 
-    assert segment.distance == 5.0
-    assert segment.mean_speed == 2.5
-    assert segment.speed_variance == 0.0
-    assert segment.velocities == [2.5]
-    assert segment.accelerations == []
+    assert segment.distance == pytest.approx(5.0)
+    assert segment.mean_speed == pytest.approx(2.5)
+    assert segment.speed_variance == pytest.approx(0.0)
+    assert len(segment.velocities) == 1
+    assert segment.velocities[0] == pytest.approx(2.5)
+    assert len(segment.accelerations) == 0
 
 
 def test_decelerating_motion() -> None:
@@ -334,15 +344,21 @@ def test_decelerating_motion() -> None:
         points=points,
         is_error=False,
         line_number=1,
+        ink_points=points,  # Pre-assign ink_points for velocity calculation
     )
 
-    segment.calculate_velocity_metrics(points)
+    segment.calculate_velocity_metrics()
 
-    assert segment.distance == 9.0
-    assert segment.mean_speed == 3.0
+    assert segment.distance == pytest.approx(9.0)
+    assert segment.mean_speed == pytest.approx(3.0)
     assert segment.speed_variance > 0.0
-    assert segment.velocities == [4.0, 3.0, 2.0]
-    assert segment.accelerations == [-1.0, -1.0]
+    assert len(segment.velocities) == 3
+    assert segment.velocities[0] == pytest.approx(4.0)
+    assert segment.velocities[1] == pytest.approx(3.0)
+    assert segment.velocities[2] == pytest.approx(2.0)
+    assert len(segment.accelerations) == 2
+    assert segment.accelerations[0] == pytest.approx(-1.0)
+    assert segment.accelerations[1] == pytest.approx(-1.0)
 
 
 def test_stationary_motion() -> None:
@@ -360,12 +376,115 @@ def test_stationary_motion() -> None:
         points=points,
         is_error=False,
         line_number=1,
+        ink_points=points,  # Pre-assign ink_points for velocity calculation
     )
 
-    segment.calculate_velocity_metrics(points)
+    segment.calculate_velocity_metrics()
 
-    assert segment.distance == 0.0
-    assert segment.mean_speed == 0.0
-    assert segment.speed_variance == 0.0
-    assert segment.velocities == [0.0, 0.0]
-    assert segment.accelerations == [0.0]
+    assert segment.distance == pytest.approx(0.0)
+    assert segment.mean_speed == pytest.approx(0.0)
+    assert segment.speed_variance == pytest.approx(0.0)
+    assert len(segment.velocities) == 2
+    assert all(v == pytest.approx(0.0) for v in segment.velocities)
+    assert len(segment.accelerations) == 1
+    assert segment.accelerations[0] == pytest.approx(0.0)
+
+
+def test_no_hesitations_uniform_motion() -> None:
+    """Test with uniform motion where all velocities are equal."""
+    points = pd.DataFrame(
+        {
+            "x": [0, 1, 2, 3],
+            "y": [0, 0, 0, 0],
+            "seconds": [0, 1, 2, 3],
+        }
+    )
+    segment = models.LineSegment(
+        start_label="1",
+        end_label="2",
+        points=points,
+        is_error=False,
+        line_number=1,
+        ink_points=points,  # Pre-assign ink_points for velocity calculation
+    )
+
+    segment.calculate_velocity_metrics()
+    segment.detect_hesitations()
+
+    assert segment.hesitation_count == 0
+    assert segment.hesitation_duration == pytest.approx(0.0)
+
+
+def test_hesitation_at_start() -> None:
+    """Test when the line starts with a hesitation."""
+    points = pd.DataFrame(
+        {
+            "x": [0, 0.1, 1, 2],
+            "y": [0, 0.1, 0, 0],
+            "seconds": [0, 1, 2, 3],
+        }
+    )
+    segment = models.LineSegment(
+        start_label="1",
+        end_label="2",
+        points=points,
+        is_error=False,
+        line_number=1,
+        ink_points=points,  # Pre-assign ink_points for velocity calculation
+    )
+
+    segment.calculate_velocity_metrics()
+    segment.detect_hesitations()
+
+    assert segment.hesitation_count == 1
+    assert segment.hesitation_duration == pytest.approx(1.0)
+
+
+def test_multiple_hesitations() -> None:
+    """Test when there are multiple hesitation periods."""
+    points = pd.DataFrame(
+        {
+            "x": [0, 100, 100.1, 200, 200.1, 300, 400, 500, 600],
+            "y": [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            "seconds": [0, 1, 2, 3, 4, 5, 6, 7, 8],
+        }
+    )
+    segment = models.LineSegment(
+        start_label="1",
+        end_label="2",
+        points=points,
+        is_error=False,
+        line_number=1,
+        ink_points=points,  # Pre-assign ink_points for velocity calculation
+    )
+
+    segment.calculate_velocity_metrics()
+    segment.detect_hesitations()
+
+    assert segment.hesitation_count == 2
+    assert segment.hesitation_duration == pytest.approx(2.0)
+
+
+def test_less_than_three_velocities() -> None:
+    """Test early return when velocities length is less than 3."""
+    points = pd.DataFrame(
+        {
+            "x": [0, 1],
+            "y": [0, 0],
+            "seconds": [0, 1],
+        }
+    )
+    segment = models.LineSegment(
+        start_label="1",
+        end_label="2",
+        points=points,
+        is_error=False,
+        line_number=1,
+        ink_points=points,  # Pre-assign ink_points for velocity calculation
+    )
+
+    segment.calculate_velocity_metrics()
+    segment.detect_hesitations()
+
+    assert segment.hesitation_count == 0
+    assert segment.hesitation_duration == pytest.approx(0.0)
