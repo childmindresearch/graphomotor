@@ -167,7 +167,8 @@ class GridCell:
         """Check if a stroke belongs to this cell based on its centroid.
 
         Computes the centroid (mean x, mean y) of the provided points and checks
-        whether it falls within the cell boundaries (inclusive).
+        whether it falls within the cell boundaries. Uses half-open intervals
+        [min, max) to prevent double-assignment on shared grid edges.
 
         Args:
             points: DataFrame with 'x' and 'y' columns representing a stroke.
@@ -178,8 +179,8 @@ class GridCell:
         centroid_x = points["x"].mean()
         centroid_y = points["y"].mean()
         return (
-            self.x_min <= centroid_x <= self.x_max
-            and self.y_min <= centroid_y <= self.y_max
+            self.x_min <= centroid_x < self.x_max
+            and self.y_min <= centroid_y < self.y_max
         )
 
 

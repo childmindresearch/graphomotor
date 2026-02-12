@@ -47,10 +47,16 @@ def test_stroke_centroid_outside_cell(cell: models.GridCell) -> None:
     assert not cell.contains_points(stroke_points)
 
 
-def test_stroke_centroid_on_boundary(cell: models.GridCell) -> None:
-    """Stroke whose centroid lands exactly on the cell boundary should be contained."""
+def test_stroke_centroid_on_lower_boundary(cell: models.GridCell) -> None:
+    """Stroke whose centroid lands on the lower/left boundary (min) is included."""
     stroke_points = pd.DataFrame({"x": [10.0, 10.0], "y": [88.0, 89.0]})
     assert cell.contains_points(stroke_points)
+
+
+def test_stroke_centroid_on_upper_boundary(cell: models.GridCell) -> None:
+    """Stroke whose centroid lands on the upper/right boundary (max) is excluded."""
+    stroke_points = pd.DataFrame({"x": [17.0, 18.0], "y": [97.0, 97.0]})
+    assert not cell.contains_points(stroke_points)
 
 
 def test_stroke_points_span_outside_but_centroid_inside(
