@@ -17,7 +17,7 @@ class Drawing(pydantic.BaseModel):
         data: DataFrame containing drawing data with required columns (line_number, x,
             y, UTC_Timestamp, seconds).
         task_name: Name of the drawing task (e.g., 'spiral', 'trails', etc.).
-        metadata: Dictionary containing metadata about the spiral:
+        metadata: Dictionary containing metadata about the drawing:
             - id: Unique identifier for the participant,
             - hand: Hand used ('Dom' for dominant, 'NonDom' for non-dominant),
             - task: Task name,
@@ -290,4 +290,29 @@ class LineSegment:
 
         if optimal_distance > 0:
             self.path_optimality = optimal_distance / self.distance
+        return
+
+    def calculate_velocity_metrics(self, ink_points: pd.DataFrame) -> None:
+        """Get distance, velocity, and acceleration metrics of a LineSegment.
+
+        Args:
+            self: LineSegment object to calculate velocities for.
+            ink_points: DataFrame of ink points with 'x', 'y', and 'seconds' columns.
+        """
+        dx = np.diff(ink_points["x"].values)
+        dy = np.diff(ink_points["y"].values)
+        dt = np.diff(ink_points["seconds"].values)
+
+        distances = np.sqrt(dx**2 + dy**2)
+        self.distance = np.sum(distances)
+
+        velocities = distances / dt
+        self.velocities = velocities.tolist()
+
+        self.mean_speed = np.mean(velocities)
+        self.speed_variance = np.var(velocities)
+
+        if len(velocities) >= 2:
+            self.accelerations = np.diff(velocities).tolist()
+
         return
