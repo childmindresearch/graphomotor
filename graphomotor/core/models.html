@@ -171,6 +171,9 @@
                         <li>
                                 <a class="function" href="#LineSegment.calculate_path_optimality">calculate_path_optimality</a>
                         </li>
+                        <li>
+                                <a class="function" href="#LineSegment.calculate_velocity_metrics">calculate_velocity_metrics</a>
+                        </li>
                 </ul>
 
             </li>
@@ -216,7 +219,7 @@
 </span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="sd">        data: DataFrame containing drawing data with required columns (line_number, x,</span>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a><span class="sd">            y, UTC_Timestamp, seconds).</span>
 </span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="sd">        task_name: Name of the drawing task (e.g., &#39;spiral&#39;, &#39;trails&#39;, etc.).</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="sd">        metadata: Dictionary containing metadata about the spiral:</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="sd">        metadata: Dictionary containing metadata about the drawing:</span>
 </span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a><span class="sd">            - id: Unique identifier for the participant,</span>
 </span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="sd">            - hand: Hand used (&#39;Dom&#39; for dominant, &#39;NonDom&#39; for non-dominant),</span>
 </span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="sd">            - task: Task name,</span>
@@ -490,6 +493,31 @@
 </span><span id="L-291"><a href="#L-291"><span class="linenos">291</span></a>        <span class="k">if</span> <span class="n">optimal_distance</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
 </span><span id="L-292"><a href="#L-292"><span class="linenos">292</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">path_optimality</span> <span class="o">=</span> <span class="n">optimal_distance</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">distance</span>
 </span><span id="L-293"><a href="#L-293"><span class="linenos">293</span></a>        <span class="k">return</span>
+</span><span id="L-294"><a href="#L-294"><span class="linenos">294</span></a>
+</span><span id="L-295"><a href="#L-295"><span class="linenos">295</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_velocity_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ink_points</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-296"><a href="#L-296"><span class="linenos">296</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get distance, velocity, and acceleration metrics of a LineSegment.</span>
+</span><span id="L-297"><a href="#L-297"><span class="linenos">297</span></a>
+</span><span id="L-298"><a href="#L-298"><span class="linenos">298</span></a><span class="sd">        Args:</span>
+</span><span id="L-299"><a href="#L-299"><span class="linenos">299</span></a><span class="sd">            self: LineSegment object to calculate velocities for.</span>
+</span><span id="L-300"><a href="#L-300"><span class="linenos">300</span></a><span class="sd">            ink_points: DataFrame of ink points with &#39;x&#39;, &#39;y&#39;, and &#39;seconds&#39; columns.</span>
+</span><span id="L-301"><a href="#L-301"><span class="linenos">301</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="L-302"><a href="#L-302"><span class="linenos">302</span></a>        <span class="n">dx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">ink_points</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+</span><span id="L-303"><a href="#L-303"><span class="linenos">303</span></a>        <span class="n">dy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">ink_points</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+</span><span id="L-304"><a href="#L-304"><span class="linenos">304</span></a>        <span class="n">dt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">ink_points</span><span class="p">[</span><span class="s2">&quot;seconds&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+</span><span id="L-305"><a href="#L-305"><span class="linenos">305</span></a>
+</span><span id="L-306"><a href="#L-306"><span class="linenos">306</span></a>        <span class="n">distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">dx</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">dy</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+</span><span id="L-307"><a href="#L-307"><span class="linenos">307</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">distance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">distances</span><span class="p">)</span>
+</span><span id="L-308"><a href="#L-308"><span class="linenos">308</span></a>
+</span><span id="L-309"><a href="#L-309"><span class="linenos">309</span></a>        <span class="n">velocities</span> <span class="o">=</span> <span class="n">distances</span> <span class="o">/</span> <span class="n">dt</span>
+</span><span id="L-310"><a href="#L-310"><span class="linenos">310</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">velocities</span> <span class="o">=</span> <span class="n">velocities</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+</span><span id="L-311"><a href="#L-311"><span class="linenos">311</span></a>
+</span><span id="L-312"><a href="#L-312"><span class="linenos">312</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">mean_speed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">velocities</span><span class="p">)</span>
+</span><span id="L-313"><a href="#L-313"><span class="linenos">313</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">speed_variance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">velocities</span><span class="p">)</span>
+</span><span id="L-314"><a href="#L-314"><span class="linenos">314</span></a>
+</span><span id="L-315"><a href="#L-315"><span class="linenos">315</span></a>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">velocities</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+</span><span id="L-316"><a href="#L-316"><span class="linenos">316</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">accelerations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">velocities</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+</span><span id="L-317"><a href="#L-317"><span class="linenos">317</span></a>
+</span><span id="L-318"><a href="#L-318"><span class="linenos">318</span></a>        <span class="k">return</span>
 </span></pre></div>
 
 
@@ -512,7 +540,7 @@
 </span><span id="Drawing-18"><a href="#Drawing-18"><span class="linenos">18</span></a><span class="sd">        data: DataFrame containing drawing data with required columns (line_number, x,</span>
 </span><span id="Drawing-19"><a href="#Drawing-19"><span class="linenos">19</span></a><span class="sd">            y, UTC_Timestamp, seconds).</span>
 </span><span id="Drawing-20"><a href="#Drawing-20"><span class="linenos">20</span></a><span class="sd">        task_name: Name of the drawing task (e.g., &#39;spiral&#39;, &#39;trails&#39;, etc.).</span>
-</span><span id="Drawing-21"><a href="#Drawing-21"><span class="linenos">21</span></a><span class="sd">        metadata: Dictionary containing metadata about the spiral:</span>
+</span><span id="Drawing-21"><a href="#Drawing-21"><span class="linenos">21</span></a><span class="sd">        metadata: Dictionary containing metadata about the drawing:</span>
 </span><span id="Drawing-22"><a href="#Drawing-22"><span class="linenos">22</span></a><span class="sd">            - id: Unique identifier for the participant,</span>
 </span><span id="Drawing-23"><a href="#Drawing-23"><span class="linenos">23</span></a><span class="sd">            - hand: Hand used (&#39;Dom&#39; for dominant, &#39;NonDom&#39; for non-dominant),</span>
 </span><span id="Drawing-24"><a href="#Drawing-24"><span class="linenos">24</span></a><span class="sd">            - task: Task name,</span>
@@ -578,7 +606,7 @@
 <li><strong>data:</strong>  DataFrame containing drawing data with required columns (line_number, x,
 y, UTC_Timestamp, seconds).</li>
 <li><strong>task_name:</strong>  Name of the drawing task (e.g., 'spiral', 'trails', etc.).</li>
-<li><strong>metadata:</strong>  Dictionary containing metadata about the spiral:
+<li><strong>metadata:</strong>  Dictionary containing metadata about the drawing:
 <ul>
 <li>id: Unique identifier for the participant,</li>
 <li>hand: Hand used ('Dom' for dominant, 'NonDom' for non-dominant),</li>
@@ -1286,6 +1314,31 @@ y, UTC_Timestamp, seconds).</li>
 </span><span id="LineSegment-292"><a href="#LineSegment-292"><span class="linenos">292</span></a>        <span class="k">if</span> <span class="n">optimal_distance</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
 </span><span id="LineSegment-293"><a href="#LineSegment-293"><span class="linenos">293</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">path_optimality</span> <span class="o">=</span> <span class="n">optimal_distance</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">distance</span>
 </span><span id="LineSegment-294"><a href="#LineSegment-294"><span class="linenos">294</span></a>        <span class="k">return</span>
+</span><span id="LineSegment-295"><a href="#LineSegment-295"><span class="linenos">295</span></a>
+</span><span id="LineSegment-296"><a href="#LineSegment-296"><span class="linenos">296</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_velocity_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ink_points</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="LineSegment-297"><a href="#LineSegment-297"><span class="linenos">297</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get distance, velocity, and acceleration metrics of a LineSegment.</span>
+</span><span id="LineSegment-298"><a href="#LineSegment-298"><span class="linenos">298</span></a>
+</span><span id="LineSegment-299"><a href="#LineSegment-299"><span class="linenos">299</span></a><span class="sd">        Args:</span>
+</span><span id="LineSegment-300"><a href="#LineSegment-300"><span class="linenos">300</span></a><span class="sd">            self: LineSegment object to calculate velocities for.</span>
+</span><span id="LineSegment-301"><a href="#LineSegment-301"><span class="linenos">301</span></a><span class="sd">            ink_points: DataFrame of ink points with &#39;x&#39;, &#39;y&#39;, and &#39;seconds&#39; columns.</span>
+</span><span id="LineSegment-302"><a href="#LineSegment-302"><span class="linenos">302</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="LineSegment-303"><a href="#LineSegment-303"><span class="linenos">303</span></a>        <span class="n">dx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">ink_points</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+</span><span id="LineSegment-304"><a href="#LineSegment-304"><span class="linenos">304</span></a>        <span class="n">dy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">ink_points</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+</span><span id="LineSegment-305"><a href="#LineSegment-305"><span class="linenos">305</span></a>        <span class="n">dt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">ink_points</span><span class="p">[</span><span class="s2">&quot;seconds&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+</span><span id="LineSegment-306"><a href="#LineSegment-306"><span class="linenos">306</span></a>
+</span><span id="LineSegment-307"><a href="#LineSegment-307"><span class="linenos">307</span></a>        <span class="n">distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">dx</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">dy</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+</span><span id="LineSegment-308"><a href="#LineSegment-308"><span class="linenos">308</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">distance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">distances</span><span class="p">)</span>
+</span><span id="LineSegment-309"><a href="#LineSegment-309"><span class="linenos">309</span></a>
+</span><span id="LineSegment-310"><a href="#LineSegment-310"><span class="linenos">310</span></a>        <span class="n">velocities</span> <span class="o">=</span> <span class="n">distances</span> <span class="o">/</span> <span class="n">dt</span>
+</span><span id="LineSegment-311"><a href="#LineSegment-311"><span class="linenos">311</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">velocities</span> <span class="o">=</span> <span class="n">velocities</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+</span><span id="LineSegment-312"><a href="#LineSegment-312"><span class="linenos">312</span></a>
+</span><span id="LineSegment-313"><a href="#LineSegment-313"><span class="linenos">313</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">mean_speed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">velocities</span><span class="p">)</span>
+</span><span id="LineSegment-314"><a href="#LineSegment-314"><span class="linenos">314</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">speed_variance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">velocities</span><span class="p">)</span>
+</span><span id="LineSegment-315"><a href="#LineSegment-315"><span class="linenos">315</span></a>
+</span><span id="LineSegment-316"><a href="#LineSegment-316"><span class="linenos">316</span></a>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">velocities</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+</span><span id="LineSegment-317"><a href="#LineSegment-317"><span class="linenos">317</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">accelerations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">velocities</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+</span><span id="LineSegment-318"><a href="#LineSegment-318"><span class="linenos">318</span></a>
+</span><span id="LineSegment-319"><a href="#LineSegment-319"><span class="linenos">319</span></a>        <span class="k">return</span>
 </span></pre></div>
 
 
@@ -1707,6 +1760,56 @@ optimality remains 0.0.</p>
 <blockquote>
   <p>Path optimality ratio.</p>
 </blockquote>
+</div>
+
+
+                            </div>
+                            <div id="LineSegment.calculate_velocity_metrics" class="classattr">
+                                        <input id="LineSegment.calculate_velocity_metrics-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">calculate_velocity_metrics</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">ink_points</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">DataFrame</span></span><span class="return-annotation">) -> <span class="kc">None</span>:</span></span>
+
+                <label class="view-source-button" for="LineSegment.calculate_velocity_metrics-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#LineSegment.calculate_velocity_metrics"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LineSegment.calculate_velocity_metrics-296"><a href="#LineSegment.calculate_velocity_metrics-296"><span class="linenos">296</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">calculate_velocity_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ink_points</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="LineSegment.calculate_velocity_metrics-297"><a href="#LineSegment.calculate_velocity_metrics-297"><span class="linenos">297</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Get distance, velocity, and acceleration metrics of a LineSegment.</span>
+</span><span id="LineSegment.calculate_velocity_metrics-298"><a href="#LineSegment.calculate_velocity_metrics-298"><span class="linenos">298</span></a>
+</span><span id="LineSegment.calculate_velocity_metrics-299"><a href="#LineSegment.calculate_velocity_metrics-299"><span class="linenos">299</span></a><span class="sd">        Args:</span>
+</span><span id="LineSegment.calculate_velocity_metrics-300"><a href="#LineSegment.calculate_velocity_metrics-300"><span class="linenos">300</span></a><span class="sd">            self: LineSegment object to calculate velocities for.</span>
+</span><span id="LineSegment.calculate_velocity_metrics-301"><a href="#LineSegment.calculate_velocity_metrics-301"><span class="linenos">301</span></a><span class="sd">            ink_points: DataFrame of ink points with &#39;x&#39;, &#39;y&#39;, and &#39;seconds&#39; columns.</span>
+</span><span id="LineSegment.calculate_velocity_metrics-302"><a href="#LineSegment.calculate_velocity_metrics-302"><span class="linenos">302</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="LineSegment.calculate_velocity_metrics-303"><a href="#LineSegment.calculate_velocity_metrics-303"><span class="linenos">303</span></a>        <span class="n">dx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">ink_points</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+</span><span id="LineSegment.calculate_velocity_metrics-304"><a href="#LineSegment.calculate_velocity_metrics-304"><span class="linenos">304</span></a>        <span class="n">dy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">ink_points</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+</span><span id="LineSegment.calculate_velocity_metrics-305"><a href="#LineSegment.calculate_velocity_metrics-305"><span class="linenos">305</span></a>        <span class="n">dt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">ink_points</span><span class="p">[</span><span class="s2">&quot;seconds&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+</span><span id="LineSegment.calculate_velocity_metrics-306"><a href="#LineSegment.calculate_velocity_metrics-306"><span class="linenos">306</span></a>
+</span><span id="LineSegment.calculate_velocity_metrics-307"><a href="#LineSegment.calculate_velocity_metrics-307"><span class="linenos">307</span></a>        <span class="n">distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">dx</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">dy</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+</span><span id="LineSegment.calculate_velocity_metrics-308"><a href="#LineSegment.calculate_velocity_metrics-308"><span class="linenos">308</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">distance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">distances</span><span class="p">)</span>
+</span><span id="LineSegment.calculate_velocity_metrics-309"><a href="#LineSegment.calculate_velocity_metrics-309"><span class="linenos">309</span></a>
+</span><span id="LineSegment.calculate_velocity_metrics-310"><a href="#LineSegment.calculate_velocity_metrics-310"><span class="linenos">310</span></a>        <span class="n">velocities</span> <span class="o">=</span> <span class="n">distances</span> <span class="o">/</span> <span class="n">dt</span>
+</span><span id="LineSegment.calculate_velocity_metrics-311"><a href="#LineSegment.calculate_velocity_metrics-311"><span class="linenos">311</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">velocities</span> <span class="o">=</span> <span class="n">velocities</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+</span><span id="LineSegment.calculate_velocity_metrics-312"><a href="#LineSegment.calculate_velocity_metrics-312"><span class="linenos">312</span></a>
+</span><span id="LineSegment.calculate_velocity_metrics-313"><a href="#LineSegment.calculate_velocity_metrics-313"><span class="linenos">313</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">mean_speed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">velocities</span><span class="p">)</span>
+</span><span id="LineSegment.calculate_velocity_metrics-314"><a href="#LineSegment.calculate_velocity_metrics-314"><span class="linenos">314</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">speed_variance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">velocities</span><span class="p">)</span>
+</span><span id="LineSegment.calculate_velocity_metrics-315"><a href="#LineSegment.calculate_velocity_metrics-315"><span class="linenos">315</span></a>
+</span><span id="LineSegment.calculate_velocity_metrics-316"><a href="#LineSegment.calculate_velocity_metrics-316"><span class="linenos">316</span></a>        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">velocities</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+</span><span id="LineSegment.calculate_velocity_metrics-317"><a href="#LineSegment.calculate_velocity_metrics-317"><span class="linenos">317</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">accelerations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">velocities</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+</span><span id="LineSegment.calculate_velocity_metrics-318"><a href="#LineSegment.calculate_velocity_metrics-318"><span class="linenos">318</span></a>
+</span><span id="LineSegment.calculate_velocity_metrics-319"><a href="#LineSegment.calculate_velocity_metrics-319"><span class="linenos">319</span></a>        <span class="k">return</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Get distance, velocity, and acceleration metrics of a LineSegment.</p>
+
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>self:</strong>  LineSegment object to calculate velocities for.</li>
+<li><strong>ink_points:</strong>  DataFrame of ink points with 'x', 'y', and 'seconds' columns.</li>
+</ul>
 </div>
 
 
