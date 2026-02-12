@@ -126,6 +126,64 @@ class SpiralFeatureCategories:
 
 
 @dataclasses.dataclass
+class GridCell:
+    """Represents a single rectangular region in a grid layout.
+
+    Used to assign strokes to letter regions (Alphabet) or digit regions (DSYM).
+    Boundary policy: a point on the exact boundary is considered inside the cell.
+
+    Attributes:
+        x_min: Left boundary of the cell.
+        x_max: Right boundary of the cell.
+        y_min: Bottom boundary of the cell.
+        y_max: Top boundary of the cell.
+        index: Position of the cell in the grid (0-based).
+        label: Display label for the cell (e.g., 'A', 'B', '1').
+    """
+
+    x_min: float
+    x_max: float
+    y_min: float
+    y_max: float
+    index: int = 0
+    label: str = ""
+
+    def __post_init__(self) -> None:
+        """Validate that min bounds are strictly less than max bounds.
+
+        Raises:
+            ValueError: If x_min >= x_max or y_min >= y_max.
+        """
+        if self.x_min >= self.x_max:
+            raise ValueError(
+                f"x_min ({self.x_min}) must be less than x_max ({self.x_max})"
+            )
+        if self.y_min >= self.y_max:
+            raise ValueError(
+                f"y_min ({self.y_min}) must be less than y_max ({self.y_max})"
+            )
+
+    def contains_points(self, points: pd.DataFrame) -> bool:
+        """Check if a stroke belongs to this cell based on its centroid.
+
+        Computes the centroid (mean x, mean y) of the provided points and checks
+        whether it falls within the cell boundaries (inclusive).
+
+        Args:
+            points: DataFrame with 'x' and 'y' columns representing a stroke.
+
+        Returns:
+            True if the stroke centroid is within the cell, False otherwise.
+        """
+        centroid_x = points["x"].mean()
+        centroid_y = points["y"].mean()
+        return (
+            self.x_min <= centroid_x <= self.x_max
+            and self.y_min <= centroid_y <= self.y_max
+        )
+
+
+@dataclasses.dataclass
 class CircleTarget:
     """Represents a target circle in the drawing task.
 
