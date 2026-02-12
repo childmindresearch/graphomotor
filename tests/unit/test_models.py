@@ -3,6 +3,7 @@
 import datetime
 from typing import Dict, cast
 
+import numpy as np
 import pandas as pd
 import pytest
 
