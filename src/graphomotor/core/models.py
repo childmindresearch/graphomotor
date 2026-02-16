@@ -357,7 +357,6 @@ class LineSegment:
         sampling-rate dependence.
         """
         if len(self.ink_points) < 3:
-            return 0.0
             return
 
         xy = self.ink_points[["x", "y"]].to_numpy()
