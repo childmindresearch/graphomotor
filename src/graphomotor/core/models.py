@@ -290,7 +290,6 @@ class LineSegment:
 
         Args:
             self: LineSegment object to calculate velocities for.
-            ink_points: DataFrame containing the ink points for the line segment.
         """
         dx = np.diff(self.ink_points["x"].values)
         dy = np.diff(self.ink_points["y"].values)
@@ -320,8 +319,11 @@ class LineSegment:
         duration of hesitations based on the number of points that fall below the
         threshold and the time interval between points.
 
+        hesitation_count defaults to 0 and hesitation_duration defaults to 0.0 in the
+        LineSegment object if there are less than 3 velocity points. This function also
+        assumes uniform sampling.
+
         Args:
-            ink_points: DataFrame containing the ink points for the line segment.
             threshold_percentile: Percentile to determine the velocity threshold for
                 hesitations (default is 20, meaning the bottom 20% of velocities are
                 considered hesitations).
@@ -331,20 +333,17 @@ class LineSegment:
 
         dt = np.diff(self.ink_points["seconds"].values)
 
-        threshold = np.percentile(self.velocities, threshold_percentile)
-        hesitations = self.velocities < threshold
+        threshold_velocity = np.percentile(self.velocities, threshold_percentile)
+        hesitations = self.velocities < threshold_velocity
 
         hesitation_changes = np.diff(hesitations.astype(int))
-        hesitation_starts = np.where(hesitation_changes == 1)[0] + 1
-        hesitation_count = len(hesitation_starts)
+        hesitation_count = np.sum(hesitation_changes == 1)
 
         if hesitations[0]:
             hesitation_count += 1
 
-        hesitation_duration = np.sum(hesitations) * dt[0]
-
         self.hesitation_count = hesitation_count
-        self.hesitation_duration = hesitation_duration
+        self.hesitation_duration = np.sum(hesitations) * dt[0]
 
         return
 
@@ -447,4 +446,5 @@ class LineSegment:
                     self.ink_points.iloc[-1]["seconds"]
                     - self.ink_points.iloc[0]["seconds"]
                 )
+
         return
