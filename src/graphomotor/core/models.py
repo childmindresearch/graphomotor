@@ -189,7 +189,6 @@ class LineSegment:
     points: pd.DataFrame
     is_error: bool
     line_number: int
-    ink_points: np.ndarray = dataclasses.field(default_factory=lambda: np.array([]))
 
     ink_time: float = 0.0
     think_time: float = 0.0
@@ -203,6 +202,7 @@ class LineSegment:
     hesitation_duration: float = 0.0
     velocities: List[float] = dataclasses.field(default_factory=list)
     accelerations: List[float] = dataclasses.field(default_factory=list)
+    ink_points: pd.DataFrame = dataclasses.field(default_factory=pd.DataFrame)
 
     def valid_ink_trajectory(
         self,
@@ -230,7 +230,7 @@ class LineSegment:
             end_circle: CircleTarget representing the end circle.
 
         Returns:
-            Tuple of (ink_start_idx: int, ink_end_idx: int) if valid
+            Tuple of (ink_start_idx: Optional[int], ink_end_idx: Optional[int]) if valid
             trajectory exists, else (None, None).
         """
         ink_start_idx = None
@@ -248,7 +248,6 @@ class LineSegment:
             ):
                 ink_end_idx = idx
                 break
-
         if (
             ink_start_idx is not None
             and ink_end_idx is not None
@@ -292,16 +291,15 @@ class LineSegment:
             self.path_optimality = optimal_distance / self.distance
         return
 
-    def calculate_velocity_metrics(self, ink_points: pd.DataFrame) -> None:
-        """Get distance, velocity, and acceleration metrics of a LineSegment.
+    def calculate_velocity_metrics(self) -> None:
+        """Get velocity metrics of a LineSegment.
 
         Args:
             self: LineSegment object to calculate velocities for.
-            ink_points: DataFrame of ink points with 'x', 'y', and 'seconds' columns.
         """
-        dx = np.diff(ink_points["x"].values)
-        dy = np.diff(ink_points["y"].values)
-        dt = np.diff(ink_points["seconds"].values)
+        dx = np.diff(self.ink_points["x"].values)
+        dy = np.diff(self.ink_points["y"].values)
+        dt = np.diff(self.ink_points["seconds"].values)
 
         distances = np.sqrt(dx**2 + dy**2)
         self.distance = np.sum(distances)
@@ -314,5 +312,43 @@ class LineSegment:
 
         if len(velocities) >= 2:
             self.accelerations = np.diff(velocities).tolist()
+
+        return
+
+    def detect_hesitations(self, threshold_percentile: int = 20) -> None:
+        """Detect hesitations as periods of significantly reduced velocity.
+
+        This function defines a hesitation as any period where the velocity falls below
+        a certain threshold, which is determined by the specified percentile of the
+        velocity distribution. It counts the number of distinct hesitation periods and
+        adds 1 if the line starts with a hesitation. It also calculates the total
+        duration of hesitations based on the number of points that fall below the
+        threshold and the time interval between points.
+
+        hesitation_count defaults to 0 and hesitation_duration defaults to 0.0 in the
+        LineSegment object if there are less than 3 velocity points. This function also
+        assumes uniform sampling.
+
+        Args:
+            threshold_percentile: Percentile to determine the velocity threshold for
+                hesitations (default is 20, meaning the bottom 20% of velocities are
+                considered hesitations).
+        """
+        if len(self.velocities) < 3:
+            return
+
+        dt = np.diff(self.ink_points["seconds"].values)
+
+        threshold_velocity = np.percentile(self.velocities, threshold_percentile)
+        hesitations = self.velocities < threshold_velocity
+
+        hesitation_changes = np.diff(hesitations.astype(int))
+        hesitation_count = np.sum(hesitation_changes == 1)
+
+        if hesitations[0]:
+            hesitation_count += 1
+
+        self.hesitation_count = hesitation_count
+        self.hesitation_duration = np.sum(hesitations) * dt[0]
 
         return
