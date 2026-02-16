@@ -285,16 +285,16 @@ class LineSegment:
             self.path_optimality = optimal_distance / self.distance
         return
 
-    def calculate_velocity_metrics(self) -> None:
-        """Get velocity metrics of a LineSegment.
+    def calculate_velocity_metrics(self, ink_points: pd.DataFrame) -> None:
+        """Get distance, velocity, and acceleration metrics of a LineSegment.
 
         Args:
             self: LineSegment object to calculate velocities for.
-            ink_points: DataFrame containing the ink points for the line segment.
+            ink_points: DataFrame of ink points with 'x', 'y', and 'seconds' columns.
         """
-        dx = np.diff(self.ink_points["x"].values)
-        dy = np.diff(self.ink_points["y"].values)
-        dt = np.diff(self.ink_points["seconds"].values)
+        dx = np.diff(ink_points["x"].values)
+        dy = np.diff(ink_points["y"].values)
+        dt = np.diff(ink_points["seconds"].values)
 
         distances = np.sqrt(dx**2 + dy**2)
         self.distance = np.sum(distances)
@@ -308,143 +308,4 @@ class LineSegment:
         if len(velocities) >= 2:
             self.accelerations = np.diff(velocities).tolist()
 
-        return
-
-    def detect_hesitations(self, threshold_percentile: int = 20) -> None:
-        """Detect hesitations as periods of significantly reduced velocity.
-
-        This function defines a hesitation as any period where the velocity falls below
-        a certain threshold, which is determined by the specified percentile of the
-        velocity distribution. It counts the number of distinct hesitation periods and
-        adds 1 if the line starts with a hesitation. It also calculates the total
-        duration of hesitations based on the number of points that fall below the
-        threshold and the time interval between points.
-
-        Args:
-            ink_points: DataFrame containing the ink points for the line segment.
-            threshold_percentile: Percentile to determine the velocity threshold for
-                hesitations (default is 20, meaning the bottom 20% of velocities are
-                considered hesitations).
-        """
-        if len(self.velocities) < 3:
-            return
-
-        dt = np.diff(self.ink_points["seconds"].values)
-
-        threshold = np.percentile(self.velocities, threshold_percentile)
-        hesitations = self.velocities < threshold
-
-        hesitation_changes = np.diff(hesitations.astype(int))
-        hesitation_starts = np.where(hesitation_changes == 1)[0] + 1
-        hesitation_count = len(hesitation_starts)
-
-        if hesitations[0]:
-            hesitation_count += 1
-
-        hesitation_duration = np.sum(hesitations) * dt[0]
-
-        self.hesitation_count = hesitation_count
-        self.hesitation_duration = hesitation_duration
-
-        return
-
-    def calculate_smoothness(self) -> None:
-        """Calculate path smoothness based on Root Mean Square (RMS) curvature.
-
-        Represents the curvature per unit arc length.
-        Lower values indicate smoother drawings. Penalizes sharp corners (e.g.,
-        90° turns) and noisy corrections. Normalized by arc length to reduce
-        sampling-rate dependence.
-        """
-        if len(self.ink_points) < 3:
-            return
-
-        xy = self.ink_points[["x", "y"]].to_numpy()
-
-        forward_vector = xy[1:-1] - xy[:-2]
-        backward_vector = xy[2:] - xy[1:-1]
-
-        forward_norm = np.linalg.norm(forward_vector, axis=1)
-        backward_norm = np.linalg.norm(backward_vector, axis=1)
-
-        valid = (forward_norm > 0) & (backward_norm > 0)
-        if not np.any(valid):
-            return
-
-        valid_forward_vector = forward_vector[valid]
-        valid_backward_vector = backward_vector[valid]
-        valid_forward_norm = forward_norm[valid]
-        valid_backward_norm = backward_norm[valid]
-
-        cos_angle = (valid_forward_vector * valid_backward_vector).sum(axis=1) / (
-            valid_forward_norm * valid_backward_norm
-        )
-        cos_angle = np.clip(cos_angle, -1.0, 1.0)
-
-        angles = np.arccos(cos_angle)
-
-        avg_segment_length = (valid_forward_norm + valid_backward_norm) / 2.0
-        curvatures = angles / avg_segment_length
-
-        self.smoothness = float(np.sqrt(np.mean(curvatures**2)))
-
-        return
-
-    def compute_segment_metrics(
-        self, circles: dict[str, dict[str, CircleTarget]], trail_id: str
-    ) -> None:
-        """Compute all metrics for a line segment.
-
-        This function computes various metrics for the line segment, including ink time,
-        velocity metrics, path optimality, smoothness, and hesitation detection. It
-        first determines the valid ink trajectory between the start and end circles. If
-        a valid trajectory is found, it updates the ink_points attribute and calculates
-        the metrics.
-
-        Args:
-            circles: A dictionary mapping each trail type to dictionaries of
-                CircleTarget instances (output of load_scaled_circles in config).
-            trail_id: Trail identifier for circle lookup.
-        """
-        trail_circles = circles[trail_id]
-        points = self.points.copy()
-
-        if len(points) < 2:
-            return
-
-        if self.start_label not in trail_circles or self.end_label not in trail_circles:
-            return
-
-        start_circle = trail_circles[self.start_label]
-        end_circle = trail_circles[self.end_label]
-
-        ink_start_idx, ink_end_idx = self.valid_ink_trajectory(start_circle, end_circle)
-
-        if (
-            ink_start_idx is not None
-            and ink_end_idx is not None
-            and ink_end_idx > ink_start_idx
-        ):
-            self.ink_points = self.points.iloc[ink_start_idx : ink_end_idx + 1].copy()
-
-            if len(self.ink_points) >= 2:
-                ink_start = self.ink_points.iloc[0]["seconds"]
-                ink_end = self.ink_points.iloc[-1]["seconds"]
-                self.ink_time = ink_end - ink_start
-
-                self.calculate_velocity_metrics()
-
-                self.calculate_path_optimality(start_circle, end_circle)
-
-                self.calculate_smoothness()
-
-                self.detect_hesitations()
-
-        elif ink_start_idx is not None:
-            self.ink_points = points.iloc[ink_start_idx:].copy()
-            if len(self.ink_points) >= 2:
-                self.ink_time = (
-                    self.ink_points.iloc[-1]["seconds"]
-                    - self.ink_points.iloc[0]["seconds"]
-                )
         return
