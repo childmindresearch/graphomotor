@@ -343,8 +343,7 @@ class LineSegment:
         hesitations = self.velocities < threshold_velocity
 
         hesitation_changes = np.diff(hesitations.astype(int))
-        hesitation_starts = np.where(hesitation_changes == 1)[0] + 1
-        hesitation_count = len(hesitation_starts)
+    hesitation_count = np.sum(hesitation_changes == 1)
 
         if hesitations[0]:
             hesitation_count += 1
