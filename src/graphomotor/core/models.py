@@ -130,7 +130,10 @@ class GridCell:
     """Represents a single rectangular region in a grid layout.
 
     Used to assign strokes to letter regions (Alphabet) or digit regions (DSYM).
-    Boundary policy: a point on the exact boundary is considered inside the cell.
+    Boundary policy: uses half-open intervals [min, max) to prevent
+    double-assignment on shared grid edges. The outer grid boundaries should be
+    padded (e.g., by 0.1) at the Grid level so that centroids on the outermost
+    edge are not excluded.
 
     Attributes:
         x_min: Left boundary of the cell.
