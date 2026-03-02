@@ -47,15 +47,35 @@ def test_stroke_centroid_outside_cell(cell: models.GridCell) -> None:
     assert not cell.contains_points(stroke_points)
 
 
-def test_stroke_centroid_on_lower_boundary(cell: models.GridCell) -> None:
+@pytest.mark.parametrize(
+    "x_vals,y_vals",
+    [
+        ([10.0, 10.0], [88.0, 89.0]),
+        ([17.0, 18.0], [80.0, 80.0]),
+    ],
+    ids=["left_boundary", "bottom_boundary"],
+)
+def test_stroke_centroid_on_lower_boundary(
+    cell: models.GridCell, x_vals: list[float], y_vals: list[float]
+) -> None:
     """Stroke whose centroid lands on the lower/left boundary (min) is included."""
-    stroke_points = pd.DataFrame({"x": [10.0, 10.0], "y": [88.0, 89.0]})
+    stroke_points = pd.DataFrame({"x": x_vals, "y": y_vals})
     assert cell.contains_points(stroke_points)
 
 
-def test_stroke_centroid_on_upper_boundary(cell: models.GridCell) -> None:
+@pytest.mark.parametrize(
+    "x_vals,y_vals",
+    [
+        ([25.0, 25.0], [88.0, 89.0]),
+        ([17.0, 18.0], [97.0, 97.0]),
+    ],
+    ids=["right_boundary", "top_boundary"],
+)
+def test_stroke_centroid_on_upper_boundary(
+    cell: models.GridCell, x_vals: list[float], y_vals: list[float]
+) -> None:
     """Stroke whose centroid lands on the upper/right boundary (max) is excluded."""
-    stroke_points = pd.DataFrame({"x": [17.0, 18.0], "y": [97.0, 97.0]})
+    stroke_points = pd.DataFrame({"x": x_vals, "y": y_vals})
     assert not cell.contains_points(stroke_points)
 
 
