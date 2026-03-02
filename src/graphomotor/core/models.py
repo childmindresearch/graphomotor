@@ -142,6 +142,7 @@ class GridCell:
         y_max: Top boundary of the cell.
         index: Position of the cell in the grid (0-based).
         label: Display label for the cell (e.g., 'A', 'B', '1').
+        strokes: List of Stroke objects assigned to this cell.
     """
 
     x_min: float
@@ -150,6 +151,7 @@ class GridCell:
     y_max: float
     index: int = 0
     label: str = ""
+    strokes: List["Stroke"] = dataclasses.field(default_factory=list)
 
     def __post_init__(self) -> None:
         """Validate that min bounds are strictly less than max bounds.
@@ -185,6 +187,42 @@ class GridCell:
             self.x_min <= centroid_x < self.x_max
             and self.y_min <= centroid_y < self.y_max
         )
+
+
+@dataclasses.dataclass
+class Stroke:
+    """Represents a single stroke in an Alphabet or DSYM task.
+
+    Similar to LineSegment for Trails, this class holds stroke data and
+    computed features. Features are populated by utility functions after
+    initialization.
+
+    Attributes:
+        points: DataFrame with columns including 'x', 'y', and 'seconds'.
+        line_number: The line number identifying this stroke in the raw data.
+        duration: Total time spent drawing the stroke.
+        distance: Total distance of the stroke path.
+        mean_speed: Mean drawing speed.
+        speed_variance: Variance of drawing speed.
+        smoothness: Smoothness of the stroke based on curvature changes.
+        hesitation_count: Number of hesitations during the stroke.
+        hesitation_duration: Total duration of hesitations.
+        velocities: List of velocities at each point in the stroke.
+        accelerations: List of accelerations at each point in the stroke.
+    """
+
+    points: pd.DataFrame
+    line_number: int
+
+    duration: float = 0.0
+    distance: float = 0.0
+    mean_speed: float = 0.0
+    speed_variance: float = 0.0
+    smoothness: float = 0.0
+    hesitation_count: int = 0
+    hesitation_duration: float = 0.0
+    velocities: List[float] = dataclasses.field(default_factory=list)
+    accelerations: List[float] = dataclasses.field(default_factory=list)
 
 
 @dataclasses.dataclass
