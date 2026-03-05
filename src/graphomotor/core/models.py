@@ -2,6 +2,7 @@
 
 import dataclasses
 import datetime
+from asyncio.log import logger
 from typing import Callable, List, Optional, Tuple
 
 import numpy as np
@@ -412,6 +413,12 @@ class LineSegment:
             return
 
         if self.start_label not in trail_circles or self.end_label not in trail_circles:
+            logger.warning(
+                "Missing start/end labels: start=%s end=%s available=%s",
+                self.start_label,
+                self.end_label,
+                list(trail_circles.keys()),
+            )
             return
 
         start_circle = trail_circles[self.start_label]
