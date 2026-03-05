@@ -698,13 +698,13 @@ def test_compute_segment_metrics_valid_trajectory() -> None:
     with patch.object(segment, "valid_ink_trajectory", return_value=(0, 4)):
         segment.compute_segment_metrics(circles=circles, trail_id="A")
 
-    assert segment.ink_time == pytest.approx(4.0)
+    assert np.isclose(segment.ink_time, 4.0)
     assert len(segment.ink_points) == 5
     assert segment.distance > 0.0
     assert segment.mean_speed > 0.0
     assert len(segment.velocities) > 0
     assert segment.path_optimality > 0.0
-    assert segment.smoothness == pytest.approx(0.0)
+    assert np.isclose(segment.smoothness, 0.0)
 
 
 def test_compute_segment_metrics_ink_end_equals_ink_start() -> None:
@@ -802,7 +802,7 @@ def test_compute_segment_metrics_only_start_index_found() -> None:
     with patch.object(segment, "valid_ink_trajectory", return_value=(1, None)):
         segment.compute_segment_metrics(circles=circles, trail_id="A")
 
-    assert segment.ink_time == pytest.approx(2.0)
+    assert np.isclose(segment.ink_time, 2.0)
     assert len(segment.ink_points) == 3
     assert segment.distance == 0.0
     assert len(segment.velocities) == 0
