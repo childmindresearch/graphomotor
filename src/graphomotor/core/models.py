@@ -410,6 +410,11 @@ class LineSegment:
         points = self.points.copy()
 
         if len(points) < 2:
+            logger.warning(
+                "Not enough points to calculate metrics for line segment: start=%s end=%s",
+                self.start_label,
+                self.end_label,
+            )
             return
 
         if self.start_label not in trail_circles or self.end_label not in trail_circles:
@@ -426,32 +431,49 @@ class LineSegment:
 
         ink_start_idx, ink_end_idx = self.valid_ink_trajectory(start_circle, end_circle)
 
-        if (
-            ink_start_idx is not None
-            and ink_end_idx is not None
-            and ink_end_idx > ink_start_idx
-        ):
+        if ink_start_idx is None:
+            logger.warning(
+                "No valid ink trajectory found for line segment: start=%s end=%s",
+                self.start_label,
+                self.end_label,
+            )
+        elif ink_end_idx is None:
+            self.ink_points = points.iloc[ink_start_idx:].copy()
+            if len(self.ink_points) >= 2:
+                self.ink_time = (
+                    self.ink_points.iloc[-1]["seconds"]
+                    - self.ink_points.iloc[0]["seconds"]
+                )
+            else:
+                logger.warning(
+                    "Not enough ink points to calculate metrics for line segment: start=%s end=%s",
+                    self.start_label,
+                    self.end_label,
+                )
+        elif ink_end_idx <= ink_start_idx:
+            logger.warning(
+                "Invalid ink trajectory: end index (%d) is not greater than start index (%d) for line segment: start=%s end=%s",
+                ink_end_idx,
+                ink_start_idx,
+                self.start_label,
+                self.end_label,
+            )
+        else:
             self.ink_points = self.points.iloc[ink_start_idx : ink_end_idx + 1].copy()
 
             if len(self.ink_points) >= 2:
                 ink_start = self.ink_points.iloc[0]["seconds"]
                 ink_end = self.ink_points.iloc[-1]["seconds"]
                 self.ink_time = ink_end - ink_start
-
                 self.calculate_velocity_metrics()
-
                 self.calculate_path_optimality(start_circle, end_circle)
-
                 self.calculate_smoothness()
-
                 self.detect_hesitations()
-
-        elif ink_start_idx is not None:
-            self.ink_points = points.iloc[ink_start_idx:].copy()
-            if len(self.ink_points) >= 2:
-                self.ink_time = (
-                    self.ink_points.iloc[-1]["seconds"]
-                    - self.ink_points.iloc[0]["seconds"]
+            else:
+                logger.warning(
+                    "Not enough ink points to calculate metrics for line segment: start=%s end=%s",
+                    self.start_label,
+                    self.end_label,
                 )
 
         return
