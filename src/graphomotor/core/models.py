@@ -411,7 +411,8 @@ class LineSegment:
 
         if len(points) < 2:
             logger.warning(
-                "Not enough points to calculate metrics for line segment: start=%s end=%s",
+                "Not enough points to calculate metrics for line segment: "
+                "start=%s end=%s",
                 self.start_label,
                 self.end_label,
             )
@@ -446,13 +447,15 @@ class LineSegment:
                 )
             else:
                 logger.warning(
-                    "Not enough ink points to calculate metrics for line segment: start=%s end=%s",
+                    "Not enough ink points to calculate metrics for line segment: "
+                    "start=%s end=%s",
                     self.start_label,
                     self.end_label,
                 )
         elif ink_end_idx <= ink_start_idx:
             logger.warning(
-                "Invalid ink trajectory: end index (%d) is not greater than start index (%d) for line segment: start=%s end=%s",
+                "Invalid ink trajectory: end index (%d) is not greater than "
+                "start index (%d) for line segment: start=%s end=%s",
                 ink_end_idx,
                 ink_start_idx,
                 self.start_label,
@@ -471,7 +474,8 @@ class LineSegment:
                 self.detect_hesitations()
             else:
                 logger.warning(
-                    "Not enough ink points to calculate metrics for line segment: start=%s end=%s",
+                    "Not enough ink points to calculate metrics for line segment: "
+                    "start=%s end=%s",
                     self.start_label,
                     self.end_label,
                 )
