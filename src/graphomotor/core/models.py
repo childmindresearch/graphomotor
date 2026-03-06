@@ -2,13 +2,15 @@
 
 import dataclasses
 import datetime
-from asyncio.log import logger
+import logging
 from typing import Callable, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
 import pydantic
 import scipy.spatial.distance as dist
+
+from graphomotor.core import config
 
 
 class Drawing(pydantic.BaseModel):
@@ -406,6 +408,7 @@ class LineSegment:
                 CircleTarget instances (output of load_scaled_circles in config).
             trail_id: Trail identifier for circle lookup.
         """
+        logger = config.get_logger()
         trail_circles = circles[trail_id]
         points = self.points.copy()
 
