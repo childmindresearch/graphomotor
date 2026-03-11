@@ -1,6 +1,6 @@
 """Tests for trails time.py."""
 
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import pandas as pd
 import pytest
@@ -239,8 +239,8 @@ def test_segment_sorting() -> None:
         _make_segment("B", "C", [{"x": 5.0, "y": 5.0, "seconds": 2.0}]),
         _make_segment("A", "B", [{"x": 0.0, "y": 0.0, "seconds": 1.0}]),
     ]
-    circles = {"trail1": {}}
-    config = {
+    circles: Dict[str, Dict[str, models.CircleTarget]] = {"trail1": {}}
+    config: Dict[str, Dict[str, List[Dict[str, Any]]]] = {
         "trail1": {"items": [{"label": "A", "order": 1}, {"label": "B", "order": 2}]}
     }
 

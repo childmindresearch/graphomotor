@@ -1,6 +1,6 @@
 """Feature extraction module for time-based metrics in trails drawing data."""
 
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
@@ -87,7 +87,7 @@ def _find_circle_exit_time(
 def calculate_think_times(
     segments: List[models.LineSegment],
     circles: Dict[str, Dict[str, models.CircleTarget]],
-    config: Dict[str, List[Dict]],
+    config: Dict[str, Dict[str, List[Dict[str, Any]]]],
     trail_id: str,
 ) -> List[models.LineSegment]:
     """Calculate think times using consecutive segments approach.
