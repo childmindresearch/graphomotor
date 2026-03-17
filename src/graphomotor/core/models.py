@@ -193,22 +193,21 @@ class GridCell:
 class Stroke:
     """Represents a single stroke in an Alphabet or DSYM task.
 
-    Similar to LineSegment for Trails, this class holds stroke data and
-    computed features. Features are populated by utility functions after
-    initialization.
+    This class holds stroke data and computed features. Features are populated by
+    utility functions after initialization.
 
     Attributes:
         points: DataFrame with columns including 'x', 'y', and 'seconds'.
         line_number: The line number identifying this stroke in the raw data.
-        duration: Total time spent drawing the stroke.
-        distance: Total distance of the stroke path.
-        mean_speed: Mean drawing speed.
+        duration: Total time (s) spent drawing the stroke.
+        distance: Total distance (px) of the stroke path.
+        mean_speed: Mean drawing speed (px/s).
         speed_variance: Variance of drawing speed.
         smoothness: Smoothness of the stroke based on curvature changes.
         hesitation_count: Number of hesitations during the stroke.
-        hesitation_duration: Total duration of hesitations.
-        velocities: List of velocities at each point in the stroke.
-        accelerations: List of accelerations at each point in the stroke.
+        hesitation_duration: Total duration of hesitations (s).
+        velocities: List of velocities at each point in the stroke (px/s).
+        accelerations: List of accelerations at each point in the stroke (px/s²).
     """
 
     points: pd.DataFrame

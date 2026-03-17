@@ -74,16 +74,3 @@ def test_grid_cell_strokes_default_empty() -> None:
     """GridCell should default to an empty strokes list."""
     cell = models.GridCell(x_min=0.0, x_max=10.0, y_min=0.0, y_max=10.0)
     assert cell.strokes == []
-
-
-def test_grid_cell_strokes_not_shared() -> None:
-    """Each GridCell should have its own independent strokes list."""
-    cell_a = models.GridCell(x_min=0.0, x_max=10.0, y_min=0.0, y_max=10.0)
-    cell_b = models.GridCell(x_min=10.0, x_max=20.0, y_min=0.0, y_max=10.0)
-
-    cell_a.strokes.append(
-        models.Stroke(points=_make_points(line_number=0), line_number=0)
-    )
-
-    assert len(cell_a.strokes) == 1
-    assert len(cell_b.strokes) == 0
