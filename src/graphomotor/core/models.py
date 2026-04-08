@@ -192,6 +192,117 @@ class GridCell:
 
 
 @dataclasses.dataclass
+class Grid:
+    """Represents a rectangular grid composed of multiple GridCell objects.
+
+    The grid divides a bounding box into rows and columns, where each cell can
+    hold strokes assigned by centroid location. Cells are ordered left-to-right,
+    top-to-bottom (row-major order).
+
+    Attributes:
+        cells: List of GridCell objects that compose the grid.
+    """
+
+    cells: List[GridCell] = dataclasses.field(default_factory=list)
+
+    @classmethod
+    def from_bbox(
+        cls,
+        x_min: float,
+        x_max: float,
+        y_min: float,
+        y_max: float,
+        n_rows: int,
+        n_cols: int,
+        labels: Optional[List[str]] = None,
+        padding: float = 0.1,
+    ) -> "Grid":
+        """Create a Grid by subdividing a bounding box into rows and columns.
+
+        Cells are generated in row-major order (left-to-right, top-to-bottom).
+        A small padding is added to the outer boundaries so that centroids
+        falling exactly on the outermost edge are still captured by a cell.
+
+        Args:
+            x_min: Left boundary of the bounding box.
+            x_max: Right boundary of the bounding box.
+            y_min: Bottom boundary of the bounding box.
+            y_max: Top boundary of the bounding box.
+            n_rows: Number of rows in the grid.
+            n_cols: Number of columns in the grid.
+            labels: Optional list of labels for each cell, assigned in
+                row-major order. Must have length n_rows * n_cols if provided.
+            padding: Amount to extend the outer boundaries to capture edge
+                centroids (default 0.1).
+
+        Returns:
+            A Grid instance populated with GridCell objects.
+
+        Raises:
+            ValueError: If n_rows or n_cols is less than 1, or if the length
+                of labels does not match n_rows * n_cols.
+        """
+        if n_rows < 1 or n_cols < 1:
+            raise ValueError("n_rows and n_cols must be at least 1.")
+        n_cells = n_rows * n_cols
+        if labels is not None and len(labels) != n_cells:
+            raise ValueError(
+                f"labels length ({len(labels)}) must match "
+                f"n_rows * n_cols ({n_cells})."
+            )
+
+        padded_x_min = x_min - padding
+        padded_x_max = x_max + padding
+        padded_y_min = y_min - padding
+        padded_y_max = y_max + padding
+
+        col_width = (padded_x_max - padded_x_min) / n_cols
+        row_height = (padded_y_max - padded_y_min) / n_rows
+
+        cells: List[GridCell] = []
+        index = 0
+        for row in range(n_rows):
+            for col in range(n_cols):
+                cell_x_min = padded_x_min + col * col_width
+                cell_x_max = padded_x_min + (col + 1) * col_width
+                cell_y_min = padded_y_max - (row + 1) * row_height
+                cell_y_max = padded_y_max - row * row_height
+                label = labels[index] if labels is not None else ""
+                cells.append(
+                    GridCell(
+                        x_min=cell_x_min,
+                        x_max=cell_x_max,
+                        y_min=cell_y_min,
+                        y_max=cell_y_max,
+                        index=index,
+                        label=label,
+                    )
+                )
+                index += 1
+
+        return cls(cells=cells)
+
+    def get_cell_for_point(self, x: float, y: float) -> int:
+        """Return the index of the cell containing the given point.
+
+        Iterates through cells and returns the index of the first cell whose
+        half-open interval [min, max) contains the point. Returns -1 if no
+        cell contains the point.
+
+        Args:
+            x: X coordinate of the point.
+            y: Y coordinate of the point.
+
+        Returns:
+            The index of the matching cell, or -1 if no cell contains the point.
+        """
+        for cell in self.cells:
+            if cell.x_min <= x < cell.x_max and cell.y_min <= y < cell.y_max:
+                return cell.index
+        return -1
+
+
+@dataclasses.dataclass
 class Stroke:
     """Represents a single stroke in an Alphabet or DSYM task.
 
