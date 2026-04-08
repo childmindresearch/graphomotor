@@ -48,8 +48,13 @@ class TestGridFromBbox:
         """Labels should be assigned in row-major order when provided."""
         labels = ["A", "B", "C", "D"]
         grid = models.Grid.from_bbox(
-            x_min=0.0, x_max=10.0, y_min=0.0, y_max=10.0,
-            n_rows=2, n_cols=2, labels=labels,
+            x_min=0.0,
+            x_max=10.0,
+            y_min=0.0,
+            y_max=10.0,
+            n_rows=2,
+            n_cols=2,
+            labels=labels,
         )
 
         assert [c.label for c in grid.cells] == ["A", "B", "C", "D"]
@@ -66,8 +71,13 @@ class TestGridFromBbox:
         """Providing the wrong number of labels should raise ValueError."""
         with pytest.raises(ValueError, match="labels length"):
             models.Grid.from_bbox(
-                x_min=0.0, x_max=10.0, y_min=0.0, y_max=10.0,
-                n_rows=2, n_cols=2, labels=["A", "B"],
+                x_min=0.0,
+                x_max=10.0,
+                y_min=0.0,
+                y_max=10.0,
+                n_rows=2,
+                n_cols=2,
+                labels=["A", "B"],
             )
 
     @pytest.mark.parametrize(
@@ -79,15 +89,24 @@ class TestGridFromBbox:
         """Non-positive row or column counts should raise ValueError."""
         with pytest.raises(ValueError, match="n_rows and n_cols must be at least 1"):
             models.Grid.from_bbox(
-                x_min=0.0, x_max=10.0, y_min=0.0, y_max=10.0,
-                n_rows=n_rows, n_cols=n_cols,
+                x_min=0.0,
+                x_max=10.0,
+                y_min=0.0,
+                y_max=10.0,
+                n_rows=n_rows,
+                n_cols=n_cols,
             )
 
     def test_custom_padding(self) -> None:
         """Custom padding should extend the outer boundaries accordingly."""
         grid = models.Grid.from_bbox(
-            x_min=0.0, x_max=10.0, y_min=0.0, y_max=10.0,
-            n_rows=1, n_cols=1, padding=1.0,
+            x_min=0.0,
+            x_max=10.0,
+            y_min=0.0,
+            y_max=10.0,
+            n_rows=1,
+            n_cols=1,
+            padding=1.0,
         )
 
         cell = grid.cells[0]
@@ -124,8 +143,13 @@ class TestGetCellForPoint:
     def grid_2x2(self) -> models.Grid:
         """Create a 2x2 grid over the unit square with labels."""
         return models.Grid.from_bbox(
-            x_min=0.0, x_max=10.0, y_min=0.0, y_max=10.0,
-            n_rows=2, n_cols=2, labels=["TL", "TR", "BL", "BR"],
+            x_min=0.0,
+            x_max=10.0,
+            y_min=0.0,
+            y_max=10.0,
+            n_rows=2,
+            n_cols=2,
+            labels=["TL", "TR", "BL", "BR"],
         )
 
     def test_point_in_top_left(self, grid_2x2: models.Grid) -> None:

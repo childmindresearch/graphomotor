@@ -30,8 +30,13 @@ class TestSegmentStrokes:
         data = _make_drawing_data()
         grid = alphabet_utils.segment_strokes(
             data=data,
-            x_min=0.0, x_max=100.0, y_min=0.0, y_max=100.0,
-            n_rows=2, n_cols=2, labels=["TL", "TR", "BL", "BR"],
+            x_min=0.0,
+            x_max=100.0,
+            y_min=0.0,
+            y_max=100.0,
+            n_rows=2,
+            n_cols=2,
+            labels=["TL", "TR", "BL", "BR"],
         )
 
         assert len(grid.cells[0].strokes) == 1
@@ -47,8 +52,12 @@ class TestSegmentStrokes:
         data = _make_drawing_data()
         grid = alphabet_utils.segment_strokes(
             data=data,
-            x_min=0.0, x_max=100.0, y_min=0.0, y_max=100.0,
-            n_rows=2, n_cols=2,
+            x_min=0.0,
+            x_max=100.0,
+            y_min=0.0,
+            y_max=100.0,
+            n_rows=2,
+            n_cols=2,
         )
 
         total_strokes = sum(len(c.strokes) for c in grid.cells)
@@ -59,8 +68,12 @@ class TestSegmentStrokes:
         data = _make_drawing_data()
         grid = alphabet_utils.segment_strokes(
             data=data,
-            x_min=0.0, x_max=100.0, y_min=0.0, y_max=100.0,
-            n_rows=2, n_cols=2,
+            x_min=0.0,
+            x_max=100.0,
+            y_min=0.0,
+            y_max=100.0,
+            n_rows=2,
+            n_cols=2,
         )
 
         stroke_0 = grid.cells[0].strokes[0]
@@ -72,8 +85,12 @@ class TestSegmentStrokes:
         data = pd.DataFrame(columns=["line_number", "x", "y", "seconds"])
         grid = alphabet_utils.segment_strokes(
             data=data,
-            x_min=0.0, x_max=10.0, y_min=0.0, y_max=10.0,
-            n_rows=1, n_cols=1,
+            x_min=0.0,
+            x_max=10.0,
+            y_min=0.0,
+            y_max=10.0,
+            n_rows=1,
+            n_cols=1,
         )
 
         assert all(len(c.strokes) == 0 for c in grid.cells)
@@ -90,8 +107,12 @@ class TestSegmentStrokes:
         )
         grid = alphabet_utils.segment_strokes(
             data=data,
-            x_min=0.0, x_max=10.0, y_min=0.0, y_max=10.0,
-            n_rows=1, n_cols=1,
+            x_min=0.0,
+            x_max=10.0,
+            y_min=0.0,
+            y_max=10.0,
+            n_rows=1,
+            n_cols=1,
         )
 
         assert len(grid.cells[0].strokes) == 0
@@ -108,8 +129,12 @@ class TestSegmentStrokes:
         )
         grid = alphabet_utils.segment_strokes(
             data=data,
-            x_min=0.0, x_max=10.0, y_min=0.0, y_max=10.0,
-            n_rows=1, n_cols=1,
+            x_min=0.0,
+            x_max=10.0,
+            y_min=0.0,
+            y_max=10.0,
+            n_rows=1,
+            n_cols=1,
         )
 
         assert len(grid.cells[0].strokes) == 3
@@ -120,8 +145,13 @@ class TestSegmentStrokes:
         labels = ["A", "B", "C", "D", "E", "F"]
         grid = alphabet_utils.segment_strokes(
             data=data,
-            x_min=0.0, x_max=100.0, y_min=0.0, y_max=100.0,
-            n_rows=2, n_cols=3, labels=labels,
+            x_min=0.0,
+            x_max=100.0,
+            y_min=0.0,
+            y_max=100.0,
+            n_rows=2,
+            n_cols=3,
+            labels=labels,
         )
 
         assert len(grid.cells) == 6
@@ -140,8 +170,12 @@ class TestSegmentStrokes:
         )
         grid = alphabet_utils.segment_strokes(
             data=data,
-            x_min=0.0, x_max=10.0, y_min=0.0, y_max=10.0,
-            n_rows=1, n_cols=1,
+            x_min=0.0,
+            x_max=10.0,
+            y_min=0.0,
+            y_max=10.0,
+            n_rows=1,
+            n_cols=1,
         )
 
         stroke = grid.cells[0].strokes[0]

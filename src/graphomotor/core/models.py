@@ -247,8 +247,7 @@ class Grid:
         n_cells = n_rows * n_cols
         if labels is not None and len(labels) != n_cells:
             raise ValueError(
-                f"labels length ({len(labels)}) must match "
-                f"n_rows * n_cols ({n_cells})."
+                f"labels length ({len(labels)}) must match n_rows * n_cols ({n_cells})."
             )
 
         padded_x_min = x_min - padding
