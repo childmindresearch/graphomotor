@@ -19,16 +19,14 @@ def segment_strokes(
 ) -> models.Grid:
     """Segment drawing data into strokes and assign them to grid cells.
 
-    Groups the data by ``line_number`` to create individual
-    :class:`~graphomotor.core.models.Stroke` objects. Each stroke is assigned
-    to a :class:`~graphomotor.core.models.GridCell` based on its centroid
-    (mean x, mean y). The grid is constructed via
-    :meth:`~graphomotor.core.models.Grid.from_bbox` with default padding so
-    that centroids on the outermost edge are captured.
+    Groups the data by line_number to create individual Stroke objects. Each
+    stroke is assigned to a GridCell based on its centroid (mean x, mean y).
+    The grid is constructed via Grid.from_bbox with default padding so that
+    centroids on the outermost edge are captured.
 
     Args:
-        data: DataFrame containing drawing data with at least ``line_number``,
-            ``x``, ``y``, and ``seconds`` columns.
+        data: DataFrame containing drawing data with at least line_number,
+            x, y, and seconds columns.
         x_min: Left boundary of the grid bounding box.
         x_max: Right boundary of the grid bounding box.
         y_min: Bottom boundary of the grid bounding box.
@@ -36,11 +34,10 @@ def segment_strokes(
         n_rows: Number of rows in the grid.
         n_cols: Number of columns in the grid.
         labels: Optional list of labels for each cell in row-major order.
-            Must have length ``n_rows * n_cols`` if provided.
+            Must have length n_rows * n_cols if provided.
 
     Returns:
-        A :class:`~graphomotor.core.models.Grid` populated with strokes
-        assigned to their matching cells.
+        A Grid populated with strokes assigned to their matching cells.
     """
     grid = models.Grid.from_bbox(
         x_min=x_min,
