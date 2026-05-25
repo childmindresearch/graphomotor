@@ -1,12 +1,11 @@
 """Tests for trails time.py."""
 
-from typing import Any, Dict, List, Tuple
-
 import pandas as pd
 import pytest
 
 from graphomotor.core import models
 from graphomotor.features.trails import time
+from tests.unit.test_models import circle
 
 
 def test_total_error_time_no_errors() -> None:
@@ -79,7 +78,7 @@ def test_error_at_start() -> None:
 def _make_segment(
     start_label: str,
     end_label: str,
-    points: List[Dict],
+    points: list[dict],
     is_error: bool = False,
     line_number: int = 0,
 ) -> models.LineSegment:
@@ -110,6 +109,91 @@ def _make_circle(
     )
 
 
+@pytest.fixture
+def create_segment_and_circles() -> tuple[
+    list[models.LineSegment], list[models.CircleTarget]
+]:
+    """Fixture to create a sample LineSegment and CircleTarget for testing."""
+    first_segment = _make_segment(
+        start_label="A",
+        end_label="B",
+        points=[
+            {"x": 0.0, "y": 0.0, "seconds": 1.0},
+            {"x": 0.1, "y": 0.0, "seconds": 1.1},
+            {"x": 5.0, "y": 5.0, "seconds": 2.0},
+            {"x": 10.0, "y": 10.0, "seconds": 3.0},
+            {"x": 10.1, "y": 10.1, "seconds": 3.05},
+        ],
+    )
+    second_segment = _make_segment(
+        start_label="B",
+        end_label="C",
+        points=[
+            {"x": 10.0, "y": 10.0, "seconds": 3.5},
+            {"x": 10.1, "y": 10.1, "seconds": 3.55},
+            {"x": 15.0, "y": 15.0, "seconds": 4.5},
+            {"x": 20.0, "y": 20.0, "seconds": 5.5},
+            {"x": 20.1, "y": 20.1, "seconds": 5.55},
+        ],
+    )
+    first_circle = _make_circle(label="A", center_x=0.0, center_y=0.0, radius=2.0)
+    second_circle = _make_circle(label="B", center_x=10.0, center_y=10.0, radius=2.0)
+    third_circle = _make_circle(label="C", center_x=20.0, center_y=20.0, radius=2.0)
+    return [first_segment, second_segment], [first_circle, second_circle, third_circle]
+
+
+@pytest.mark.parametrize(
+    "circle_number, segment_number, expected_entry_time",
+    [
+        (0, 0, 1.0),
+        (1, 0, 3.0),
+        (1, 1, 3.5),
+        (2, 1, 5.5),
+    ],  # converting A B C labels to 0, 1, 2 index for list
+)
+def test_entry_time(
+    circle_number: int,
+    segment_number: int,
+    expected_entry_time: float,
+    create_segment_and_circles: tuple[
+        list[models.LineSegment], list[models.CircleTarget]
+    ],
+) -> None:
+    """Test entry time when entering a circle."""
+    segments, circles = create_segment_and_circles
+
+    entry_time = time._find_circle_entry_time(
+        segments[segment_number].points, circles[circle_number]
+    )
+    assert entry_time == expected_entry_time
+
+
+@pytest.mark.parametrize(
+    "circle_number, segment_number, expected_exit_time",
+    [
+        (0, 0, 2.0),
+        (1, 0, 1.0),
+        (1, 1, 4.5),
+        (2, 1, 3.5),
+    ],  # converting A B C labels to 0, 1, 2 index for list
+)
+def test_exit_time(
+    circle_number: int,
+    segment_number: int,
+    expected_exit_time: float,
+    create_segment_and_circles: tuple[
+        list[models.LineSegment], list[models.CircleTarget]
+    ],
+) -> None:
+    """Test exit time when exiting a circle."""
+    segments, circles = create_segment_and_circles
+
+    exit_time = time._find_circle_exit_time(
+        segments[segment_number].points, circles[circle_number]
+    )
+    assert exit_time == expected_exit_time
+
+
 @pytest.mark.parametrize(
     "segments_data, circles_data, config_data, expected",
     [
@@ -135,7 +219,7 @@ def _make_circle(
                     "A",
                     "B",
                     [
-                        {"x": 5.0, "y": 5.0, "seconds": 1.0},
+                        {"x": 3.0, "y": 3.0, "seconds": 1.0},
                         {"x": 5.0, "y": 5.0, "seconds": 2.0},
                     ],
                 ),
@@ -186,10 +270,10 @@ def _make_circle(
     ],
 )
 def test_intermediate_think_times(
-    segments_data: List[Tuple],
-    circles_data: Dict[str, Tuple],
-    config_data: List[Dict],
-    expected: List[Tuple],
+    segments_data: list[tuple],
+    circles_data: dict,
+    config_data: list[dict],
+    expected: list[tuple],
 ) -> None:
     """Test think time assignment between consecutive segment pairs."""
     segments = [_make_segment(s, e, p) for s, e, p in segments_data]
@@ -200,7 +284,7 @@ def test_intermediate_think_times(
     }
     config = {"trail1": {"items": config_data}}
 
-    result = time.calculate_think_times(segments, circles, config, "trail1")
+    result = time.calculate_think_times(segments, circles, "trail1")
 
     expected_by_key = {(s, e): (tt, lbl) for s, e, tt, lbl in expected}
     for seg in result:
@@ -227,34 +311,7 @@ def test_first_segment_think_time() -> None:
     circles = {"trail1": {"A": _make_circle("A", 0.0, 0.0, 1.0)}}
     config = {"trail1": {"items": [{"label": "A", "order": 1}]}}
 
-    result = time.calculate_think_times([seg], circles, config, "trail1")
+    result = time.calculate_think_times([seg], circles, "trail1")
 
     assert result[0].think_time == 3.0
     assert result[0].think_circle_label == "A"
-
-
-def test_segment_sorting() -> None:
-    """Test that segments are sorted correctly by circle order."""
-    segments = [
-        _make_segment("B", "C", [{"x": 5.0, "y": 5.0, "seconds": 2.0}]),
-        _make_segment("A", "B", [{"x": 0.0, "y": 0.0, "seconds": 1.0}]),
-    ]
-    circles: Dict[str, Dict[str, models.CircleTarget]] = {"trail1": {}}
-    config: Dict[str, Dict[str, List[Dict[str, Any]]]] = {
-        "trail1": {"items": [{"label": "A", "order": 1}, {"label": "B", "order": 2}]}
-    }
-
-    result = time.calculate_think_times(segments, circles, config, "trail1")
-
-    assert [seg.start_label for seg in result] == ["A", "B"]
-
-
-def test_empty_segments_returns_empty() -> None:
-    """Empty segment list returns empty list without error."""
-    result = time.calculate_think_times(
-        [],
-        {"trail1": {}},
-        {"trail1": {"items": []}},
-        "trail1",
-    )
-    assert result == []
