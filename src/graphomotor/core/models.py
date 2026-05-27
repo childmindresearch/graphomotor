@@ -9,8 +9,6 @@ import pandas as pd
 import pydantic
 import scipy.spatial.distance as dist
 
-from graphomotor.core import config
-
 
 class Drawing(pydantic.BaseModel):
     """Class representing a drawing task, encapsulating both raw data and metadata.
@@ -506,6 +504,8 @@ class LineSegment:
                 CircleTarget instances (output of load_scaled_circles in config).
             trail_id: Trail identifier for circle lookup.
         """
+        from graphomotor.core import config
+
         logger = config.get_logger()
         trail_circles = circles[trail_id]
         points = self.points.copy()
