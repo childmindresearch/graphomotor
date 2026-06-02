@@ -74,6 +74,8 @@ def calculate_think_times(
     as the difference between the first point of the segment and the first point exiting
     that circle.
 
+    This method is only for segments without errors.
+
     Args:
         segments: List of LineSegment objects in order.
         circle_mapping: Dictionary mapping trail IDs to dictionaries of CircleTarget
@@ -118,6 +120,15 @@ def calculate_think_times(
         if entry_time is not None and exit_time is not None and exit_time > entry_time:
             next_seg.think_time = exit_time - entry_time
             next_seg.think_circle_label = current_circle_label
+
+        # Provide logger warning for this strange case
+        if entry_time is not None and exit_time is not None and entry_time > exit_time:
+            logger.warning(
+                "Entry time %s is greater than exit time %s for circle %s",
+                entry_time,
+                exit_time,
+                current_circle_label,
+            )
 
 
 def _find_circle_entry_time(

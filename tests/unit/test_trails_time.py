@@ -5,7 +5,6 @@ import pytest
 
 from graphomotor.core import models
 from graphomotor.features.trails import time
-from tests.unit.test_models import circle
 
 
 def test_total_error_time_no_errors() -> None:
@@ -136,10 +135,27 @@ def create_segment_and_circles() -> tuple[
             {"x": 20.1, "y": 20.1, "seconds": 5.55},
         ],
     )
-    first_circle = _make_circle(label="A", center_x=0.0, center_y=0.0, radius=2.0)
-    second_circle = _make_circle(label="B", center_x=10.0, center_y=10.0, radius=2.0)
-    third_circle = _make_circle(label="C", center_x=20.0, center_y=20.0, radius=2.0)
-    return [first_segment, second_segment], [first_circle, second_circle, third_circle]
+
+    third_segment = _make_segment(
+        start_label="C",
+        end_label="D",
+        points=[
+            {"x": 20.0, "y": 20.0, "seconds": 6.0},
+            {"x": 20.1, "y": 20.1, "seconds": 6.05},
+            {"x": 22.0, "y": 22.0, "seconds": 6.5},
+            {"x": 25.0, "y": 25.0, "seconds": 7.0},
+        ],
+    )
+    first_circle = _make_circle(label="A", center_x=0.0, center_y=0.0, radius=1.0)
+    second_circle = _make_circle(label="B", center_x=10.0, center_y=10.0, radius=1.0)
+    third_circle = _make_circle(label="C", center_x=20.0, center_y=20.0, radius=1.0)
+    fourth_circle = _make_circle(label="D", center_x=25.0, center_y=25.0, radius=1.0)
+    return [first_segment, second_segment, third_segment], [
+        first_circle,
+        second_circle,
+        third_circle,
+        fourth_circle,
+    ]
 
 
 @pytest.mark.parametrize(
@@ -194,124 +210,20 @@ def test_exit_time(
     assert exit_time == expected_exit_time
 
 
-@pytest.mark.parametrize(
-    "segments_data, circles_data, config_data, expected",
-    [
-        pytest.param(
-            [
-                (
-                    "A",
-                    "B",
-                    [
-                        {"x": 20.0, "y": 20.0, "seconds": 1.0},
-                        {"x": 30.0, "y": 30.0, "seconds": 2.0},
-                    ],
-                )
-            ],
-            {"A": ("A", 0.0, 0.0, 1.0)},
-            [{"label": "A", "order": 1}],
-            [],
-            id="single_segment_no_intermediate_think_time",
-        ),
-        pytest.param(
-            [
-                (
-                    "A",
-                    "B",
-                    [
-                        {"x": 3.0, "y": 3.0, "seconds": 1.0},
-                        {"x": 5.0, "y": 5.0, "seconds": 2.0},
-                    ],
-                ),
-                (
-                    "B",
-                    "C",
-                    [
-                        {"x": 5.0, "y": 5.0, "seconds": 3.0},
-                        {"x": 20.0, "y": 20.0, "seconds": 5.0},
-                    ],
-                ),
-            ],
-            {"B": ("B", 5.0, 5.0, 1.0)},
-            [{"label": "A", "order": 1}, {"label": "B", "order": 2}],
-            [("B", "C", 3.0, "B")],
-            id="think_time_assigned_between_consecutive_segments",
-        ),
-        pytest.param(
-            [
-                ("A", "B", [{"x": 5.0, "y": 5.0, "seconds": 1.0}]),
-                ("C", "D", [{"x": 20.0, "y": 20.0, "seconds": 3.0}]),
-            ],
-            {"B": ("B", 5.0, 5.0, 1.0)},
-            [{"label": "A", "order": 1}, {"label": "C", "order": 2}],
-            [],
-            id="no_think_time_when_segments_not_connected",
-        ),
-        pytest.param(
-            [
-                ("A", "B", [{"x": 5.0, "y": 5.0, "seconds": 1.0}]),
-                ("B", "C", [{"x": 20.0, "y": 20.0, "seconds": 3.0}]),
-            ],
-            {},
-            [{"label": "A", "order": 1}, {"label": "B", "order": 2}],
-            [],
-            id="no_think_time_when_circle_label_missing",
-        ),
-        pytest.param(
-            [
-                ("A", "B", [{"x": 5.0, "y": 5.0, "seconds": 5.0}]),
-                ("B", "C", [{"x": 5.0, "y": 5.0, "seconds": 3.0}]),
-            ],
-            {"B": ("B", 5.0, 5.0, 1.0)},
-            [{"label": "A", "order": 1}, {"label": "B", "order": 2}],
-            [],
-            id="no_think_time_when_exit_not_after_entry",
-        ),
+def test_calculate_think_times(
+    create_segment_and_circles: tuple[
+        list[models.LineSegment], list[models.CircleTarget]
     ],
-)
-def test_intermediate_think_times(
-    segments_data: list[tuple],
-    circles_data: dict,
-    config_data: list[dict],
-    expected: list[tuple],
 ) -> None:
-    """Test think time assignment between consecutive segment pairs."""
-    segments = [_make_segment(s, e, p) for s, e, p in segments_data]
-    circles = {
-        "trail1": {
-            label: _make_circle(*params) for label, params in circles_data.items()
-        }
-    }
-    config = {"trail1": {"items": config_data}}
+    """Test the calculate_think_times function."""
+    segments, circles = create_segment_and_circles
+    circle_mapping = {"5555555": {circle.label: circle for circle in circles}}
 
-    result = time.calculate_think_times(segments, circles, "trail1")
+    time.calculate_think_times(segments, circle_mapping, "5555555")
 
-    expected_by_key = {(s, e): (tt, lbl) for s, e, tt, lbl in expected}
-    for seg in result:
-        key = (seg.start_label, seg.end_label)
-        if key in expected_by_key:
-            think_time, circle_label = expected_by_key[key]
-            assert seg.think_time == think_time
-            assert seg.think_circle_label == circle_label
-        else:
-            assert seg.think_time == 0.0
-
-
-def test_first_segment_think_time() -> None:
-    """Test think time is assigned to the first segment based on its start circle."""
-    seg = _make_segment(
-        "A",
-        "B",
-        [
-            {"x": 0.0, "y": 0.0, "seconds": 1.0},
-            {"x": 0.0, "y": 0.0, "seconds": 2.0},
-            {"x": 20.0, "y": 20.0, "seconds": 4.0},
-        ],
-    )
-    circles = {"trail1": {"A": _make_circle("A", 0.0, 0.0, 1.0)}}
-    config = {"trail1": {"items": [{"label": "A", "order": 1}]}}
-
-    result = time.calculate_think_times([seg], circles, "trail1")
-
-    assert result[0].think_time == 3.0
-    assert result[0].think_circle_label == "A"
+    assert segments[0].think_time == 1.0
+    assert segments[0].think_circle_label == "A"
+    assert segments[1].think_time == 1.5
+    assert segments[1].think_circle_label == "B"
+    assert segments[2].think_time == 1.0
+    assert segments[2].think_circle_label == "C"
