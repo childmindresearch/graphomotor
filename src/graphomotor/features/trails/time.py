@@ -148,9 +148,9 @@ def _find_circle_entry_time(
         The timestamp (in seconds) of the first point that is inside the circle,
         or None if no points are inside the circle.
     """
-    for row in range(len(points)):
-        if circle.contains_point(points.iloc[row]["x"], points.iloc[row]["y"]):
-            return points.iloc[row]["seconds"]
+    for row in points.itertuples():
+        if circle.contains_point(row.x, row.y):
+            return row.seconds
     return None
 
 
@@ -171,7 +171,7 @@ def _find_circle_exit_time(
         The timestamp (in seconds) of the first point that is outside the circle,
         or None if all points are inside the circle.
     """
-    for row in range(len(points)):
-        if not circle.contains_point(points.iloc[row]["x"], points.iloc[row]["y"]):
-            return points.iloc[row]["seconds"]
+    for row in points.itertuples():
+        if not circle.contains_point(row.x, row.y):
+            return row.seconds
     return None
