@@ -92,7 +92,7 @@ def calculate_think_times(
             first_seg.points, target_circles[first_seg.start_label]
         )
 
-        first_seg.think_time = exit_time
+        first_seg.think_time = exit_time  # type: ignore[assignment] #Covered by only using LineSegments without errors (hardware constraint forces start/end in circles), so exit_time will not be None
         first_seg.think_circle_label = first_seg.start_label
 
     for current_seg, next_seg in zip(segments, segments[1:]):
