@@ -66,15 +66,17 @@ def calculate_think_times(
     """Calculate think times using consecutive segments approach.
 
     This function computes all the think_times for all provided LineSegments.
+    The LineSegments are expected to be in order and only for "correct" paths, i.e.
+    segments that start and end at the correct circles.
+
     `think_time` is defined as the difference in timestamps between the first point of
     the current LineSegment entering a circle and the first point of the next
-    LineSegment exiting that same circle.
+    LineSegment exiting that same circle. Note, that this time will include time spent
+    drawing erroneous LineSegments between these two correct LineSegments.
 
     For the first segment, if it starts inside a circle, the `think_time` is calculated
     as the difference between the first point of the segment and the first point exiting
     that circle.
-
-    This method is only for segments without errors.
 
     Args:
         segments: List of LineSegment objects in order.
@@ -90,9 +92,8 @@ def calculate_think_times(
             first_seg.points, target_circles[first_seg.start_label]
         )
 
-        if exit_time is not None:
-            first_seg.think_time = exit_time - first_seg.points.iloc[0]["seconds"]
-            first_seg.think_circle_label = first_seg.start_label
+        first_seg.think_time = exit_time
+        first_seg.think_circle_label = first_seg.start_label
 
     for current_seg, next_seg in zip(segments, segments[1:]):
         current_circle_label = current_seg.end_label
@@ -117,9 +118,8 @@ def calculate_think_times(
         entry_time = _find_circle_entry_time(current_seg.points, circle_location)
         exit_time = _find_circle_exit_time(next_seg.points, circle_location)
 
-        if entry_time is not None and exit_time is not None and exit_time > entry_time:
-            next_seg.think_time = exit_time - entry_time
-            next_seg.think_circle_label = current_circle_label
+        next_seg.think_time = exit_time - entry_time  # type: ignore[operator] #Covered by only using LineSegments without errors (hardware constraint forces start/end in circles), so entry_time and exit_time will not be None
+        next_seg.think_circle_label = current_circle_label
 
         # Provide logger warning for this strange case
         if entry_time is not None and exit_time is not None and entry_time > exit_time:

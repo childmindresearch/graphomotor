@@ -1,5 +1,7 @@
 """Tests for trails time.py."""
 
+import logging
+
 import pandas as pd
 import pytest
 
@@ -117,7 +119,7 @@ def create_segment_and_circles() -> tuple[
         start_label="A",
         end_label="B",
         points=[
-            {"x": 0.0, "y": 0.0, "seconds": 1.0},
+            {"x": 0.0, "y": 0.0, "seconds": 0.0},
             {"x": 0.1, "y": 0.0, "seconds": 1.1},
             {"x": 5.0, "y": 5.0, "seconds": 2.0},
             {"x": 10.0, "y": 10.0, "seconds": 3.0},
@@ -161,11 +163,13 @@ def create_segment_and_circles() -> tuple[
 @pytest.mark.parametrize(
     "circle_number, segment_number, expected_entry_time",
     [
-        (0, 0, 1.0),
+        (0, 0, 0.0),
         (1, 0, 3.0),
         (1, 1, 3.5),
         (2, 1, 5.5),
-    ],  # converting A B C labels to 0, 1, 2 index for list
+        (2, 2, 6.0),
+        (3, 2, 7.0),
+    ],  # converting A B C D labels to 0, 1, 2, 3 index for list
 )
 def test_entry_time(
     circle_number: int,
@@ -188,9 +192,8 @@ def test_entry_time(
     "circle_number, segment_number, expected_exit_time",
     [
         (0, 0, 2.0),
-        (1, 0, 1.0),
         (1, 1, 4.5),
-        (2, 1, 3.5),
+        (2, 2, 6.5),
     ],  # converting A B C labels to 0, 1, 2 index for list
 )
 def test_exit_time(
@@ -221,9 +224,89 @@ def test_calculate_think_times(
 
     time.calculate_think_times(segments, circle_mapping, "5555555")
 
-    assert segments[0].think_time == 1.0
+    assert segments[0].think_time == 2.0
     assert segments[0].think_circle_label == "A"
     assert segments[1].think_time == 1.5
     assert segments[1].think_circle_label == "B"
     assert segments[2].think_time == 1.0
     assert segments[2].think_circle_label == "C"
+
+
+def test_calculate_think_times_mismatched_labels(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that a warning is logged when consecutive segment labels do not match."""
+    seg1 = _make_segment(
+        start_label="A",
+        end_label="B",
+        points=[{"x": 5.0, "y": 5.0, "seconds": 1.0}],
+    )
+    seg2 = _make_segment(
+        start_label="C",
+        end_label="D",
+        points=[{"x": 10.0, "y": 10.0, "seconds": 2.0}],
+    )
+    circle_mapping = {"trail1": {"B": _make_circle("B", 10.0, 10.0, 1.0)}}
+
+    with caplog.at_level(logging.WARNING, logger="graphomotor"):
+        time.calculate_think_times([seg1, seg2], circle_mapping, "trail1")
+
+    assert "Mismatched segment labels" in caplog.text
+    assert seg2.think_time == 0.0
+
+
+def test_calculate_think_times_circle_not_in_targets(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that a warning is logged when the shared circle label is missing."""
+    seg1 = _make_segment(
+        start_label="A",
+        end_label="B",
+        points=[{"x": 5.0, "y": 5.0, "seconds": 1.0}],
+    )
+    seg2 = _make_segment(
+        start_label="B",
+        end_label="C",
+        points=[{"x": 10.0, "y": 10.0, "seconds": 2.0}],
+    )
+
+    circle_mapping = {"trail1": {"C": _make_circle("C", 20.0, 20.0, 1.0)}}
+
+    with caplog.at_level(logging.WARNING, logger="graphomotor"):
+        time.calculate_think_times([seg1, seg2], circle_mapping, "trail1")
+
+    assert "Circle label B not found in trail circles" in caplog.text
+    assert seg2.think_time == 0.0
+
+
+def test_calculate_think_times_entry_after_exit_warning(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Test that a warning is logged when entry_time is greater than exit_time."""
+    seg1 = _make_segment(
+        start_label="A",
+        end_label="B",
+        points=[
+            {"x": 5.0, "y": 5.0, "seconds": 1.0},
+            {"x": 10.0, "y": 10.0, "seconds": 5.0},
+        ],
+    )
+    seg2 = _make_segment(
+        start_label="B",
+        end_label="C",
+        points=[
+            {"x": 10.0, "y": 10.0, "seconds": 2.0},
+            {"x": 15.0, "y": 15.0, "seconds": 3.0},
+        ],
+    )
+    circle_mapping = {
+        "trail1": {
+            "B": _make_circle("B", 10.0, 10.0, 1.0),
+            "C": _make_circle("C", 20.0, 20.0, 1.0),
+        }
+    }
+
+    with caplog.at_level(logging.WARNING, logger="graphomotor"):
+        time.calculate_think_times([seg1, seg2], circle_mapping, "trail1")
+
+    assert "Entry time 5.0 is greater than exit time 3.0 for circle B" in caplog.text
