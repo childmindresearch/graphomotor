@@ -74,9 +74,9 @@ def calculate_think_times(
     LineSegment exiting that same circle. Note, that this time will include time spent
     drawing erroneous LineSegments between these two correct LineSegments.
 
-    For the first segment, if it starts inside a circle, the `think_time` is calculated
-    as the difference between the first point of the segment and the first point exiting
-    that circle.
+    For the first segment, the `think_time` is calculated as the difference between the
+    first point of the segment exiting the starting circle and the start of the drawing
+    (as of this version, all Curious drawing start at a time of 0.0s).
 
     Args:
         segments: List of LineSegment objects in order.
