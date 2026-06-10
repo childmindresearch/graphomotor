@@ -220,8 +220,9 @@ class Grid:
         """Create a Grid by subdividing a bounding box into rows and columns.
 
         Cells are generated in row-major order (left-to-right, top-to-bottom).
-        A small padding is added to the outer boundaries so that centroids
-        falling exactly on the outermost edge are still captured by a cell.
+        Interior cell boundaries are exact subdivisions of the bounding box;
+        only the outermost edges are extended by ``padding`` so that centroids
+        falling exactly on the outer boundary are still captured by a cell.
 
         Args:
             x_min: Left boundary of the bounding box.
@@ -232,8 +233,8 @@ class Grid:
             n_cols: Number of columns in the grid.
             labels: Optional list of labels for each cell, assigned in
                 row-major order. Must have length n_rows * n_cols if provided.
-            padding: Amount to extend the outer boundaries to capture edge
-                centroids (default 0.1).
+            padding: Amount to extend the outermost cell edges to capture edge
+                centroids; interior boundaries are unaffected (default 0.1).
 
         Returns:
             A Grid instance populated with GridCell objects.
@@ -250,22 +251,29 @@ class Grid:
                 f"labels length ({len(labels)}) must match n_rows * n_cols ({n_cells})."
             )
 
-        padded_x_min = x_min - padding
-        padded_x_max = x_max + padding
-        padded_y_min = y_min - padding
-        padded_y_max = y_max + padding
-
-        col_width = (padded_x_max - padded_x_min) / n_cols
-        row_height = (padded_y_max - padded_y_min) / n_rows
+        col_width = (x_max - x_min) / n_cols
+        row_height = (y_max - y_min) / n_rows
 
         cells: List[GridCell] = []
         index = 0
         for row in range(n_rows):
             for col in range(n_cols):
-                cell_x_min = padded_x_min + col * col_width
-                cell_x_max = padded_x_min + (col + 1) * col_width
-                cell_y_min = padded_y_max - (row + 1) * row_height
-                cell_y_max = padded_y_max - row * row_height
+                cell_x_min = x_min + col * col_width
+                if col == 0:
+                    cell_x_min -= padding
+
+                cell_x_max = x_min + (col + 1) * col_width
+                if col == n_cols - 1:
+                    cell_x_max += padding
+
+                cell_y_min = y_max - (row + 1) * row_height
+                if row == n_rows - 1:
+                    cell_y_min -= padding
+
+                cell_y_max = y_max - row * row_height
+                if row == 0:
+                    cell_y_max += padding
+
                 label = labels[index] if labels is not None else ""
                 cells.append(
                     GridCell(
