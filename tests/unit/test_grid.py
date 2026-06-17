@@ -1,23 +1,28 @@
 """Test cases for the Grid model."""
 
-from typing import Dict
-
 import pytest
 
 from graphomotor.core import models
 
 
 @pytest.fixture
-def bbox_kwargs() -> Dict[str, float]:
-    """Bounding box keyword arguments for a 10x10 grid area."""
-    return {"x_min": 0.0, "x_max": 10.0, "y_min": 0.0, "y_max": 10.0}
+def bbox_bounds() -> tuple[float, float, float, float]:
+    """Bounding box coordinates as (x_min, x_max, y_min, y_max)."""
+    return (0.0, 10.0, 0.0, 10.0)
 
 
 @pytest.fixture
-def grid_2x2(bbox_kwargs: Dict[str, float]) -> models.Grid:
+def grid_2x2(bbox_bounds: tuple[float, float, float, float]) -> models.Grid:
     """Create a labeled 2x2 grid over a 10x10 bounding box."""
+    x_min, x_max, y_min, y_max = bbox_bounds
     return models.Grid.from_bbox(
-        n_rows=2, n_cols=2, labels=["TL", "TR", "BL", "BR"], **bbox_kwargs
+        x_min=x_min,
+        x_max=x_max,
+        y_min=y_min,
+        y_max=y_max,
+        n_rows=2,
+        n_cols=2,
+        labels=["TL", "TR", "BL", "BR"],
     )
 
 
@@ -27,10 +32,18 @@ def grid_2x2(bbox_kwargs: Dict[str, float]) -> models.Grid:
     ids=["1x1", "2x2", "3x3", "2x3"],
 )
 def test_grid_structure(
-    bbox_kwargs: Dict[str, float], n_rows: int, n_cols: int
+    bbox_bounds: tuple[float, float, float, float], n_rows: int, n_cols: int
 ) -> None:
     """Grids have n_rows * n_cols cells in row-major order, tiling without gaps."""
-    grid = models.Grid.from_bbox(n_rows=n_rows, n_cols=n_cols, **bbox_kwargs)
+    x_min, x_max, y_min, y_max = bbox_bounds
+    grid = models.Grid.from_bbox(
+        x_min=x_min,
+        x_max=x_max,
+        y_min=y_min,
+        y_max=y_max,
+        n_rows=n_rows,
+        n_cols=n_cols,
+    )
 
     assert len(grid.cells) == n_rows * n_cols
     assert [cell.index for cell in grid.cells] == list(range(n_rows * n_cols))
@@ -70,10 +83,19 @@ def test_padding_only_extends_outer_boundaries() -> None:
 
 @pytest.mark.parametrize("padding", [0.1, 1.0], ids=["default", "custom"])
 def test_outer_boundaries_extended_by_padding(
-    bbox_kwargs: Dict[str, float], padding: float
+    bbox_bounds: tuple[float, float, float, float], padding: float
 ) -> None:
     """The outermost grid edges extend beyond the bounding box by the padding."""
-    grid = models.Grid.from_bbox(n_rows=1, n_cols=1, padding=padding, **bbox_kwargs)
+    x_min, x_max, y_min, y_max = bbox_bounds
+    grid = models.Grid.from_bbox(
+        x_min=x_min,
+        x_max=x_max,
+        y_min=y_min,
+        y_max=y_max,
+        n_rows=1,
+        n_cols=1,
+        padding=padding,
+    )
 
     cell = grid.cells[0]
     assert cell.x_min == pytest.approx(-padding)
@@ -87,17 +109,31 @@ def test_labels_assigned(grid_2x2: models.Grid) -> None:
     assert [cell.label for cell in grid_2x2.cells] == ["TL", "TR", "BL", "BR"]
 
 
-def test_labels_default_empty(bbox_kwargs: Dict[str, float]) -> None:
+def test_labels_default_empty(bbox_bounds: tuple[float, float, float, float]) -> None:
     """Cells have empty labels when none are provided."""
-    grid = models.Grid.from_bbox(n_rows=1, n_cols=2, **bbox_kwargs)
+    x_min, x_max, y_min, y_max = bbox_bounds
+    grid = models.Grid.from_bbox(
+        x_min=x_min, x_max=x_max, y_min=y_min, y_max=y_max, n_rows=1, n_cols=2
+    )
 
     assert all(cell.label == "" for cell in grid.cells)
 
 
-def test_labels_length_mismatch_raises(bbox_kwargs: Dict[str, float]) -> None:
+def test_labels_length_mismatch_raises(
+    bbox_bounds: tuple[float, float, float, float],
+) -> None:
     """Providing the wrong number of labels raises ValueError."""
+    x_min, x_max, y_min, y_max = bbox_bounds
     with pytest.raises(ValueError, match="labels length"):
-        models.Grid.from_bbox(n_rows=2, n_cols=2, labels=["A", "B"], **bbox_kwargs)
+        models.Grid.from_bbox(
+            x_min=x_min,
+            x_max=x_max,
+            y_min=y_min,
+            y_max=y_max,
+            n_rows=2,
+            n_cols=2,
+            labels=["A", "B"],
+        )
 
 
 @pytest.mark.parametrize(
@@ -106,16 +142,29 @@ def test_labels_length_mismatch_raises(bbox_kwargs: Dict[str, float]) -> None:
     ids=["zero_rows", "zero_cols", "both_zero", "negative_rows"],
 )
 def test_invalid_dimensions_raise(
-    bbox_kwargs: Dict[str, float], n_rows: int, n_cols: int
+    bbox_bounds: tuple[float, float, float, float], n_rows: int, n_cols: int
 ) -> None:
     """Non-positive row or column counts raise ValueError."""
+    x_min, x_max, y_min, y_max = bbox_bounds
     with pytest.raises(ValueError, match="n_rows and n_cols must be at least 1"):
-        models.Grid.from_bbox(n_rows=n_rows, n_cols=n_cols, **bbox_kwargs)
+        models.Grid.from_bbox(
+            x_min=x_min,
+            x_max=x_max,
+            y_min=y_min,
+            y_max=y_max,
+            n_rows=n_rows,
+            n_cols=n_cols,
+        )
 
 
-def test_default_strokes_are_empty(bbox_kwargs: Dict[str, float]) -> None:
+def test_default_strokes_are_empty(
+    bbox_bounds: tuple[float, float, float, float],
+) -> None:
     """All cells start with empty strokes lists."""
-    grid = models.Grid.from_bbox(n_rows=2, n_cols=3, **bbox_kwargs)
+    x_min, x_max, y_min, y_max = bbox_bounds
+    grid = models.Grid.from_bbox(
+        x_min=x_min, x_max=x_max, y_min=y_min, y_max=y_max, n_rows=2, n_cols=3
+    )
 
     assert all(cell.strokes == [] for cell in grid.cells)
 
@@ -126,17 +175,25 @@ def test_default_strokes_are_empty(bbox_kwargs: Dict[str, float]) -> None:
     ids=["2x2", "3x3", "2x4"],
 )
 def test_get_cell_for_point_maps_cell_centers(
-    bbox_kwargs: Dict[str, float], n_rows: int, n_cols: int
+    bbox_bounds: tuple[float, float, float, float], n_rows: int, n_cols: int
 ) -> None:
     """The center of every cell maps back to that cell's index."""
-    grid = models.Grid.from_bbox(n_rows=n_rows, n_cols=n_cols, **bbox_kwargs)
-    col_width = (bbox_kwargs["x_max"] - bbox_kwargs["x_min"]) / n_cols
-    row_height = (bbox_kwargs["y_max"] - bbox_kwargs["y_min"]) / n_rows
+    x_min, x_max, y_min, y_max = bbox_bounds
+    grid = models.Grid.from_bbox(
+        x_min=x_min,
+        x_max=x_max,
+        y_min=y_min,
+        y_max=y_max,
+        n_rows=n_rows,
+        n_cols=n_cols,
+    )
+    col_width = (x_max - x_min) / n_cols
+    row_height = (y_max - y_min) / n_rows
 
     for row in range(n_rows):
         for col in range(n_cols):
-            center_x = bbox_kwargs["x_min"] + (col + 0.5) * col_width
-            center_y = bbox_kwargs["y_max"] - (row + 0.5) * row_height
+            center_x = x_min + (col + 0.5) * col_width
+            center_y = y_max - (row + 0.5) * row_height
             assert grid.get_cell_for_point(center_x, center_y) == row * n_cols + col
 
 
@@ -156,10 +213,13 @@ def test_point_on_inner_boundary_ownership(grid_2x2: models.Grid) -> None:
 
 
 def test_point_on_outer_edge_captured_by_padding(
-    bbox_kwargs: Dict[str, float],
+    bbox_bounds: tuple[float, float, float, float],
 ) -> None:
     """Points on the exact bounding box corners are captured thanks to padding."""
-    grid = models.Grid.from_bbox(n_rows=1, n_cols=1, **bbox_kwargs)
+    x_min, x_max, y_min, y_max = bbox_bounds
+    grid = models.Grid.from_bbox(
+        x_min=x_min, x_max=x_max, y_min=y_min, y_max=y_max, n_rows=1, n_cols=1
+    )
 
     assert grid.get_cell_for_point(0.0, 0.0) == 0
     assert grid.get_cell_for_point(10.0, 10.0) == 0
