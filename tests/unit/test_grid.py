@@ -50,9 +50,13 @@ def test_grid_structure(
     for row in range(n_rows):
         for col in range(n_cols):
             cell = grid.cells[row * n_cols + col]
+            # No horizontal gaps/overlaps: a cell's left edge meets the right
+            # edge of its left neighbor.
             if col > 0:
                 left_neighbor = grid.cells[row * n_cols + col - 1]
                 assert cell.x_min == pytest.approx(left_neighbor.x_max)
+            # No vertical gaps/overlaps: a cell's top edge meets the bottom edge
+            # of the neighbor above it (rows run top-to-bottom).
             if row > 0:
                 upper_neighbor = grid.cells[(row - 1) * n_cols + col]
                 assert cell.y_max == pytest.approx(upper_neighbor.y_min)
@@ -61,24 +65,36 @@ def test_grid_structure(
 def test_padding_only_extends_outer_boundaries() -> None:
     """Interior boundaries are exact subdivisions; only outer edges get padding.
 
-    For a 3x3 grid over [0, 30], interior boundaries must fall exactly on 10
-    and 20, while the outermost edges extend by the default padding of 0.1.
+    For a 3x3 grid over [0, 30] each cell spans 10 units. Every interior edge
+    must fall exactly on a multiple of 10, while the four outermost edges extend
+    by the default padding of 0.1. This loops over all nine cells and checks
+    each computed boundary against its expected value.
     """
+    padding = 0.1
+    n_rows = n_cols = 3
+    cell_size = 10.0
     grid = models.Grid.from_bbox(
-        x_min=0.0, x_max=30.0, y_min=0.0, y_max=30.0, n_rows=3, n_cols=3
+        x_min=0.0, x_max=30.0, y_min=0.0, y_max=30.0, n_rows=n_rows, n_cols=n_cols
     )
 
-    center = grid.cells[4]  # row 1, col 1: fully interior, no padding anywhere
-    assert center.x_min == pytest.approx(10.0)
-    assert center.x_max == pytest.approx(20.0)
-    assert center.y_min == pytest.approx(10.0)
-    assert center.y_max == pytest.approx(20.0)
+    for row in range(n_rows):
+        for col in range(n_cols):
+            cell = grid.cells[row * n_cols + col]
 
-    middle_right = grid.cells[5]  # row 1, col 2: padded only on the right edge
-    assert middle_right.x_min == pytest.approx(20.0)
-    assert middle_right.x_max == pytest.approx(30.1)
-    assert middle_right.y_min == pytest.approx(10.0)
-    assert middle_right.y_max == pytest.approx(20.0)
+            expected_x_min = col * cell_size - (padding if col == 0 else 0.0)
+            expected_x_max = (col + 1) * cell_size + (
+                padding if col == n_cols - 1 else 0.0
+            )
+            # Rows run top-to-bottom, so row 0 is the top of the [0, 30] range.
+            expected_y_max = (n_rows - row) * cell_size + (padding if row == 0 else 0.0)
+            expected_y_min = (n_rows - row - 1) * cell_size - (
+                padding if row == n_rows - 1 else 0.0
+            )
+
+            assert cell.x_min == pytest.approx(expected_x_min)
+            assert cell.x_max == pytest.approx(expected_x_max)
+            assert cell.y_min == pytest.approx(expected_y_min)
+            assert cell.y_max == pytest.approx(expected_y_max)
 
 
 @pytest.mark.parametrize("padding", [0.1, 1.0], ids=["default", "custom"])

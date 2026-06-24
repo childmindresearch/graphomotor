@@ -26,7 +26,11 @@ def drawing_data() -> pd.DataFrame:
 
 
 def test_strokes_assigned_to_correct_cells(drawing_data: pd.DataFrame) -> None:
-    """Each stroke is placed in the cell containing its centroid."""
+    """Each stroke is placed in the labeled cell containing its centroid.
+
+    Also checks that the total number of assigned strokes equals the number of
+    line_number groups, so no stroke is dropped or duplicated.
+    """
     grid = alphabet_utils.segment_strokes(
         data=drawing_data,
         x_min=0.0,
@@ -37,7 +41,9 @@ def test_strokes_assigned_to_correct_cells(drawing_data: pd.DataFrame) -> None:
         n_cols=2,
         labels=["TL", "TR", "BL", "BR"],
     )
+    total_strokes = sum(len(cell.strokes) for cell in grid.cells)
 
+    assert [cell.label for cell in grid.cells] == ["TL", "TR", "BL", "BR"]
     assert len(grid.cells[0].strokes) == 1
     assert grid.cells[0].strokes[0].line_number == 0
     assert len(grid.cells[1].strokes) == 1
@@ -45,21 +51,6 @@ def test_strokes_assigned_to_correct_cells(drawing_data: pd.DataFrame) -> None:
     assert len(grid.cells[2].strokes) == 1
     assert grid.cells[2].strokes[0].line_number == 2
     assert len(grid.cells[3].strokes) == 0
-
-
-def test_total_stroke_count_matches_line_numbers(drawing_data: pd.DataFrame) -> None:
-    """Total strokes across all cells equal the number of line_number groups."""
-    grid = alphabet_utils.segment_strokes(
-        data=drawing_data,
-        x_min=0.0,
-        x_max=100.0,
-        y_min=0.0,
-        y_max=100.0,
-        n_rows=2,
-        n_cols=2,
-    )
-
-    total_strokes = sum(len(cell.strokes) for cell in grid.cells)
     assert total_strokes == drawing_data["line_number"].nunique()
 
 
