@@ -62,19 +62,29 @@ def test_grid_structure(
                 assert cell.y_max == pytest.approx(upper_neighbor.y_min)
 
 
-def test_padding_only_extends_outer_boundaries() -> None:
-    """Interior boundaries are exact subdivisions; only outer edges get padding.
+@pytest.mark.parametrize(
+    "padding", [0.1, 1.0], ids=["default_padding", "custom_padding"]
+)
+def test_cell_boundaries_interior_exact_outer_padded(padding: float) -> None:
+    """Interior edges are exact subdivisions; only outer edges extend by padding.
 
-    For a 3x3 grid over [0, 30] each cell spans 10 units. Every interior edge
-    must fall exactly on a multiple of 10, while the four outermost edges extend
-    by the default padding of 0.1. This loops over all nine cells and checks
-    each computed boundary against its expected value.
+    Builds a 3x3 grid over [0, 30] (each cell spans 10 units) and checks every
+    cell's four boundaries in one pass, covering all three boundary kinds:
+    - interior edges shared between neighbors fall exactly on multiples of 10,
+    - the four outermost edges extend beyond the bounding box by ``padding``,
+    - corner cells combine both (two exact interior edges, two padded outer).
+    Parameterizing padding exercises both the default and a custom value.
     """
-    padding = 0.1
     n_rows = n_cols = 3
     cell_size = 10.0
     grid = models.Grid.from_bbox(
-        x_min=0.0, x_max=30.0, y_min=0.0, y_max=30.0, n_rows=n_rows, n_cols=n_cols
+        x_min=0.0,
+        x_max=30.0,
+        y_min=0.0,
+        y_max=30.0,
+        n_rows=n_rows,
+        n_cols=n_cols,
+        padding=padding,
     )
 
     for row in range(n_rows):
@@ -95,29 +105,6 @@ def test_padding_only_extends_outer_boundaries() -> None:
             assert cell.x_max == pytest.approx(expected_x_max)
             assert cell.y_min == pytest.approx(expected_y_min)
             assert cell.y_max == pytest.approx(expected_y_max)
-
-
-@pytest.mark.parametrize("padding", [0.1, 1.0], ids=["default", "custom"])
-def test_outer_boundaries_extended_by_padding(
-    bbox_bounds: tuple[float, float, float, float], padding: float
-) -> None:
-    """The outermost grid edges extend beyond the bounding box by the padding."""
-    x_min, x_max, y_min, y_max = bbox_bounds
-    grid = models.Grid.from_bbox(
-        x_min=x_min,
-        x_max=x_max,
-        y_min=y_min,
-        y_max=y_max,
-        n_rows=1,
-        n_cols=1,
-        padding=padding,
-    )
-
-    cell = grid.cells[0]
-    assert cell.x_min == pytest.approx(-padding)
-    assert cell.x_max == pytest.approx(10.0 + padding)
-    assert cell.y_min == pytest.approx(-padding)
-    assert cell.y_max == pytest.approx(10.0 + padding)
 
 
 def test_labels_assigned(grid_2x2: models.Grid) -> None:

@@ -144,8 +144,10 @@ class GridCell:
         y_max: Top boundary of the cell.
         index: Position of the cell in the grid (0-based).
         label: Display label for the cell (e.g., 'A', 'B', '1'). Defaults to an
-            empty string, which marks the cell as unlabeled (used for purely
-            spatial grids where cells are identified by index rather than name).
+            empty string, which marks the cell as unlabeled: either a purely
+            spatial grid where cells are identified by index rather than name,
+            or a cell that is not of interest for the analysis (e.g., a spacer
+            or ignored region that no stroke should be attributed to).
         strokes: List of Stroke objects assigned to this cell.
     """
 
@@ -237,6 +239,8 @@ class Grid:
                 row-major order. Must have length n_rows * n_cols if provided.
                 If omitted, every cell is left with an empty-string label,
                 marking the grid as unlabeled (cells identified by index only).
+                An empty label also denotes a cell that is not of interest for
+                the analysis (e.g., a spacer or ignored region).
             padding: Amount to extend the outermost cell edges to capture edge
                 centroids; interior boundaries are unaffected (default 0.1).
 
