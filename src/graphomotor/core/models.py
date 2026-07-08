@@ -141,7 +141,11 @@ class GridCell:
         y_min: Bottom boundary of the cell.
         y_max: Top boundary of the cell.
         index: Position of the cell in the grid (0-based).
-        label: Display label for the cell (e.g., 'A', 'B', '1').
+        label: Display label for the cell (e.g., 'A', 'B', '1'). Defaults to an
+            empty string, which marks the cell as unlabeled: either a purely
+            spatial grid where cells are identified by index rather than name,
+            or a cell that is not of interest for the analysis (e.g., a spacer
+            or ignored region that no stroke should be attributed to).
         strokes: List of Stroke objects assigned to this cell.
     """
 
@@ -187,6 +191,128 @@ class GridCell:
             self.x_min <= centroid_x < self.x_max
             and self.y_min <= centroid_y < self.y_max
         )
+
+
+@dataclasses.dataclass
+class Grid:
+    """Represents a rectangular grid composed of multiple GridCell objects.
+
+    The grid divides a bounding box into rows and columns, where each cell can
+    hold strokes assigned by centroid location. Cells are ordered left-to-right,
+    top-to-bottom (row-major order).
+
+    Attributes:
+        cells: List of GridCell objects that compose the grid.
+    """
+
+    cells: List[GridCell] = dataclasses.field(default_factory=list)
+
+    @classmethod
+    def from_bbox(
+        cls,
+        x_min: float,
+        x_max: float,
+        y_min: float,
+        y_max: float,
+        n_rows: int,
+        n_cols: int,
+        labels: Optional[List[str]] = None,
+        padding: float = 0.1,
+    ) -> "Grid":
+        """Create a Grid by subdividing a bounding box into rows and columns.
+
+        Cells are generated in row-major order (left-to-right, top-to-bottom).
+        Interior cell boundaries are exact subdivisions of the bounding box;
+        only the outermost edges are extended by ``padding`` so that centroids
+        falling exactly on the outer boundary are still captured by a cell.
+
+        Args:
+            x_min: Left boundary of the bounding box.
+            x_max: Right boundary of the bounding box.
+            y_min: Bottom boundary of the bounding box.
+            y_max: Top boundary of the bounding box.
+            n_rows: Number of rows in the grid.
+            n_cols: Number of columns in the grid.
+            labels: Optional list of labels for each cell, assigned in
+                row-major order. Must have length n_rows * n_cols if provided.
+                If omitted, every cell is left with an empty-string label,
+                marking the grid as unlabeled (cells identified by index only).
+                An empty label also denotes a cell that is not of interest for
+                the analysis (e.g., a spacer or ignored region).
+            padding: Amount to extend the outermost cell edges to capture edge
+                centroids; interior boundaries are unaffected (default 0.1).
+
+        Returns:
+            A Grid instance populated with GridCell objects.
+
+        Raises:
+            ValueError: If n_rows or n_cols is less than 1, or if the length
+                of labels does not match n_rows * n_cols.
+        """
+        if n_rows < 1 or n_cols < 1:
+            raise ValueError("n_rows and n_cols must be at least 1.")
+        n_cells = n_rows * n_cols
+        if labels is not None and len(labels) != n_cells:
+            raise ValueError(
+                f"labels length ({len(labels)}) must match n_rows * n_cols ({n_cells})."
+            )
+
+        col_width = (x_max - x_min) / n_cols
+        row_height = (y_max - y_min) / n_rows
+
+        cells: List[GridCell] = []
+        index = 0
+        for row in range(n_rows):
+            for col in range(n_cols):
+                cell_x_min = x_min + col * col_width
+                if col == 0:
+                    cell_x_min -= padding
+
+                cell_x_max = x_min + (col + 1) * col_width
+                if col == n_cols - 1:
+                    cell_x_max += padding
+
+                cell_y_min = y_max - (row + 1) * row_height
+                if row == n_rows - 1:
+                    cell_y_min -= padding
+
+                cell_y_max = y_max - row * row_height
+                if row == 0:
+                    cell_y_max += padding
+
+                label = labels[index] if labels is not None else ""
+                cells.append(
+                    GridCell(
+                        x_min=cell_x_min,
+                        x_max=cell_x_max,
+                        y_min=cell_y_min,
+                        y_max=cell_y_max,
+                        index=index,
+                        label=label,
+                    )
+                )
+                index += 1
+
+        return cls(cells=cells)
+
+    def get_cell_for_point(self, x: float, y: float) -> int:
+        """Return the index of the cell containing the given point.
+
+        Iterates through cells and returns the index of the first cell whose
+        half-open interval [min, max) contains the point. Returns -1 if no
+        cell contains the point.
+
+        Args:
+            x: X coordinate of the point.
+            y: Y coordinate of the point.
+
+        Returns:
+            The index of the matching cell, or -1 if no cell contains the point.
+        """
+        for cell in self.cells:
+            if cell.x_min <= x < cell.x_max and cell.y_min <= y < cell.y_max:
+                return cell.index
+        return -1
 
 
 @dataclasses.dataclass
