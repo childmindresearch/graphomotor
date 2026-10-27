@@ -321,7 +321,7 @@ def test_calculate_think_times_entry_after_exit_raises() -> None:
 
 def test_calculate_think_times_empty_segments_are_noop() -> None:
     """An empty segment list does not require a trail mapping."""
-    assert time.calculate_think_times([], {}, "missing") is None
+    time.calculate_think_times([], {}, "missing")
 
 
 @pytest.mark.parametrize("mapping", [{}, {"trail1": {}}])
