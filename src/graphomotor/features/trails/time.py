@@ -72,7 +72,8 @@ def calculate_think_times(
     `think_time` is defined as the difference in timestamps between the first point of
     the current LineSegment entering a circle and the first point of the next
     LineSegment exiting that same circle. Note, that this time will include time spent
-    drawing erroneous LineSegments between these two correct LineSegments.
+    drawing erroneous LineSegments between these two correct LineSegments. The first
+    entry is used even if the segment leaves and re-enters the circle.
 
     For the first segment, the `think_time` is calculated as the difference between the
     first point of the segment exiting the starting circle and the start of the drawing
@@ -83,17 +84,34 @@ def calculate_think_times(
         circle_mapping: Dictionary mapping trail IDs to dictionaries of CircleTarget
             objects (output of load_scaled_circles, provides circle locations).
         trail_id: Specific trail task identifier for circle location lookup.
+
+    Raises:
+        ValueError: If the first circle geometry is missing, a required circle entry
+            or exit is missing, or an exit precedes its entry (or time zero for the
+            first segment). Previously calculated segments remain updated.
     """
-    target_circles = circle_mapping[trail_id]
+    if not segments:
+        return
 
     first_seg = segments[0]
-    if first_seg.start_label in target_circles:
-        exit_time = _find_circle_exit_time(
-            first_seg.points, target_circles[first_seg.start_label]
+    target_circles = circle_mapping.get(trail_id, {})
+    if first_seg.start_label not in target_circles:
+        raise ValueError(
+            f"Starting circle {first_seg.start_label} not found for trail {trail_id}"
         )
 
-        first_seg.think_time = exit_time  # type: ignore[assignment] #Covered by only using LineSegments without errors (hardware constraint forces start/end in circles), so exit_time will not be None
-        first_seg.think_circle_label = first_seg.start_label
+    exit_time = _find_circle_exit_time(
+        first_seg.points, target_circles[first_seg.start_label]
+    )
+    if exit_time is None:
+        raise ValueError(f"Missing exit for starting circle {first_seg.start_label}")
+    if exit_time < 0:
+        raise ValueError(
+            f"Exit time {exit_time} precedes zero for {first_seg.start_label}"
+        )
+
+    first_seg.think_time = exit_time
+    first_seg.think_circle_label = first_seg.start_label
 
     for current_seg, next_seg in zip(segments, segments[1:]):
         current_circle_label = current_seg.end_label
@@ -118,17 +136,18 @@ def calculate_think_times(
         entry_time = _find_circle_entry_time(current_seg.points, circle_location)
         exit_time = _find_circle_exit_time(next_seg.points, circle_location)
 
-        next_seg.think_time = exit_time - entry_time  # type: ignore[operator] #Covered by only using LineSegments without errors (hardware constraint forces start/end in circles), so entry_time and exit_time will not be None
-        next_seg.think_circle_label = current_circle_label
-
-        # Provide logger warning for this strange case
-        if entry_time is not None and exit_time is not None and entry_time > exit_time:
-            logger.warning(
-                "Entry time %s is greater than exit time %s for circle %s",
-                entry_time,
-                exit_time,
-                current_circle_label,
+        if entry_time is None:
+            raise ValueError(f"Missing entry for circle {current_circle_label}")
+        if exit_time is None:
+            raise ValueError(f"Missing exit for circle {current_circle_label}")
+        if entry_time > exit_time:
+            raise ValueError(
+                f"Entry time {entry_time} is greater than exit time {exit_time} "
+                f"for circle {current_circle_label}"
             )
+
+        next_seg.think_time = exit_time - entry_time
+        next_seg.think_circle_label = current_circle_label
 
 
 def _find_circle_entry_time(
