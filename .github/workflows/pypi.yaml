@@ -23,7 +23,7 @@ jobs:
       new-version: ${{ steps.version-check.outputs.version }}
     steps:
     - name: Checkout code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 2   # Need previous commit for comparison
 
@@ -56,22 +56,22 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 1   # Only need current commit for build
 
     - name: Set up Python
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@v7
       with:
         python-version-file: pyproject.toml
 
     - name: Install uv
-      uses: astral-sh/setup-uv@1e862dfacbd1d6d858c55d9b792c756523627244   # v7.1.4
+      uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7   # v10.2.0
       with:
         enable-cache: true
 
     - name: Cache uv dependencies
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: ~/.cache/uv
         key: ${{ runner.os }}-uv-${{ hashFiles('**/pyproject.toml', '**/uv.lock') }}

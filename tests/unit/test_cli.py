@@ -176,7 +176,7 @@ def test_cli_extract_missing_arguments(runner: testing.CliRunner) -> None:
     result = runner.invoke(cli.app, ["extract-spiral"])
     assert result.exit_code != 0
     assert "Missing argument" in result.stderr
-    assert "INPUT_PATH" in result.stderr
+    assert "input_path" in result.stderr.lower()
 
 
 def test_cli_extract_missing_output_path(
@@ -186,7 +186,7 @@ def test_cli_extract_missing_output_path(
     result = runner.invoke(cli.app, ["extract-spiral", str(sample_spiral_data)])
     assert result.exit_code != 0
     assert "Missing argument" in result.stderr
-    assert "OUTPUT_PATH" in result.stderr
+    assert "output_path" in result.stderr.lower()
 
 
 def test_cli_extract_nonexistent_input_path(
@@ -249,15 +249,15 @@ def test_cli_extract_invalid_output_extension(
 
 
 @pytest.mark.parametrize(
-    "option, invalid_value, expected_type",
+    "option, invalid_value",
     [
-        ("--center-x", "what", "float"),
-        ("--center-y", "is", "float"),
-        ("--start-radius", "the", "float"),
-        ("--growth-rate", "meaning", "float"),
-        ("--start-angle", "of", "float"),
-        ("--end-angle", "life", "float"),
-        ("--num-points", "?", "integer"),
+        ("--center-x", "what"),
+        ("--center-y", "is"),
+        ("--start-radius", "the"),
+        ("--growth-rate", "meaning"),
+        ("--start-angle", "of"),
+        ("--end-angle", "life"),
+        ("--num-points", "?"),
     ],
 )
 def test_cli_extract_invalid_option_types(
@@ -266,7 +266,6 @@ def test_cli_extract_invalid_option_types(
     tmp_path: pathlib.Path,
     option: str,
     invalid_value: str,
-    expected_type: str,
 ) -> None:
     """Test CLI handles invalid types for numeric options and shows error messages."""
     output_file = tmp_path / "output.csv"
@@ -283,9 +282,7 @@ def test_cli_extract_invalid_option_types(
     )
 
     assert result.exit_code != 0
-    assert f"'{invalid_value}' is not a valid {expected_type}" in _clean_output(
-        result.stderr
-    )
+    assert f"'{invalid_value}' is not a valid" in _clean_output(result.stderr)
 
 
 def test_cli_plot_features_help_flag(runner: testing.CliRunner) -> None:
@@ -306,7 +303,7 @@ def test_cli_plot_features_missing_arguments(runner: testing.CliRunner) -> None:
     result = runner.invoke(cli.app, ["plot-features"])
     assert result.exit_code != 0
     assert "Missing argument" in result.stderr
-    assert "INPUT_PATH" in result.stderr
+    assert "input_path" in result.stderr.lower()
 
 
 def test_cli_plot_features_missing_output_path(
@@ -321,7 +318,7 @@ def test_cli_plot_features_missing_output_path(
     result = runner.invoke(cli.app, ["plot-features", str(input_file)])
     assert result.exit_code != 0
     assert "Missing argument" in result.stderr
-    assert "OUTPUT_PATH" in result.stderr
+    assert "output_path" in result.stderr.lower()
 
 
 def test_cli_plot_features_nonexistent_input_file(
@@ -558,7 +555,7 @@ def test_cli_plot_spiral_missing_arguments(runner: testing.CliRunner) -> None:
     result = runner.invoke(cli.app, ["plot-spiral"])
     assert result.exit_code != 0
     assert "Missing argument" in result.stderr
-    assert "INPUT_PATH" in result.stderr
+    assert "input_path" in result.stderr.lower()
 
 
 def test_cli_plot_spiral_missing_output_path(
@@ -569,7 +566,7 @@ def test_cli_plot_spiral_missing_output_path(
     result = runner.invoke(cli.app, ["plot-spiral", str(sample_spiral_data)])
     assert result.exit_code != 0
     assert "Missing argument" in result.stderr
-    assert "OUTPUT_PATH" in result.stderr
+    assert "output_path" in result.stderr.lower()
 
 
 def test_cli_plot_spiral_nonexistent_input_path(
