@@ -1,6 +1,12 @@
 """Feature extraction module for time-based metrics in trails drawing data."""
 
-from graphomotor.core import models
+from typing import Optional
+
+import pandas as pd
+
+from graphomotor.core import config, models
+
+logger = config.get_logger()
 
 
 def calculate_total_error_time(drawing: models.Drawing) -> dict[str, float]:
@@ -50,3 +56,141 @@ def calculate_total_error_time(drawing: models.Drawing) -> dict[str, float]:
         total_error_time += end_time - start_time
 
     return {"total_error_time": float(total_error_time)}
+
+
+def calculate_think_times(
+    segments: list[models.LineSegment],
+    circle_mapping: dict[str, dict[str, models.CircleTarget]],
+    trail_id: str,
+) -> None:
+    """Calculate think times using consecutive segments approach.
+
+    This function computes all the think_times for all provided LineSegments.
+    The LineSegments are expected to be in order and only for "correct" paths, i.e.
+    segments that start and end at the correct circles.
+
+    `think_time` is defined as the difference in timestamps between the first point of
+    the current LineSegment entering a circle and the first point of the next
+    LineSegment exiting that same circle. Note, that this time will include time spent
+    drawing erroneous LineSegments between these two correct LineSegments. The first
+    entry is used even if the segment leaves and re-enters the circle.
+
+    For the first segment, the `think_time` is calculated as the difference between the
+    first point of the segment exiting the starting circle and the start of the drawing
+    (as of this version, all Curious drawing start at a time of 0.0s).
+
+    Args:
+        segments: List of LineSegment objects in order.
+        circle_mapping: Dictionary mapping trail IDs to dictionaries of CircleTarget
+            objects (output of load_scaled_circles, provides circle locations).
+        trail_id: Specific trail task identifier for circle location lookup.
+
+    Raises:
+        ValueError: If the first circle geometry is missing, a required circle entry
+            or exit is missing, or an exit precedes its entry (or time zero for the
+            first segment). Previously calculated segments remain updated.
+    """
+    if not segments:
+        return
+
+    first_seg = segments[0]
+    target_circles = circle_mapping.get(trail_id, {})
+    if first_seg.start_label not in target_circles:
+        raise ValueError(
+            f"Starting circle {first_seg.start_label} not found for trail {trail_id}"
+        )
+
+    exit_time = _find_circle_exit_time(
+        first_seg.points, target_circles[first_seg.start_label]
+    )
+    if exit_time is None:
+        raise ValueError(f"Missing exit for starting circle {first_seg.start_label}")
+    if exit_time < 0:
+        raise ValueError(
+            f"Exit time {exit_time} precedes zero for {first_seg.start_label}"
+        )
+
+    first_seg.think_time = exit_time
+    first_seg.think_circle_label = first_seg.start_label
+
+    for current_seg, next_seg in zip(segments, segments[1:]):
+        current_circle_label = current_seg.end_label
+        if current_circle_label != next_seg.start_label:
+            logger.warning(
+                "Mismatched segment labels: %s -> %s and %s -> %s",
+                current_seg.start_label,
+                current_seg.end_label,
+                next_seg.start_label,
+                next_seg.end_label,
+            )
+            continue
+
+        if current_circle_label not in target_circles:
+            logger.warning(
+                "Circle label %s not found in trail circles", current_circle_label
+            )
+            continue
+
+        circle_location = target_circles[current_circle_label]
+
+        entry_time = _find_circle_entry_time(current_seg.points, circle_location)
+        exit_time = _find_circle_exit_time(next_seg.points, circle_location)
+
+        if entry_time is None:
+            raise ValueError(f"Missing entry for circle {current_circle_label}")
+        if exit_time is None:
+            raise ValueError(f"Missing exit for circle {current_circle_label}")
+        if entry_time > exit_time:
+            raise ValueError(
+                f"Entry time {entry_time} is greater than exit time {exit_time} "
+                f"for circle {current_circle_label}"
+            )
+
+        next_seg.think_time = exit_time - entry_time
+        next_seg.think_circle_label = current_circle_label
+
+
+def _find_circle_entry_time(
+    points: pd.DataFrame, circle: models.CircleTarget
+) -> Optional[float]:
+    """Helper function to find the timestamp when a LineSegment first entered a circle.
+
+    This function iterates through the points in order and returns the
+    timestamp of the first point that is inside the circle. If no points are inside
+    the circle, it returns None.
+
+    Args:
+        points: DataFrame containing the points of a LineSegment.
+        circle: CircleTarget object representing the specific circle to check against.
+
+    Returns:
+        The timestamp (in seconds) of the first point that is inside the circle,
+        or None if no points are inside the circle.
+    """
+    for row in points.itertuples():
+        if circle.contains_point(row.x, row.y):
+            return row.seconds
+    return None
+
+
+def _find_circle_exit_time(
+    points: pd.DataFrame, circle: models.CircleTarget
+) -> Optional[float]:
+    """Helper function to find the timestamp when a LineSegment first exits a circle.
+
+    This function iterates through the points in order and returns the
+    timestamp of the first point that is outside the circle. If all points are inside
+    the circle, it returns None.
+
+    Args:
+        points: DataFrame containing the points of a LineSegment.
+        circle: CircleTarget object representing the specific circle to check against.
+
+    Returns:
+        The timestamp (in seconds) of the first point that is outside the circle,
+        or None if all points are inside the circle.
+    """
+    for row in points.itertuples():
+        if not circle.contains_point(row.x, row.y):
+            return row.seconds
+    return None
