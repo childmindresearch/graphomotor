@@ -400,13 +400,23 @@ class LineSegment:
         think_circle_label: Label of the circle associated with think time.
         distance: Total distance drawn outside circles.
         mean_speed: Mean speed of drawing the line segment.
+        min_velocity: Minimum sampled speed, available with at least two speed samples.
+        max_velocity: Maximum sampled speed, available with at least two speed samples.
+        mean_acceleration: Arithmetic mean of signed tangential acceleration samples
+            in coordinate units per second squared. Speed increases and decreases
+            can cancel. Available only with at least two speed samples.
         speed_variance: Variance of speed during the line segment.
         path_optimality: Ratio of actual path length to optimal path length.
         smoothness: Smoothness of the line segment based on curvature changes.
         hesitation_count: Number of hesitations during the line segment.
         hesitation_duration: Total duration of hesitations during the line segment.
         velocities: List of velocities at each point in the line segment.
-        accelerations: List of accelerations at each point in the line segment.
+        accelerations: Signed changes in speed per second between consecutive
+            interval midpoints, in coordinate units per second squared. This is
+            tangential acceleration, not vector acceleration from direction changes.
+        available_metrics: Names of successfully calculated ink metrics, including
+            velocity extrema. Rebuilt by compute_segment_metrics; default scalar
+            values alone do not indicate that a metric is available.
     """
 
     start_label: str
@@ -428,6 +438,12 @@ class LineSegment:
     velocities: List[float] = dataclasses.field(default_factory=list)
     accelerations: List[float] = dataclasses.field(default_factory=list)
     ink_points: pd.DataFrame = dataclasses.field(default_factory=pd.DataFrame)
+    mean_acceleration: float = 0.0
+    min_velocity: float = 0.0
+    max_velocity: float = 0.0
+    available_metrics: set[str] = dataclasses.field(
+        default_factory=set, init=False, repr=False, compare=False
+    )
 
     def valid_ink_trajectory(
         self,
@@ -508,10 +524,18 @@ class LineSegment:
 
         if optimal_distance > 0:
             self.path_optimality = optimal_distance / self.distance
+            self.available_metrics.add("path_optimality")
         return
 
     def calculate_velocity_metrics(self) -> None:
-        """Get velocity metrics of a LineSegment.
+        """Get speed metrics and tangential acceleration of a LineSegment.
+
+        Speeds describe intervals between points. Acceleration is the difference
+        between adjacent speeds divided by the time between interval midpoints.
+        Timestamps must be strictly increasing. At least three points are required
+        for acceleration and minimum/maximum speed; shorter trajectories leave
+        these metrics and mean acceleration unavailable. The acceleration mean is
+        signed, not a mean magnitude.
 
         Args:
             self: LineSegment object to calculate velocities for.
@@ -522,15 +546,26 @@ class LineSegment:
 
         distances = np.sqrt(dx**2 + dy**2)
         self.distance = np.sum(distances)
+        self.available_metrics.add("distance")
 
         velocities = distances / dt
         self.velocities = velocities.tolist()
 
         self.mean_speed = np.mean(velocities)
+        self.available_metrics.add("mean_speed")
         self.speed_variance = np.var(velocities)
+        self.available_metrics.add("speed_variance")
 
         if len(velocities) >= 2:
-            self.accelerations = np.diff(velocities).tolist()
+            acceleration_dt = (dt[:-1] + dt[1:]) / 2
+            self.accelerations = (np.diff(velocities) / acceleration_dt).tolist()
+            self.available_metrics.add("accelerations")
+            self.mean_acceleration = float(np.mean(self.accelerations))
+            self.available_metrics.add("mean_acceleration")
+            self.min_velocity = float(np.min(velocities))
+            self.available_metrics.add("min_velocity")
+            self.max_velocity = float(np.max(velocities))
+            self.available_metrics.add("max_velocity")
 
         return
 
@@ -568,7 +603,9 @@ class LineSegment:
             hesitation_count += 1
 
         self.hesitation_count = hesitation_count
+        self.available_metrics.add("hesitation_count")
         self.hesitation_duration = np.sum(hesitations) * dt[0]
+        self.available_metrics.add("hesitation_duration")
 
         return
 
@@ -611,6 +648,7 @@ class LineSegment:
         curvatures = angles / avg_segment_length
 
         self.smoothness = float(np.sqrt(np.mean(curvatures**2)))
+        self.available_metrics.add("smoothness")
 
         return
 
@@ -633,6 +671,7 @@ class LineSegment:
         from graphomotor.core import config
 
         logger = config.get_logger()
+        self.available_metrics.clear()
         trail_circles = circles[trail_id]
         points = self.points.copy()
 
@@ -679,6 +718,7 @@ class LineSegment:
             self.ink_time = (
                 self.ink_points.iloc[-1]["seconds"] - self.ink_points.iloc[0]["seconds"]
             )
+            self.available_metrics.add("ink_time")
             return
         if ink_end_idx <= ink_start_idx:
             logger.warning(
@@ -704,6 +744,7 @@ class LineSegment:
         self.ink_time = (
             self.ink_points.iloc[-1]["seconds"] - self.ink_points.iloc[0]["seconds"]
         )
+        self.available_metrics.add("ink_time")
         self.calculate_velocity_metrics()
         self.calculate_path_optimality(start_circle, end_circle)
         self.calculate_smoothness()
