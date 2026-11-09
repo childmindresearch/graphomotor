@@ -19,8 +19,8 @@ _SEGMENT_FEATURES = {
     "smoothness",
     "hesitation_count",
     "hesitation_duration",
-    "min_velocity",
-    "max_velocity",
+    "min_speed",
+    "max_speed",
 }
 _RECORDING_METADATA = {"source_file", "start_time", "participant_id", "trail"}
 
@@ -89,7 +89,7 @@ def test_run_pipeline_file_includes_features(
         "error_segment_count",
     } <= set(result.participants.columns)
     for group in ("correct", "error"):
-        for metric in _SEGMENT_FEATURES - {"min_velocity", "max_velocity"}:
+        for metric in _SEGMENT_FEATURES - {"min_speed", "max_speed"}:
             assert f"mean_{group}_{metric}" in result.participants
             assert f"count_{group}_{metric}" in result.participants
         for metric in (
@@ -400,8 +400,8 @@ def test_small_trajectory_retains_available_features(tmp_path: pathlib.Path) -> 
         "hesitation_count",
         "hesitation_duration",
         "mean_acceleration",
-        "min_velocity",
-        "max_velocity",
+        "min_speed",
+        "max_speed",
     ]
 
     assert row[["distance", "mean_speed", "speed_variance"]].notna().all()

@@ -53,8 +53,8 @@ _SEGMENT_COLUMNS = (
     "smoothness",
     "hesitation_count",
     "hesitation_duration",
-    "min_velocity",
-    "max_velocity",
+    "min_speed",
+    "max_speed",
 )
 _PARTICIPANT_COLUMNS = (
     "source_file",

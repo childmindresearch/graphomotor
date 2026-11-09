@@ -400,8 +400,8 @@ class LineSegment:
         think_circle_label: Label of the circle associated with think time.
         distance: Total distance drawn outside circles.
         mean_speed: Mean speed of drawing the line segment.
-        min_velocity: Minimum sampled speed, available with at least two speed samples.
-        max_velocity: Maximum sampled speed, available with at least two speed samples.
+        min_speed: Minimum sampled speed, available with at least two speed samples.
+        max_speed: Maximum sampled speed, available with at least two speed samples.
         mean_acceleration: Arithmetic mean of signed tangential acceleration samples
             in coordinate units per second squared. Speed increases and decreases
             can cancel. Available only with at least two speed samples.
@@ -410,12 +410,12 @@ class LineSegment:
         smoothness: Smoothness of the line segment based on curvature changes.
         hesitation_count: Number of hesitations during the line segment.
         hesitation_duration: Total duration of hesitations during the line segment.
-        velocities: List of velocities at each point in the line segment.
+        speeds: List of speeds at each point in the line segment.
         accelerations: Signed changes in speed per second between consecutive
             interval midpoints, in coordinate units per second squared. This is
             tangential acceleration, not vector acceleration from direction changes.
         available_metrics: Names of successfully calculated ink metrics, including
-            velocity extrema. Rebuilt by compute_segment_metrics; default scalar
+            speed extrema. Rebuilt by compute_segment_metrics; default scalar
             values alone do not indicate that a metric is available.
     """
 
@@ -435,12 +435,12 @@ class LineSegment:
     smoothness: float = 0.0
     hesitation_count: int = 0
     hesitation_duration: float = 0.0
-    velocities: List[float] = dataclasses.field(default_factory=list)
+    speeds: List[float] = dataclasses.field(default_factory=list)
     accelerations: List[float] = dataclasses.field(default_factory=list)
     ink_points: pd.DataFrame = dataclasses.field(default_factory=pd.DataFrame)
     mean_acceleration: float = 0.0
-    min_velocity: float = 0.0
-    max_velocity: float = 0.0
+    min_speed: float = 0.0
+    max_speed: float = 0.0
     available_metrics: set[str] = dataclasses.field(
         default_factory=set, init=False, repr=False, compare=False
     )
@@ -527,7 +527,7 @@ class LineSegment:
             self.available_metrics.add("path_optimality")
         return
 
-    def calculate_velocity_metrics(self) -> None:
+    def calculate_motion_metrics(self) -> None:
         """Get speed metrics and tangential acceleration of a LineSegment.
 
         Speeds describe intervals between points. Acceleration is the difference
@@ -538,7 +538,7 @@ class LineSegment:
         signed, not a mean magnitude.
 
         Args:
-            self: LineSegment object to calculate velocities for.
+            self: LineSegment object to calculate speeds for.
         """
         dx = np.diff(self.ink_points["x"].values)
         dy = np.diff(self.ink_points["y"].values)
@@ -548,53 +548,53 @@ class LineSegment:
         self.distance = np.sum(distances)
         self.available_metrics.add("distance")
 
-        velocities = distances / dt
-        self.velocities = velocities.tolist()
+        speeds = distances / dt
+        self.speeds = speeds.tolist()
 
-        self.mean_speed = np.mean(velocities)
+        self.mean_speed = np.mean(speeds)
         self.available_metrics.add("mean_speed")
-        self.speed_variance = np.var(velocities)
+        self.speed_variance = np.var(speeds)
         self.available_metrics.add("speed_variance")
 
-        if len(velocities) >= 2:
+        if len(speeds) >= 2:
             acceleration_dt = (dt[:-1] + dt[1:]) / 2
-            self.accelerations = (np.diff(velocities) / acceleration_dt).tolist()
+            self.accelerations = (np.diff(speeds) / acceleration_dt).tolist()
             self.available_metrics.add("accelerations")
             self.mean_acceleration = float(np.mean(self.accelerations))
             self.available_metrics.add("mean_acceleration")
-            self.min_velocity = float(np.min(velocities))
-            self.available_metrics.add("min_velocity")
-            self.max_velocity = float(np.max(velocities))
-            self.available_metrics.add("max_velocity")
+            self.min_speed = float(np.min(speeds))
+            self.available_metrics.add("min_speed")
+            self.max_speed = float(np.max(speeds))
+            self.available_metrics.add("max_speed")
 
         return
 
     def detect_hesitations(self, threshold_percentile: int = 20) -> None:
-        """Detect hesitations as periods of significantly reduced velocity.
+        """Detect hesitations as periods of significantly reduced speed.
 
-        This function defines a hesitation as any period where the velocity falls below
+        This function defines a hesitation as any period where the speed falls below
         a certain threshold, which is determined by the specified percentile of the
-        velocity distribution. It counts the number of distinct hesitation periods and
+        speed distribution. It counts the number of distinct hesitation periods and
         adds 1 if the line starts with a hesitation. It also calculates the total
         duration of hesitations based on the number of points that fall below the
         threshold and the time interval between points.
 
         hesitation_count defaults to 0 and hesitation_duration defaults to 0.0 in the
-        LineSegment object if there are less than 3 velocity points. This function also
+        LineSegment object if there are less than 3 speed points. This function also
         assumes uniform sampling.
 
         Args:
-            threshold_percentile: Percentile to determine the velocity threshold for
-                hesitations (default is 20, meaning the bottom 20% of velocities are
+            threshold_percentile: Percentile to determine the speed threshold for
+                hesitations (default is 20, meaning the bottom 20% of speeds are
                 considered hesitations).
         """
-        if len(self.velocities) < 3:
+        if len(self.speeds) < 3:
             return
 
         dt = np.diff(self.ink_points["seconds"].values)
 
-        threshold_velocity = np.percentile(self.velocities, threshold_percentile)
-        hesitations = self.velocities < threshold_velocity
+        threshold_speed = np.percentile(self.speeds, threshold_percentile)
+        hesitations = np.asarray(self.speeds) < threshold_speed
 
         hesitation_changes = np.diff(hesitations.astype(int))
         hesitation_count = np.sum(hesitation_changes == 1)
@@ -658,7 +658,7 @@ class LineSegment:
         """Compute all metrics for a line segment.
 
         This function computes various metrics for the line segment, including ink time,
-        velocity metrics, path optimality, smoothness, and hesitation detection. It
+        speed metrics, path optimality, smoothness, and hesitation detection. It
         first determines the valid ink trajectory between the start and end circles. If
         a valid trajectory is found, it updates the ink_points attribute and calculates
         the metrics.
@@ -745,7 +745,7 @@ class LineSegment:
             self.ink_points.iloc[-1]["seconds"] - self.ink_points.iloc[0]["seconds"]
         )
         self.available_metrics.add("ink_time")
-        self.calculate_velocity_metrics()
+        self.calculate_motion_metrics()
         self.calculate_path_optimality(start_circle, end_circle)
         self.calculate_smoothness()
         self.detect_hesitations()
