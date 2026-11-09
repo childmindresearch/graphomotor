@@ -24,7 +24,7 @@
             <h2>Contents</h2>
             <ul>
   <li><a href="#graphomotor"><code>graphomotor</code></a></li>
-  <li><a href="#graphomotor"><code>md5-71bf8875e7537df6a4a4d9203d6dc184</code"></a>
+  <li><a href="#graphomotor"><code>md5-c6e4abdad733241f020541f7f27df4bf</code"></a>
   <ul>
     <li><a href="#feature-extraction-capabilities">Feature Extraction Capabilities</a></li>
     <li><a href="#feature-visualization-capabilities">Feature Visualization Capabilities</a></li>
@@ -243,6 +243,55 @@ graphomotor    </h1>
 <em>Note</em>
 <p>For detailed configuration options and additional parameters for feature extraction, refer to the <a href="https://childmindresearch.github.io/graphomotor/graphomotor/core/orchestrator.html#run_pipeline"><code>run_pipeline</code> documentation</a>.</p>
 </div>
+
+<h4 id="trails-python-entry-point">Trails Python Entry Point</h4>
+
+<p>Use <code><a href="graphomotor/core/trails_orchestrator.html#run_pipeline">graphomotor.core.trails_orchestrator.run_pipeline</a></code> for cleaned Curious
+<code>trail2</code> and <code>trail4</code> exports. Inputs must follow Curious's bracketed participant-ID
+and task filename convention. Unique timestamps and uniform sampling are required;
+this entry point does not preprocess the data.</p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn"><a href="graphomotor/core.html">graphomotor.core</a></span><span class="w"> </span><span class="kn">import</span> <span class="n">trails_orchestrator</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">trails_orchestrator</span><span class="o">.</span><span class="n">run_pipeline</span><span class="p">(</span><span class="n">input_path</span><span class="p">,</span> <span class="n">output_path</span><span class="p">)</span>
+<span class="n">segments_df</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">segments</span>
+<span class="n">recordings_df</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">participants</span>
+<span class="n">failed_inputs</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">failures</span>  <span class="c1"># Input Paths mapped to error descriptions.</span>
+</code></pre>
+</div>
+
+<ul>
+<li>For a single input, <code>output_path</code> is a summary CSV filename. It defaults beside
+the input, with <code>_output.csv</code> appended to the input stem. A companion CSV with
+<code>_segments.csv</code> appended to the summary stem contains segment features.</li>
+<li>For a directory, <code>output_path</code> is an existing output directory, defaulting to
+the input directory. Only direct children named for <code>trail2</code> or <code>trail4</code> are
+processed. Each successful recording produces both CSVs, plus one combined
+<code>directory_summary_statistics.csv</code>. Both returned DataFrames contain successful inputs only.</li>
+<li>Summary rows are <strong>per recording</strong>, not per unique participant. Sessions and
+trails remain separate; <code>source_file</code> (resolved input path) and <code>start_time</code>
+identify their provenance in both tables.</li>
+<li>Missing calculations are null, while calculated zeros are retained. Correct
+and error path-group aggregates include available-value counts, means, and
+totals for time, distance and hesitation measures. Means exclude null values;
+a group with no available observations has null means/totals and a zero count.</li>
+<li>Existing segmentation is preserved: repeated paths may be grouped, and
+<code>line_number</code> can be a generated group index rather than the original stroke
+identifier. Think time includes intervening error drawing and must not be added
+to error time as disjoint duration components. Accuracy is row-weighted.</li>
+<li>Individual batch failures are logged and returned in <code>result.failures</code>. No
+matching files or an entirely failed batch raises <code>ValueError</code> without creating
+a summary. Single-file errors propagate to the caller.</li>
+<li>Existing outputs are rejected by default. Pass <code>overwrite=True</code> explicitly to
+replace regular output files or retry a batch. Input aliases and output symlinks
+are always rejected. Output directories must already exist.</li>
+<li>CSVs are staged before publication. Ordinary write exceptions remove newly
+created files or restore previous outputs. If the combined summary fails,
+successful per-recording pairs remain and the error propagates; retry with
+<code>overwrite=True</code>. Multi-file publication is <strong>not crash-atomic</strong> and assumes one
+writer per output directory.</li>
+</ul>
 
 <h3 id="feature-visualization">Feature Visualization</h3>
 
