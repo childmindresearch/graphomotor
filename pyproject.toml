@@ -15,6 +15,7 @@ requires-python = ">=3.11,<3.14"
 dependencies = [
   "pandas>=2.2.3",
   "pydantic>=2.11.1",
+  "rich>=14.1.0",
   "scipy>=1.15.2",
   "shapely>=2.1.2",
   "tqdm>=4.66.0",
