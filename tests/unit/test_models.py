@@ -120,6 +120,7 @@ def test_path_optimality_positive() -> None:
     segment.calculate_path_optimality(start, end)
 
     assert segment.path_optimality == expected_path_optimality
+    assert "path_optimality" in segment.available_metrics
 
 
 def test_path_optimality_non_positive_distance() -> None:
@@ -138,6 +139,7 @@ def test_path_optimality_non_positive_distance() -> None:
     segment.calculate_path_optimality(start, end)
 
     assert segment.path_optimality == 0.0
+    assert "path_optimality" not in segment.available_metrics
 
 
 @pytest.mark.parametrize(
@@ -243,7 +245,7 @@ def test_valid_ink_trajectory(
 
 
 def test_uniform_motion() -> None:
-    """Test with points moving at constant velocity."""
+    """Test with points moving at constant speed."""
     points = pd.DataFrame(
         {
             "x": [0, 1, 2, 3],
@@ -257,16 +259,19 @@ def test_uniform_motion() -> None:
         points=points,
         is_error=False,
         line_number=1,
-        ink_points=points,  # Pre-assign ink_points for velocity calculation
+        ink_points=points,  # Pre-assign ink_points for speed calculation
     )
 
-    segment.calculate_velocity_metrics()
+    segment.calculate_motion_metrics()
 
     assert segment.distance == 3.0
     assert segment.mean_speed == 1.0
     assert segment.speed_variance == 0.0
-    assert segment.velocities == [1.0, 1.0, 1.0]
+    assert segment.speeds == [1.0, 1.0, 1.0]
+    assert segment.min_speed == 1.0
+    assert segment.max_speed == 1.0
     assert segment.accelerations == [0.0, 0.0]
+    assert {"distance", "mean_speed", "speed_variance"} <= segment.available_metrics
 
 
 def test_accelerating_motion() -> None:
@@ -284,20 +289,23 @@ def test_accelerating_motion() -> None:
         points=points,
         is_error=False,
         line_number=1,
-        ink_points=points,  # Pre-assign ink_points for velocity calculation
+        ink_points=points,  # Pre-assign ink_points for speed calculation
     )
 
-    segment.calculate_velocity_metrics()
+    segment.calculate_motion_metrics()
 
     assert segment.distance == 9.0
     assert segment.mean_speed == 3.0
     assert segment.speed_variance > 0.0
-    assert segment.velocities == [1.0, 3.0, 5.0]
+    assert segment.speeds == [1.0, 3.0, 5.0]
+    assert segment.min_speed == 1.0
+    assert segment.max_speed == 5.0
+    assert {"min_speed", "max_speed"} <= segment.available_metrics
     assert segment.accelerations == [2.0, 2.0]
 
 
-def test_velocity_two_points_only() -> None:
-    """Test velocity calculation with only two points."""
+def test_speed_two_points_only() -> None:
+    """Test speed calculation with only two points."""
     points = pd.DataFrame(
         {
             "x": [0, 3],
@@ -311,16 +319,69 @@ def test_velocity_two_points_only() -> None:
         points=points,
         is_error=False,
         line_number=1,
-        ink_points=points,  # Pre-assign ink_points for velocity calculation
+        ink_points=points,  # Pre-assign ink_points for speed calculation
     )
 
-    segment.calculate_velocity_metrics()
+    segment.calculate_motion_metrics()
 
     assert segment.distance == 5.0
     assert segment.mean_speed == 2.5
     assert segment.speed_variance == 0.0
-    assert segment.velocities == [2.5]
-    assert segment.accelerations == []  # No acceleration with only one velocity point
+    assert segment.speeds == [2.5]
+    assert segment.min_speed == 0.0
+    assert segment.max_speed == 0.0
+    assert "min_speed" not in segment.available_metrics
+    assert "max_speed" not in segment.available_metrics
+    assert segment.accelerations == []  # No acceleration with only one speed sample
+    assert "accelerations" not in segment.available_metrics
+    assert "mean_acceleration" not in segment.available_metrics
+
+
+@pytest.mark.parametrize("seconds", [[0.0, 2.0, 4.0, 6.0], [0.0, 1.0, 3.0, 6.0]])
+@pytest.mark.parametrize("decelerating", [False, True])
+def test_acceleration_uses_elapsed_time(
+    seconds: list[float], decelerating: bool
+) -> None:
+    """Acceleration uses midpoint time differences, including unequal intervals."""
+    timestamps = np.asarray(seconds)
+    positions = timestamps**2
+    expected = 2.0
+    if decelerating:
+        positions = 20 * timestamps - positions
+        expected = -2.0
+    points = pd.DataFrame({"x": positions, "y": 0.0, "seconds": seconds})
+    segment = models.LineSegment("1", "2", points, False, 0, ink_points=points)
+
+    segment.calculate_motion_metrics()
+
+    assert segment.accelerations == pytest.approx([expected, expected])
+    assert "accelerations" in segment.available_metrics
+    assert segment.mean_acceleration == pytest.approx(expected)
+    assert "mean_acceleration" in segment.available_metrics
+
+
+@pytest.mark.parametrize(
+    "positions,expected",
+    [
+        ([0, 1, 2, 3], 0.0),
+        ([0, 0, 0, 0], 0.0),
+        ([0, 1, 4], 2.0),
+        ([0, 1, 4, 9], 2.0),
+        ([0, 4, 7, 9], -1.0),
+        ([0, 1, 4, 5], 0.0),
+        ([0, 1, 4, 10], 2.5),
+    ],
+)
+def test_mean_acceleration_is_signed_arithmetic_mean(
+    positions: list[float], expected: float
+) -> None:
+    """Mean acceleration retains signs and genuine zeros, including cancellation."""
+    points = pd.DataFrame({"x": positions, "y": 0.0, "seconds": range(len(positions))})
+    segment = models.LineSegment("1", "2", points, False, 0, ink_points=points)
+    segment.calculate_motion_metrics()
+
+    assert segment.mean_acceleration == pytest.approx(expected)
+    assert "mean_acceleration" in segment.available_metrics
 
 
 def test_decelerating_motion() -> None:
@@ -338,15 +399,15 @@ def test_decelerating_motion() -> None:
         points=points,
         is_error=False,
         line_number=1,
-        ink_points=points,  # Pre-assign ink_points for velocity calculation
+        ink_points=points,  # Pre-assign ink_points for speed calculation
     )
 
-    segment.calculate_velocity_metrics()
+    segment.calculate_motion_metrics()
 
     assert segment.distance == 9.0
     assert segment.mean_speed == 3.0
     assert segment.speed_variance > 0.0
-    assert segment.velocities == [4.0, 3.0, 2.0]
+    assert segment.speeds == [4.0, 3.0, 2.0]
     assert segment.accelerations == [-1.0, -1.0]
 
 
@@ -365,20 +426,23 @@ def test_stationary_motion() -> None:
         points=points,
         is_error=False,
         line_number=1,
-        ink_points=points,  # Pre-assign ink_points for velocity calculation
+        ink_points=points,  # Pre-assign ink_points for speed calculation
     )
 
-    segment.calculate_velocity_metrics()
+    segment.calculate_motion_metrics()
 
     assert segment.distance == 0.0
     assert segment.mean_speed == 0.0
     assert segment.speed_variance == 0.0
-    assert segment.velocities == [0.0, 0.0]
+    assert segment.speeds == [0.0, 0.0]
+    assert segment.min_speed == 0.0
+    assert segment.max_speed == 0.0
+    assert {"min_speed", "max_speed"} <= segment.available_metrics
     assert segment.accelerations == [0.0]
 
 
 def test_no_hesitations_uniform_motion() -> None:
-    """Test with uniform motion where all velocities are equal."""
+    """Test with uniform motion where all speeds are equal."""
     points = pd.DataFrame(
         {
             "x": [0, 1, 2, 3],
@@ -392,10 +456,10 @@ def test_no_hesitations_uniform_motion() -> None:
         points=points,
         is_error=False,
         line_number=1,
-        ink_points=points,  # Pre-assign ink_points for velocity calculation
+        ink_points=points,  # Pre-assign ink_points for speed calculation
     )
 
-    segment.calculate_velocity_metrics()
+    segment.calculate_motion_metrics()
     segment.detect_hesitations()
 
     assert segment.hesitation_count == 0
@@ -417,10 +481,10 @@ def test_hesitation_at_start() -> None:
         points=points,
         is_error=False,
         line_number=1,
-        ink_points=points,  # Pre-assign ink_points for velocity calculation
+        ink_points=points,  # Pre-assign ink_points for speed calculation
     )
 
-    segment.calculate_velocity_metrics()
+    segment.calculate_motion_metrics()
     segment.detect_hesitations()
 
     assert segment.hesitation_count == 1
@@ -442,18 +506,18 @@ def test_multiple_hesitations() -> None:
         points=points,
         is_error=False,
         line_number=1,
-        ink_points=points,  # Pre-assign ink_points for velocity calculation
+        ink_points=points,  # Pre-assign ink_points for speed calculation
     )
 
-    segment.calculate_velocity_metrics()
+    segment.calculate_motion_metrics()
     segment.detect_hesitations()
 
     assert segment.hesitation_count == 2
     assert segment.hesitation_duration == 2.0
 
 
-def test_less_than_three_velocities() -> None:
-    """Test early return when velocities length is less than 3."""
+def test_less_than_three_speeds() -> None:
+    """Test early return when the speed sample count is less than 3."""
     points = pd.DataFrame(
         {
             "x": [0, 1],
@@ -467,10 +531,10 @@ def test_less_than_three_velocities() -> None:
         points=points,
         is_error=False,
         line_number=1,
-        ink_points=points,  # Pre-assign ink_points for velocity calculation
+        ink_points=points,  # Pre-assign ink_points for speed calculation
     )
 
-    segment.calculate_velocity_metrics()
+    segment.calculate_motion_metrics()
     segment.detect_hesitations()
 
     assert segment.hesitation_count == 0
@@ -625,7 +689,7 @@ def test_compute_segment_metrics_less_than_two_points() -> None:
 
     assert segment.ink_time == 0.0
     assert segment.distance == 0.0
-    assert len(segment.velocities) == 0
+    assert len(segment.speeds) == 0
 
 
 def test_compute_segment_metrics_invalid_start_label() -> None:
@@ -660,7 +724,7 @@ def test_compute_segment_metrics_invalid_start_label() -> None:
 
     assert segment.ink_time == 0.0
     assert segment.distance == 0.0
-    assert len(segment.velocities) == 0
+    assert len(segment.speeds) == 0
 
 
 def test_compute_segment_metrics_invalid_end_label() -> None:
@@ -694,7 +758,7 @@ def test_compute_segment_metrics_invalid_end_label() -> None:
 
     assert segment.ink_time == 0.0
     assert segment.distance == 0.0
-    assert len(segment.velocities) == 0
+    assert len(segment.speeds) == 0
 
 
 def test_compute_segment_metrics_valid_trajectory() -> None:
@@ -732,7 +796,7 @@ def test_compute_segment_metrics_valid_trajectory() -> None:
     assert len(segment.ink_points) == 5
     assert segment.distance > 0.0
     assert segment.mean_speed > 0.0
-    assert len(segment.velocities) > 0
+    assert len(segment.speeds) > 0
     assert segment.path_optimality > 0.0
     assert np.isclose(segment.smoothness, 0.0)
 
@@ -769,7 +833,7 @@ def test_compute_segment_metrics_ink_end_equals_ink_start() -> None:
         segment.compute_segment_metrics(circles=circles, trail_id="A")
 
     assert segment.distance == 0.0
-    assert len(segment.velocities) == 0
+    assert len(segment.speeds) == 0
 
 
 def test_compute_segment_metrics_ink_end_before_ink_start() -> None:
@@ -804,7 +868,7 @@ def test_compute_segment_metrics_ink_end_before_ink_start() -> None:
         segment.compute_segment_metrics(circles=circles, trail_id="A")
 
     assert segment.distance == 0.0
-    assert len(segment.velocities) == 0
+    assert len(segment.speeds) == 0
 
 
 def test_compute_segment_metrics_only_start_index_found() -> None:
@@ -841,4 +905,88 @@ def test_compute_segment_metrics_only_start_index_found() -> None:
     assert np.isclose(segment.ink_time, 2.0)
     assert len(segment.ink_points) == 3
     assert segment.distance == 0.0
-    assert len(segment.velocities) == 0
+    assert len(segment.speeds) == 0
+    assert segment.available_metrics == {"ink_time"}
+
+
+@pytest.mark.parametrize(
+    "positions,expected",
+    [
+        ([0], set()),
+        ([0, 0.5], set()),
+        ([0, 2, 4], {"ink_time"}),
+        (
+            [0, 2, 10],
+            {
+                "ink_time",
+                "distance",
+                "mean_speed",
+                "speed_variance",
+                "path_optimality",
+            },
+        ),
+        (
+            [0, 2, 4, 10],
+            {
+                "ink_time",
+                "distance",
+                "mean_speed",
+                "speed_variance",
+                "min_speed",
+                "max_speed",
+                "path_optimality",
+                "smoothness",
+                "accelerations",
+                "mean_acceleration",
+            },
+        ),
+        (
+            [0, 2, 4, 6, 10],
+            {
+                "ink_time",
+                "distance",
+                "mean_speed",
+                "speed_variance",
+                "min_speed",
+                "max_speed",
+                "path_optimality",
+                "smoothness",
+                "hesitation_count",
+                "hesitation_duration",
+                "accelerations",
+                "mean_acceleration",
+            },
+        ),
+    ],
+)
+def test_segment_metric_availability(
+    positions: list[float], expected: set[str]
+) -> None:
+    """The producer records successful calculations, including calculated zeros."""
+    points = pd.DataFrame(
+        {"x": positions, "y": [0] * len(positions), "seconds": range(len(positions))}
+    )
+    segment = models.LineSegment("1", "2", points, False, 0)
+    circles = {
+        "trail": {
+            "1": models.CircleTarget(1, "1", 0, 0, 1),
+            "2": models.CircleTarget(2, "2", 10, 0, 1),
+        }
+    }
+    segment.compute_segment_metrics(circles, "trail")
+    assert segment.available_metrics == expected
+    if "smoothness" in expected:
+        assert segment.smoothness == 0
+
+    # A new computation must not publish stale values from an earlier trajectory.
+    segment.points = points.iloc[:1]
+    segment.compute_segment_metrics(circles, "trail")
+    assert not segment.available_metrics
+
+
+def test_segment_availability_sets_are_independent() -> None:
+    """Calculation status is local to each segment, not shared between instances."""
+    first = models.LineSegment("1", "2", pd.DataFrame(), False, 0)
+    second = models.LineSegment("1", "2", pd.DataFrame(), False, 1)
+    first.available_metrics.add("ink_time")
+    assert not second.available_metrics

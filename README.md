@@ -162,6 +162,53 @@ duration = results_df.loc[file_path, "duration"]
 > [!NOTE]
 > For detailed configuration options and additional parameters for feature extraction, refer to the [`run_pipeline` documentation](https://childmindresearch.github.io/graphomotor/graphomotor/core/orchestrator.html#run_pipeline).
 
+#### Trails Python Entry Point
+
+Use `graphomotor.core.trails_orchestrator.run_pipeline` for cleaned Curious
+`trail2` and `trail4` exports. Inputs must follow Curious's bracketed participant-ID
+and task filename convention. Unique timestamps and uniform sampling are required;
+this entry point does not preprocess the data.
+
+```python
+from graphomotor.core import trails_orchestrator
+
+result = trails_orchestrator.run_pipeline(input_path, output_path)
+segments_df = result.segments
+recordings_df = result.participants
+failed_inputs = result.failures  # Input Paths mapped to error descriptions.
+```
+
+- For a single input, `output_path` is a summary CSV filename. It defaults beside
+  the input, with `_output.csv` appended to the input stem. A companion CSV with
+  `_segments.csv` appended to the summary stem contains segment features.
+- For a directory, `output_path` is an existing output directory, defaulting to
+  the input directory. Only direct children named for `trail2` or `trail4` are
+  processed. Each successful recording produces both CSVs, plus one combined
+  `directory_summary_statistics.csv`. Both returned DataFrames contain successful inputs only.
+- Summary rows are **per recording**, not per unique participant. Sessions and
+  trails remain separate; `source_file` (resolved input path) and `start_time`
+  identify their provenance in both tables.
+- Missing calculations are null, while calculated zeros are retained. Correct
+  and error path-group aggregates include available-value counts, means, and
+  totals for time, distance and hesitation measures. Means exclude null values;
+  a group with no available observations has null means/totals and a zero count.
+- Existing segmentation is preserved: repeated paths may be grouped, and
+  `line_number` can be a generated group index rather than the original stroke
+  identifier. Think time includes intervening error drawing and must not be added
+  to error time as disjoint duration components. Accuracy is row-weighted.
+- Individual batch failures are logged and returned in `result.failures`. No
+  matching files or an entirely failed batch raises `ValueError` without creating
+  a summary. Single-file errors propagate to the caller.
+- Existing outputs are rejected by default. Pass `overwrite=True` explicitly to
+  replace regular output files or retry a batch. Input aliases and output symlinks
+  are always rejected. Output directories must already exist.
+- CSVs are staged before publication. Ordinary write exceptions remove newly
+  created files or restore previous outputs. If the combined summary fails,
+  successful per-recording pairs remain and the error propagates; retry with
+  `overwrite=True`. Multi-file publication is **not crash-atomic** and assumes one
+  writer per output directory.
+
+
 ### Feature Visualization
 
 The feature visualization module enables users to generate [a variety of plots](#feature-visualization-capabilities) from batch feature output files produced by the [feature extraction](#feature-extraction) process. These output CSV files are expected to contain data from multiple participants, with the first five columns reserved for metadata (`source_file`, `participant_id`, `task`, `hand`, `start_time`), followed by columns representing numerical features. The visualization tools offer flexible selection of features and plot types, accessible via both the CLI and Python library. All plots return `matplotlib.figure` objects, facilitating further customization and integration into analysis workflows. This functionality streamlines exploratory data analysis and supports the identification of trends and outliers in graphomotor datasets.
