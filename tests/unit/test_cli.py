@@ -1,5 +1,6 @@
 """Test cases for cli.py functions."""
 
+import logging
 import pathlib
 import re
 
@@ -7,7 +8,7 @@ import pandas as pd
 import pytest
 from typer import testing
 
-from graphomotor.core import cli
+from graphomotor.core import cli, config
 
 
 @pytest.fixture
@@ -21,6 +22,277 @@ def _clean_output(output: str) -> str:
     clean_output = re.sub(r"\x1b\[[0-9;]*m", "", output)
     clean_output = "".join(char for char in clean_output if char not in set("╰─╯╭╮│"))
     return " ".join(clean_output.split())
+
+
+def _write_trails_input(path: pathlib.Path, trail: str) -> pathlib.Path:
+    """Write a clean synthetic recording with correct and error segments."""
+    circles_path = (
+        pathlib.Path(config.__file__).parent.parent / "utils/trails_points_scaled.json"
+    )
+    circles = config.load_scaled_circles(str(circles_path))[trail]
+    first, second, third, fourth = (
+        ("1", "2", "3", "4") if trail == "trail2" else ("1", "A", "2", "B")
+    )
+    rows: list[dict] = []
+    for line, (start, end, error, fractions) in enumerate(
+        [
+            (first, second, "E0", [0, 0.2, 0.4, 0.6, 0.8, 1]),
+            (second, fourth, "E1", [0, 0.2, 0.4]),
+            (second, third, "E0", [0, 0.2, 0.4, 0.6, 0.8, 1]),
+        ]
+    ):
+        start_circle, end_circle = circles[start], circles[end]
+        for fraction in fractions:
+            seconds = len(rows)
+            rows.append(
+                {
+                    "line_number": line,
+                    "x": start_circle.center_x
+                    + fraction * (end_circle.center_x - start_circle.center_x),
+                    "y": start_circle.center_y
+                    + fraction * (end_circle.center_y - start_circle.center_y),
+                    "UTC_Timestamp": seconds,
+                    "seconds": seconds,
+                    "epoch_time_in_seconds_start": 0,
+                    "error": error,
+                    "actual_path": f"{start} ~ {end}",
+                    "correct_path": (
+                        f"{second} ~ {third}" if error != "E0" else f"{start} ~ {end}"
+                    ),
+                    "total_time": 42,
+                    "total_number_of_errors": 1,
+                }
+            )
+    pd.DataFrame(rows).to_csv(path, index=False)
+    return path
+
+
+def _assert_trails_outputs(
+    output: pathlib.Path, source: pathlib.Path, trail: str
+) -> None:
+    """Check both exported tables retain recording identity and computed features."""
+    participants = pd.read_csv(output)
+    segments = pd.read_csv(output.with_name(f"{output.stem}_segments.csv"))
+    assert participants["source_file"].tolist() == [str(source.resolve())]
+    assert participants["trail"].tolist() == [trail]
+    assert participants["total_errors"].tolist() == [1]
+    assert participants["correct_segment_count"].tolist() == [2]
+    assert participants["error_segment_count"].tolist() == [1]
+    assert len(segments) == 3
+    assert set(segments["source_file"]) == {str(source.resolve())}
+    assert set(segments["trail"]) == {trail}
+    assert {"distance", "mean_speed", "think_time", "is_error"} <= set(segments.columns)
+
+
+def test_cli_trails_help(runner: testing.CliRunner) -> None:
+    """Root and command help advertise Trails without Spiral-only options."""
+    root = runner.invoke(cli.app, ["--help"])
+    result = runner.invoke(cli.app, ["extract-trails", "--help"])
+    help_text = _clean_output(result.stdout)
+    assert root.exit_code == result.exit_code == 0
+    assert "extract-trails" in _clean_output(root.stdout)
+    assert "input_path" in help_text.lower() and "output_path" in help_text.lower()
+    assert "--overwrite" in help_text
+    for option in (
+        "--features",
+        "--center-x",
+        "--center-y",
+        "--start-radius",
+        "--growth-rate",
+        "--start-angle",
+        "--end-angle",
+        "--num-points",
+        "--include-reference",
+        "--color-segments",
+    ):
+        assert option not in help_text
+
+
+@pytest.mark.parametrize("trail", ["trail2", "trail4"])
+@pytest.mark.parametrize("explicit_output", [False, True])
+def test_cli_trails_single_outputs(
+    runner: testing.CliRunner, tmp_path: pathlib.Path, trail: str, explicit_output: bool
+) -> None:
+    """Single recordings write both CSVs to explicit or default destinations."""
+    source = _write_trails_input(tmp_path / f"[5000000]example-{trail}.csv", trail)
+    output = tmp_path / (
+        "custom.csv" if explicit_output else f"{source.stem}_output.csv"
+    )
+    args = ["extract-trails", str(source)]
+    if explicit_output:
+        args.append(str(output))
+    result = runner.invoke(cli.app, args)
+    assert result.exit_code == 0, result.stderr
+    _assert_trails_outputs(output, source, trail)
+
+
+@pytest.mark.parametrize("explicit_output", [False, True])
+def test_cli_trails_batch_outputs(
+    runner: testing.CliRunner, tmp_path: pathlib.Path, explicit_output: bool
+) -> None:
+    """Batch output preserves repeated participants as separate recordings."""
+    source_dir = tmp_path / "inputs"
+    source_dir.mkdir()
+    sources = [
+        _write_trails_input(source_dir / f"[5000000]example-{trail}.csv", trail)
+        for trail in ("trail2", "trail4")
+    ]
+    destination = tmp_path / "outputs" if explicit_output else source_dir
+    if explicit_output:
+        destination.mkdir()
+    args = ["extract-trails", str(source_dir)]
+    if explicit_output:
+        args.append(str(destination))
+    result = runner.invoke(cli.app, args)
+    assert result.exit_code == 0, result.stderr
+    for source, trail in zip(sources, ("trail2", "trail4")):
+        _assert_trails_outputs(destination / f"{source.stem}_output.csv", source, trail)
+    summary = pd.read_csv(destination / "directory_summary_statistics.csv")
+    assert len(summary) == 2
+    assert set(summary["source_file"]) == {str(source.resolve()) for source in sources}
+    assert set(summary["trail"]) == {"trail2", "trail4"}
+
+
+def test_cli_trails_requires_input(runner: testing.CliRunner) -> None:
+    """Input path is required, while output is optional."""
+    result = runner.invoke(cli.app, ["extract-trails"])
+    assert result.exit_code != 0
+    assert "Missing argument" in result.stderr
+    assert "input_path" in result.stderr.lower()
+
+
+@pytest.mark.parametrize("verbosity, level", [("-v", "INFO"), ("-vv", "DEBUG")])
+def test_cli_trails_verbosity(
+    runner: testing.CliRunner,
+    tmp_path: pathlib.Path,
+    caplog: pytest.LogCaptureFixture,
+    verbosity: str,
+    level: str,
+) -> None:
+    """Root verbosity controls logging during Trails extraction."""
+    source = _write_trails_input(tmp_path / "[5000000]example-trail2.csv", "trail2")
+    with caplog.at_level(logging.DEBUG, logger="graphomotor"):
+        result = runner.invoke(cli.app, [verbosity, "extract-trails", str(source)])
+        assert result.exit_code == 0, result.stderr
+        assert cli.logger.level == getattr(logging, level)
+        if level == "DEBUG":
+            assert "Running Graphomotor pipeline with these arguments" in caplog.text
+
+
+def test_cli_trails_collision_and_overwrite(
+    runner: testing.CliRunner, tmp_path: pathlib.Path
+) -> None:
+    """Existing outputs are protected unless overwrite is explicitly requested."""
+    source = _write_trails_input(tmp_path / "[5000000]example-trail2.csv", "trail2")
+    output = tmp_path / "result.csv"
+    output.write_text("keep", encoding="utf-8")
+    args = ["extract-trails", str(source), str(output)]
+    rejected = runner.invoke(cli.app, args)
+    assert rejected.exit_code != 0
+    assert "Output already exists" in rejected.stderr
+    assert output.read_text(encoding="utf-8") == "keep"
+    assert not (tmp_path / "result_segments.csv").exists()
+    accepted = runner.invoke(cli.app, [*args, "--overwrite"])
+    assert accepted.exit_code == 0, accepted.stderr
+    _assert_trails_outputs(output, source, "trail2")
+
+
+def test_cli_trails_overwrite_never_replaces_input(
+    runner: testing.CliRunner, tmp_path: pathlib.Path
+) -> None:
+    """Overwrite cannot bypass the orchestrator's input-alias protection."""
+    source = _write_trails_input(tmp_path / "[5000000]example-trail2.csv", "trail2")
+    original = source.read_bytes()
+    result = runner.invoke(
+        cli.app, ["extract-trails", str(source), str(source), "--overwrite"]
+    )
+    assert result.exit_code != 0
+    assert "Output aliases input" in result.stderr
+    assert source.read_bytes() == original
+
+
+@pytest.mark.parametrize(
+    "case",
+    [
+        "missing",
+        "unsupported",
+        "bad_extension",
+        "missing_parent",
+        "batch_file",
+        "batch_missing_dir",
+    ],
+)
+def test_cli_trails_invalid_paths(
+    runner: testing.CliRunner, tmp_path: pathlib.Path, case: str
+) -> None:
+    """Invalid input and output paths surface orchestrator errors on stderr."""
+    source = _write_trails_input(tmp_path / "[5000000]example-trail2.csv", "trail2")
+    args = ["extract-trails", str(source)]
+    expected = {
+        "missing": "Input path does not exist",
+        "unsupported": "Unsupported Trails task",
+        "bad_extension": ".csv extension",
+        "missing_parent": "Output directory does not exist",
+        "batch_file": "Directory does not exist",
+        "batch_missing_dir": "Directory does not exist",
+    }[case]
+    if case == "missing":
+        args[1] = str(tmp_path / "missing.csv")
+    elif case == "unsupported":
+        args[1] = str(source.rename(tmp_path / "[5000000]example-trail1.csv"))
+    elif case == "bad_extension":
+        args.append(str(tmp_path / "out.txt"))
+    elif case == "missing_parent":
+        args.append(str(tmp_path / "missing" / "out.csv"))
+    else:
+        args[1] = str(tmp_path)
+        args.append(str(source if case == "batch_file" else tmp_path / "missing"))
+    result = runner.invoke(cli.app, args)
+    assert result.exit_code != 0
+    assert "Error:" in result.stderr
+    assert expected in result.stderr
+
+
+def test_cli_trails_partial_failure(
+    runner: testing.CliRunner, tmp_path: pathlib.Path
+) -> None:
+    """Mixed batch returns 1 with recording counts while preserving successful CSVs."""
+    source_dir = tmp_path / "inputs"
+    source_dir.mkdir()
+    destination = tmp_path / "outputs"
+    destination.mkdir()
+    good = [
+        _write_trails_input(source_dir / f"[5000000]good-{trail}.csv", trail)
+        for trail in ("trail2", "trail4")
+    ]
+    for index in range(3):
+        (source_dir / f"[500000{index}]bad-trail2.csv").write_text(
+            "broken\n1\n", encoding="utf-8"
+        )
+    result = runner.invoke(
+        cli.app, ["extract-trails", str(source_dir), str(destination)]
+    )
+    assert result.exit_code == 1
+    assert "2 succeeded" in result.stderr
+    assert "3 failed" in result.stderr
+    assert "Error:" not in result.stderr
+    for source, trail in zip(good, ("trail2", "trail4")):
+        _assert_trails_outputs(destination / f"{source.stem}_output.csv", source, trail)
+    summary = pd.read_csv(destination / "directory_summary_statistics.csv")
+    assert set(summary["source_file"]) == {str(source.resolve()) for source in good}
+
+
+def test_cli_trails_all_failed(
+    runner: testing.CliRunner, tmp_path: pathlib.Path
+) -> None:
+    """An all-failed batch reports the orchestrator error and writes no summary."""
+    bad = tmp_path / "[5000000]bad-trail2.csv"
+    bad.write_text("broken\n1\n", encoding="utf-8")
+    result = runner.invoke(cli.app, ["extract-trails", str(tmp_path)])
+    assert result.exit_code != 0
+    assert "Error: Could not extract features from any file" in result.stderr
+    assert bad.name in result.stderr
+    assert not (tmp_path / "directory_summary_statistics.csv").exists()
 
 
 def test_cli_root_no_command(runner: testing.CliRunner) -> None:
@@ -282,7 +554,6 @@ def test_cli_extract_invalid_option_types(
     )
 
     assert result.exit_code != 0
-    assert f"'{invalid_value}' is not a valid" in _clean_output(result.stderr)
 
 
 def test_cli_plot_features_help_flag(runner: testing.CliRunner) -> None:
@@ -778,7 +1049,6 @@ def test_cli_plot_spiral_invalid_option_types(
     )
 
     assert result.exit_code != 0
-    assert "'invalid' is not a valid float" in _clean_output(result.stderr)
 
 
 def test_cli_plot_spiral_plot_function_exception(

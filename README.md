@@ -90,23 +90,92 @@ The feature extraction functionality computes a set of clinically relevant metri
 
 #### CLI Usage for Feature Extraction
 
-**To extract features from a single file:**
+**To extract spiral features from a single file:**
 
 ```bash
-graphomotor extract /path/to/data.csv /path/to/output/features.csv
+graphomotor extract-spiral /path/to/data.csv /path/to/output/features.csv
 ```
 
-**To extract features from entire directories:**
+**To extract spiral features from an entire directory:**
 
 ```bash
-graphomotor extract /path/to/data_directory/ /path/to/output/features.csv
+graphomotor extract-spiral /path/to/data_directory/ /path/to/output/features.csv
 ```
 
-**To see all available options for `extract`:**
+**To see all available options for `extract-spiral`:**
 
 ```bash
-graphomotor extract --help
+graphomotor extract-spiral --help
 ```
+
+**To extract Trails features from a single recording:**
+
+```bash
+graphomotor extract-trails '/path/to/[5000000]example-trail2.csv' /path/to/output/recording.csv
+```
+
+The output is a recording-summary CSV and a companion `recording_segments.csv`.
+The output directory must already exist. To use the default filenames beside the
+input, omit the output argument:
+
+```bash
+graphomotor extract-trails '/path/to/[5000000]example-trail2.csv'
+```
+
+This writes `[5000000]example-trail2_output.csv` and
+`[5000000]example-trail2_output_segments.csv` beside the input.
+
+**To extract Trails features from a directory:**
+
+```bash
+graphomotor extract-trails /path/to/trails/ /path/to/existing_output_directory/
+```
+
+The output directory must already exist. Omit it to write into the input directory:
+
+```bash
+graphomotor extract-trails /path/to/trails/
+```
+
+The batch scans only direct children whose CSV stem ends in `-trail2` or `-trail4`.
+For each successful input it writes `<input_stem>_output.csv` and
+`<input_stem>_output_segments.csv`, plus a combined
+`directory_summary_statistics.csv` containing successful recordings. If some
+recordings fail, the CLI reports success and failure counts and exits with code 1;
+successful outputs and their combined summary remain. If no recordings succeed,
+the command fails without writing a combined summary.
+
+Directory processing automatically shows progress on interactive stderr. Progress
+counts attempted files, including failures, and is suppressed when stderr is not
+interactive; 100% does not guarantee the combined summary was written.
+
+Existing outputs are rejected by default. To replace regular output files or retry
+a batch after a partial failure, pass `--overwrite`:
+
+```bash
+graphomotor extract-trails /path/to/trails/ /path/to/existing_output_directory/ --overwrite
+```
+
+Input aliases and output symlinks are always rejected. For all options, run:
+
+```bash
+graphomotor extract-trails --help
+```
+
+Trails inputs must be cleaned Curious `trail2` or `trail4` CSVs. Names must start
+with a bracketed seven-digit participant ID beginning with `5` and end with the
+task after the final hyphen, for example `[5000000]example-trail2.csv` or
+`[5000000]example-trail4.csv`. The CSV must contain:
+
+```text
+line_number, x, y, UTC_Timestamp, seconds, epoch_time_in_seconds_start,
+error, correct_path, actual_path, total_time, total_number_of_errors
+```
+
+`actual_path` values use Curious's `start ~ end` format. Timestamps must already
+be unique and sampling uniform; the reader assumes these conditions rather than
+validating or preprocessing them. See the [Trails Python entry point](#trails-python-entry-point)
+for the output and calculation contract.
 
 #### Python Library Usage for Feature Extraction
 
@@ -367,7 +436,7 @@ When exporting drawing data from Curious, the export typically includes the foll
 - **media-responses-{date}.zip**: A ZIP archive containing SVG files for the drawing responses (e.g., `media-responses-Mon May 29 2023.zip`).
 - **trails-responses-{date}.zip**: A ZIP archive with raw trail making response CSV files (if there are any) for each participant (e.g., `trails-responses-Mon May 29 2023.zip`).
 
-For Spiral tasks, the toolkit uses only the CSV files from the drawing responses ZIP. Support for additional tasks will be added in future releases.
+For Spiral tasks, the toolkit uses only the CSV files from the drawing responses ZIP. The Trails entry points accept cleaned Curious `trail2` and `trail4` CSVs as described in [CLI Usage for Feature Extraction](#cli-usage-for-feature-extraction).
 
 ### File Naming Convention
 
