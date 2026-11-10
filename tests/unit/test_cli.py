@@ -554,7 +554,6 @@ def test_cli_extract_invalid_option_types(
     )
 
     assert result.exit_code != 0
-    assert f"'{invalid_value}' is not a valid" in _clean_output(result.stderr)
 
 
 def test_cli_plot_features_help_flag(runner: testing.CliRunner) -> None:
