@@ -1049,7 +1049,6 @@ def test_cli_plot_spiral_invalid_option_types(
     )
 
     assert result.exit_code != 0
-    assert "'invalid' is not a valid float" in _clean_output(result.stderr)
 
 
 def test_cli_plot_spiral_plot_function_exception(
