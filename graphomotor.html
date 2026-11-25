@@ -24,7 +24,7 @@
             <h2>Contents</h2>
             <ul>
   <li><a href="#graphomotor"><code>graphomotor</code></a></li>
-  <li><a href="#graphomotor"><code>md5-c6e4abdad733241f020541f7f27df4bf</code"></a>
+  <li><a href="#graphomotor"><code>md5-143326ab7eb2649d4ea20dcae68856b9</code"></a>
   <ul>
     <li><a href="#feature-extraction-capabilities">Feature Extraction Capabilities</a></li>
     <li><a href="#feature-visualization-capabilities">Feature Visualization Capabilities</a></li>
@@ -164,26 +164,102 @@ graphomotor    </h1>
 
 <h4 id="cli-usage-for-feature-extraction">CLI Usage for Feature Extraction</h4>
 
-<p><strong>To extract features from a single file:</strong></p>
+<p><strong>To extract spiral features from a single file:</strong></p>
 
 <div class="pdoc-code codehilite">
-<pre><span></span><code>graphomotor<span class="w"> </span>extract<span class="w"> </span>/path/to/data.csv<span class="w"> </span>/path/to/output/features.csv
+<pre><span></span><code>graphomotor<span class="w"> </span>extract-spiral<span class="w"> </span>/path/to/data.csv<span class="w"> </span>/path/to/output/features.csv
 </code></pre>
 </div>
 
-<p><strong>To extract features from entire directories:</strong></p>
+<p><strong>To extract spiral features from an entire directory:</strong></p>
 
 <div class="pdoc-code codehilite">
-<pre><span></span><code>graphomotor<span class="w"> </span>extract<span class="w"> </span>/path/to/data_directory/<span class="w"> </span>/path/to/output/features.csv
+<pre><span></span><code>graphomotor<span class="w"> </span>extract-spiral<span class="w"> </span>/path/to/data_directory/<span class="w"> </span>/path/to/output/features.csv
 </code></pre>
 </div>
 
-<p><strong>To see all available options for <code>extract</code>:</strong></p>
+<p><strong>To see all available options for <code>extract-spiral</code>:</strong></p>
 
 <div class="pdoc-code codehilite">
-<pre><span></span><code>graphomotor<span class="w"> </span>extract<span class="w"> </span>--help
+<pre><span></span><code>graphomotor<span class="w"> </span>extract-spiral<span class="w"> </span>--help
 </code></pre>
 </div>
+
+<p><strong>To extract Trails features from a single recording:</strong></p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>graphomotor<span class="w"> </span>extract-trails<span class="w"> </span><span class="s1">&#39;/path/to/[5000000]example-trail2.csv&#39;</span><span class="w"> </span>/path/to/output/recording.csv
+</code></pre>
+</div>
+
+<p>The output is a recording-summary CSV and a companion <code>recording_segments.csv</code>.
+The output directory must already exist. To use the default filenames beside the
+input, omit the output argument:</p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>graphomotor<span class="w"> </span>extract-trails<span class="w"> </span><span class="s1">&#39;/path/to/[5000000]example-trail2.csv&#39;</span>
+</code></pre>
+</div>
+
+<p>This writes <code>[5000000]example-trail2_output.csv</code> and
+<code>[5000000]example-trail2_output_segments.csv</code> beside the input.</p>
+
+<p><strong>To extract Trails features from a directory:</strong></p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>graphomotor<span class="w"> </span>extract-trails<span class="w"> </span>/path/to/trails/<span class="w"> </span>/path/to/existing_output_directory/
+</code></pre>
+</div>
+
+<p>The output directory must already exist. Omit it to write into the input directory:</p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>graphomotor<span class="w"> </span>extract-trails<span class="w"> </span>/path/to/trails/
+</code></pre>
+</div>
+
+<p>The batch scans only direct children whose CSV stem ends in <code>-trail2</code> or <code>-trail4</code>.
+For each successful input it writes <code>&lt;input_stem&gt;_output.csv</code> and
+<code>&lt;input_stem&gt;_output_segments.csv</code>, plus a combined
+<code>directory_summary_statistics.csv</code> containing successful recordings. If some
+recordings fail, the CLI reports success and failure counts and exits with code 1;
+successful outputs and their combined summary remain. If no recordings succeed,
+the command fails without writing a combined summary.</p>
+
+<p>Directory processing automatically shows progress on interactive stderr. Progress
+counts attempted files, including failures, and is suppressed when stderr is not
+interactive; 100% does not guarantee the combined summary was written.</p>
+
+<p>Existing outputs are rejected by default. To replace regular output files or retry
+a batch after a partial failure, pass <code>--overwrite</code>:</p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>graphomotor<span class="w"> </span>extract-trails<span class="w"> </span>/path/to/trails/<span class="w"> </span>/path/to/existing_output_directory/<span class="w"> </span>--overwrite
+</code></pre>
+</div>
+
+<p>Input aliases and output symlinks are always rejected. For all options, run:</p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>graphomotor<span class="w"> </span>extract-trails<span class="w"> </span>--help
+</code></pre>
+</div>
+
+<p>Trails inputs must be cleaned Curious <code>trail2</code> or <code>trail4</code> CSVs. Names must start
+with a bracketed seven-digit participant ID beginning with <code>5</code> and end with the
+task after the final hyphen, for example <code>[5000000]example-trail2.csv</code> or
+<code>[5000000]example-trail4.csv</code>. The CSV must contain:</p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>line_number, x, y, UTC_Timestamp, seconds, epoch_time_in_seconds_start,
+error, correct_path, actual_path, total_time, total_number_of_errors
+</code></pre>
+</div>
+
+<p><code>actual_path</code> values use Curious's <code>start ~ end</code> format. Timestamps must already
+be unique and sampling uniform; the reader assumes these conditions rather than
+validating or preprocessing them. See the <a href="#trails-python-entry-point">Trails Python entry point</a>
+for the output and calculation contract.</p>
 
 <h4 id="python-library-usage-for-feature-extraction">Python Library Usage for Feature Extraction</h4>
 
@@ -503,7 +579,7 @@ writer per output directory.</li>
 <li><strong>trails-responses-{date}.zip</strong>: A ZIP archive with raw trail making response CSV files (if there are any) for each participant (e.g., <code>trails-responses-Mon May 29 2023.zip</code>).</li>
 </ul>
 
-<p>For Spiral tasks, the toolkit uses only the CSV files from the drawing responses ZIP. Support for additional tasks will be added in future releases.</p>
+<p>For Spiral tasks, the toolkit uses only the CSV files from the drawing responses ZIP. The Trails entry points accept cleaned Curious <code>trail2</code> and <code>trail4</code> CSVs as described in <a href="#cli-usage-for-feature-extraction">CLI Usage for Feature Extraction</a>.</p>
 
 <h3 id="file-naming-convention">File Naming Convention</h3>
 
