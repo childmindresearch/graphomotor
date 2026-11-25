@@ -8,9 +8,11 @@ can group repeated paths.
 
 import dataclasses
 import pathlib
+import sys
 import tempfile
 
 import pandas as pd
+from rich import console, markup, progress
 
 from graphomotor.core import config, models
 from graphomotor.features import shared_features
@@ -283,31 +285,49 @@ def _process_directory(
     segment_frames: list[pd.DataFrame] = []
     participant_frames: list[pd.DataFrame] = []
     failures: dict[pathlib.Path, str] = {}
-    for file_index, path in enumerate(inputs, 1):
-        _LOGGER.debug("Processing file %d/%d: %s", file_index, len(inputs), path.name)
-        try:
-            segment_df, participant_df = _process_file(
-                path, destination / f"{path.stem}_output.csv", overwrite
+    stderr_console = console.Console(stderr=True)
+    with progress.Progress(
+        progress.SpinnerColumn(),
+        progress.TextColumn("[progress.description]{task.description}"),
+        progress.BarColumn(),
+        progress.TaskProgressColumn(),
+        console=stderr_console,
+        disable=not sys.stderr.isatty(),
+    ) as display:
+        directory_name = source.name or source.resolve().name or source.resolve().anchor
+        task = display.add_task(
+            f"Processing files in {markup.escape(directory_name)}", total=len(inputs)
+        )
+        for file_index, path in enumerate(inputs, 1):
+            _LOGGER.debug(
+                "Processing file %d/%d: %s", file_index, len(inputs), path.name
             )
-            segment_frames.append(segment_df)
-            participant_frames.append(participant_df)
-        except Exception as exc:
-            failures[path.resolve()] = f"{type(exc).__name__}: {exc}"
-            _LOGGER.error("Failed to process %s: %s", path.name, exc)
+            try:
+                segment_df, participant_df = _process_file(
+                    path, destination / f"{path.stem}_output.csv", overwrite
+                )
+                segment_frames.append(segment_df)
+                participant_frames.append(participant_df)
+            except Exception as exc:
+                failures[path.resolve()] = f"{type(exc).__name__}: {exc}"
+                _LOGGER.error("Failed to process %s: %s", path.name, exc)
+            display.advance(task)
 
-    if not participant_frames:
-        details = "; ".join(f"{path.name}: {error}" for path, error in failures.items())
-        raise ValueError(f"Could not extract features from any file: {details}")
-    segments = pd.concat(segment_frames, ignore_index=True)
-    participants = pd.concat(participant_frames, ignore_index=True)
-    _LOGGER.debug("Writing directory summary CSV: %s", summary_path)
-    _write_csvs({summary_path: participants}, overwrite)
-    _LOGGER.debug(
-        "Trails directory processing complete: %d succeeded, %d failed",
-        len(participant_frames),
-        len(failures),
-    )
-    return TrailsResult(segments, participants, failures)
+        if not participant_frames:
+            details = "; ".join(
+                f"{path.name}: {error}" for path, error in failures.items()
+            )
+            raise ValueError(f"Could not extract features from any file: {details}")
+        segments = pd.concat(segment_frames, ignore_index=True)
+        participants = pd.concat(participant_frames, ignore_index=True)
+        _LOGGER.debug("Writing directory summary CSV: %s", summary_path)
+        _write_csvs({summary_path: participants}, overwrite)
+        _LOGGER.debug(
+            "Trails directory processing complete: %d succeeded, %d failed",
+            len(participant_frames),
+            len(failures),
+        )
+        return TrailsResult(segments, participants, failures)
 
 
 def run_pipeline(

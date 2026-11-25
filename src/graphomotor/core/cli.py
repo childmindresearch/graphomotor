@@ -6,7 +6,7 @@ import typing
 
 import typer
 
-from graphomotor.core import config, spiral_orchestrator
+from graphomotor.core import config, spiral_orchestrator, trails_orchestrator
 from graphomotor.plot import feature_plots, spiral_plots
 
 logger = config.get_logger()
@@ -218,6 +218,52 @@ def extract_spiral(
     except Exception as e:
         typer.secho(f"Error: {e}", fg="red", err=True)
         raise
+
+
+@app.command(
+    name="extract-trails",
+    help=(
+        "Extract features from trail2 and trail4 drawing data. "
+        "Supports single-file and batch (directory) processing."
+    ),
+)
+def extract_trails(
+    input_path: typing.Annotated[
+        pathlib.Path,
+        typer.Argument(help="Path to a Trails CSV file or directory of CSV files."),
+    ],
+    output_path: typing.Annotated[
+        pathlib.Path | None,
+        typer.Argument(
+            help=(
+                "Output CSV filename for a single file, or existing output directory "
+                "for a batch. Defaults to writing beside the input(s)."
+            ),
+        ),
+    ] = None,
+    overwrite: typing.Annotated[
+        bool,
+        typer.Option("--overwrite", help="Replace existing regular output files."),
+    ] = False,
+) -> None:
+    """Extract features from Trails drawing data."""
+    logger.debug(f"Running Graphomotor pipeline with these arguments: {locals()}")
+    try:
+        result = trails_orchestrator.run_pipeline(
+            input_path=input_path, output_path=output_path, overwrite=overwrite
+        )
+    except Exception as e:
+        typer.secho(f"Error: {e}", fg="red", err=True)
+        raise
+
+    if result.failures:
+        typer.secho(
+            f"Trails recordings: {len(result.participants)} succeeded, "
+            f"{len(result.failures)} failed",
+            fg="red",
+            err=True,
+        )
+        raise typer.Exit(1)
 
 
 @app.command(

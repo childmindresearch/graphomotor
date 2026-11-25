@@ -1,10 +1,14 @@
 """Tests for Trails feature inclusion, dispatch, provenance and CSV safety."""
 
+import io
 import logging
 import pathlib
+import sys
+import types
 
 import pandas as pd
 import pytest
+from rich import progress
 
 from graphomotor.core import config, trails_orchestrator
 
@@ -187,6 +191,195 @@ def test_directory_continues_and_reports_failures(
     saved = pd.read_csv(destination / "directory_summary_statistics.csv")
     assert list(saved.columns) == list(result.participants.columns)
     assert len(saved) == len(result.participants)
+
+
+class _RecordingProgress(progress.Progress):
+    """Observe lifecycle while retaining Rich rendering and task behavior."""
+
+    exit_active: bool = False
+    exit_exception: type[BaseException] | None = None
+
+    def __enter__(self) -> "_RecordingProgress":
+        super().__enter__()
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: types.TracebackType | None,
+    ) -> None:
+        self.exit_active = self.live.is_started
+        self.exit_exception = exc_type
+        super().__exit__(exc_type, exc_value, traceback)
+
+
+@pytest.fixture
+def recorded_progress(monkeypatch: pytest.MonkeyPatch) -> list[_RecordingProgress]:
+    """Record actual Rich progress instances and context exit state."""
+    instances: list[_RecordingProgress] = []
+
+    class RecordingProgress(_RecordingProgress):
+        """Record each entered progress context."""
+
+        def __enter__(self) -> "RecordingProgress":
+            instances.append(self)
+            super().__enter__()
+            return self
+
+    monkeypatch.setattr(progress, "Progress", RecordingProgress)
+    return instances
+
+
+@pytest.mark.parametrize("interactive", [False, True])
+def test_directory_progress_renderer_and_attempts(
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+    recorded_progress: list[_RecordingProgress],
+    interactive: bool,
+) -> None:
+    """Render a safe directory label on stderr and count eligible attempts."""
+
+    class Stderr(io.StringIO):
+        def isatty(self) -> bool:
+            return interactive
+
+    stderr = Stderr()
+    monkeypatch.setattr(sys, "stderr", stderr)
+    source = tmp_path / "[red]a {x}"
+    source.mkdir()
+    good = _input(source / "[5000000]good-trail2.csv")
+    bad = source / "[5000001]bad-trail4.csv"
+    bad.write_text("broken\n1\n", encoding="utf-8")
+    (source / "ignored.csv").write_text("broken", encoding="utf-8")
+    nested = source / "nested-trail2.csv"
+    nested.mkdir()
+    _input(nested / "[5000002]nested-trail2.csv")
+    attempts: list[tuple[str, float]] = []
+    original_process = trails_orchestrator._process_file
+
+    def process_file(
+        path: pathlib.Path, output: pathlib.Path | None, overwrite: bool
+    ) -> tuple[pd.DataFrame, pd.DataFrame]:
+        attempts.append((path.name, recorded_progress[0].tasks[0].completed))
+        return original_process(path, output, overwrite)
+
+    monkeypatch.setattr(trails_orchestrator, "_process_file", process_file)
+
+    result = trails_orchestrator.run_pipeline(source)
+
+    assert len(recorded_progress) == 1
+    renderer = recorded_progress[0]
+    assert [type(column) for column in renderer.columns] == [
+        progress.SpinnerColumn,
+        progress.TextColumn,
+        progress.BarColumn,
+        progress.TaskProgressColumn,
+    ]
+    assert renderer.console.file is stderr
+    assert renderer.disable is not interactive
+    assert len(renderer.tasks) == 1
+    task = renderer.tasks[0]
+    assert task.total == 2
+    assert task.completed == 2
+    assert attempts == [(good.name, 0), (bad.name, 1)]
+    text_column = renderer.columns[1]
+    assert isinstance(text_column, progress.TextColumn)
+    assert text_column.text_format == "[progress.description]{task.description}"
+    assert text_column.render(task).plain == f"Processing files in {source.name}"
+    assert ("Processing files in " in stderr.getvalue()) is interactive
+    assert result.participants["source_file"].tolist() == [str(good.resolve())]
+    assert set(result.failures) == {bad.resolve()}
+    assert (source / "directory_summary_statistics.csv").is_file()
+
+
+def test_single_file_never_starts_progress(
+    tmp_path: pathlib.Path, recorded_progress: list[_RecordingProgress]
+) -> None:
+    """A single recording does not create a progress context."""
+    trails_orchestrator.run_pipeline(_input(tmp_path / "[5000000]good-trail2.csv"))
+    assert not recorded_progress
+
+
+def test_current_directory_progress_uses_directory_name(
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+    recorded_progress: list[_RecordingProgress],
+) -> None:
+    """The current-directory shorthand still has a meaningful display name."""
+    _input(tmp_path / "[5000000]good-trail2.csv")
+    monkeypatch.chdir(tmp_path)
+    trails_orchestrator.run_pipeline(".")
+    renderer = recorded_progress[0]
+    text_column = renderer.columns[1]
+    assert isinstance(text_column, progress.TextColumn)
+    assert text_column.render(renderer.tasks[0]).plain == (
+        f"Processing files in {tmp_path.name}"
+    )
+
+
+@pytest.mark.parametrize("failure", ["no inputs", "summary collision"])
+def test_invalid_directory_does_not_start_progress(
+    tmp_path: pathlib.Path,
+    recorded_progress: list[_RecordingProgress],
+    failure: str,
+) -> None:
+    """Input discovery and summary validation happen before progress starts."""
+    if failure == "summary collision":
+        _input(tmp_path / "[5000000]good-trail2.csv")
+        (tmp_path / "directory_summary_statistics.csv").write_text(
+            "keep", encoding="utf-8"
+        )
+    with pytest.raises(ValueError if failure == "no inputs" else FileExistsError):
+        trails_orchestrator.run_pipeline(tmp_path)
+    assert not recorded_progress
+
+
+@pytest.mark.parametrize("failure", ["all", "summary"])
+def test_progress_remains_active_until_failure_and_cleans_up(
+    tmp_path: pathlib.Path,
+    monkeypatch: pytest.MonkeyPatch,
+    recorded_progress: list[_RecordingProgress],
+    failure: str,
+) -> None:
+    """All-failed and summary exceptions exit the live context after attempts."""
+
+    class Stderr(io.StringIO):
+        def isatty(self) -> bool:
+            return True
+
+    monkeypatch.setattr(sys, "stderr", Stderr())
+    source = tmp_path / "[5000000]example-trail2.csv"
+    if failure == "all":
+        source.write_text("broken\n1\n", encoding="utf-8")
+    else:
+        _input(source)
+        original_write = trails_orchestrator._write_csvs
+
+        def fail_summary(
+            outputs: dict[pathlib.Path, pd.DataFrame], overwrite: bool
+        ) -> None:
+            if next(iter(outputs)).name == "directory_summary_statistics.csv":
+                assert recorded_progress[0].live.is_started
+                assert recorded_progress[0].tasks[0].completed == 1
+                raise OSError("summary failed")
+            original_write(outputs, overwrite)
+
+        monkeypatch.setattr(trails_orchestrator, "_write_csvs", fail_summary)
+
+    expected = ValueError if failure == "all" else OSError
+    with pytest.raises(expected):
+        trails_orchestrator.run_pipeline(tmp_path)
+    assert len(recorded_progress) == 1
+    renderer = recorded_progress[0]
+    assert renderer.tasks[0].total == renderer.tasks[0].completed == 1
+    assert renderer.exit_active
+    assert renderer.exit_exception is expected
+    assert not renderer.live.is_started
+    assert not (tmp_path / "directory_summary_statistics.csv").exists()
+    if failure == "summary":
+        assert (tmp_path / f"{source.stem}_output.csv").is_file()
+        assert (tmp_path / f"{source.stem}_output_segments.csv").is_file()
 
 
 @pytest.mark.parametrize("contents", ["empty", "unsupported", "nested"])
